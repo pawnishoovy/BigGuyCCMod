@@ -15,6 +15,7 @@ function Create(self)
 	self.reflectionFarSound = CreateSoundContainer("Reflection Far HYPBORMinigun", "Massive.rte");
 	self.reflectionIntenseSound = CreateSoundContainer("Reflection Intense HYPBORMinigun", "Massive.rte");
 	self.reflectionIntenseIndoorsSound = CreateSoundContainer("Reflection Intense Indoors HYPBORMinigun", "Massive.rte");
+	self.reflectionSatisfyingSound = CreateSoundContainer("Reflection Satisfying HYPBORMinigun", "Massive.rte");
 	
 	self.reloadPrepareSounds = {}
 	self.reloadPrepareSounds.Raise = CreateSoundContainer("Raise Prepare HYPBORMinigun", "Massive.rte");
@@ -372,7 +373,7 @@ function Update(self)
 		if self.Firing == true then
 			self.Firing = false;
 			self.spinLoopSound:FadeOut(30);
-			self.ambientLoopSound:FadeOut(30);
+			self.ambientLoopSound:FadeOut(150);
 			self.ambientIntenseLoopSound:FadeOut(30)
 			self.fireLoopFarSound:FadeOut(30);
 			self.spinDownSound:Play(self.Pos);
@@ -413,10 +414,14 @@ function Update(self)
 				end
 			end
 			
+			self.reflectionSatisfyingSound.Volume = math.max(0.8, self.ambientIntenseLoopSound.Volume);
+			self.reflectionSatisfyingSound.Pitch = 1.0 - (0.1*(self.ambientIntenseLoopSound.Volume));
+			
 			if outdoorRays >= self.rayThreshold then
 				self.reflectionIntenseSound:Play(self.Pos);
 				self.reflectionCloseSound:Play(self.Pos);
 				self.reflectionFarSound:Play(self.Pos);
+				self.reflectionSatisfyingSound:Play(self.Pos);
 			else
 				self.reflectionIntenseIndoorsSound:Play(self.Pos);
 				self.reflectionCloseIndoorsSound:Play(self.Pos);
@@ -424,7 +429,7 @@ function Update(self)
 		end
 	elseif fire == true then
 	
-		self.shakenessParticle.Pos = self.Pos;
+		self.shakenessParticle.Pos = self.MuzzlePos;
 	
 		if self.ambientIntenseLoopSound.Volume < 1 then
 			self.ambientIntenseLoopSound.Volume = self.ambientIntenseLoopSound.Volume + 0.2 * TimerMan.DeltaTimeSecs;
@@ -493,10 +498,14 @@ function Update(self)
 	end
 	
 	if self.FiredFrame then -- lag code, can't enjoy the game too much now can we
+	
+		if self.RoundInMagCount == 0 then
+			self.beltRemoved = true;
+		end
 		
 		-- Ground Smoke
 		local maxi = 7
-		for i = 1, math.floor(maxi*self.ambientIntenseLoopSound.Volume) do
+		for i = 1, math.max(math.floor(maxi*self.ambientIntenseLoopSound.Volume), 2) do
 			
 			local effect = CreateMOSRotating("Ground Smoke Particle HYPBORMinigun", "Massive.rte")
 			effect.Pos = self.MuzzlePos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
@@ -508,7 +517,7 @@ function Update(self)
 		
 		local xSpread = 0
 		
-		local smokeAmount = math.max(3, math.floor(10*self.ambientIntenseLoopSound.Volume))
+		local smokeAmount = math.max(3, math.floor(20*self.ambientIntenseLoopSound.Volume))
 		local particleSpread = math.max(5, math.floor(15*self.ambientIntenseLoopSound.Volume))
 		
 		local smokeLingering = math.sqrt(smokeAmount / 8) * 1
@@ -522,6 +531,23 @@ function Update(self)
 			local particle = CreateMOSParticle((math.random() * particleSpread) < 6.5 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
 			particle.Pos = self.MuzzlePos
 			particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
+			particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
+			particle.AirThreshold = particle.AirThreshold * 0.5
+			particle.GlobalAccScalar = 0
+			MovableMan:AddParticle(particle);
+		end
+		
+		-- Muzzle side smoke
+		for i = 1, math.ceil(smokeAmount / (math.random(4,6))) do
+			local vel = Vector(110 * self.FlipFactor,0):RadRotate(self.RotAngle)
+			
+			local xSpreadVec = Vector(xSpread * self.FlipFactor * math.random() * -1, 0):RadRotate(self.RotAngle)
+			
+			local particle = CreateMOSParticle("Tiny Smoke Ball 1");
+			particle.Pos = self.MuzzlePos + xSpreadVec
+			-- oh LORD
+			particle.Vel = self.Vel + ((Vector(vel.X, vel.Y):RadRotate(math.pi * (math.random(0,1) * 2.0 - 1.0) * 0.5 + math.pi * RangeRand(-1, 1) * 0.15) * RangeRand(0.1, 0.9) * 0.3 + Vector(vel.X, vel.Y):RadRotate(math.pi * RangeRand(-1, 1) * 0.15) * RangeRand(0.1, 0.9) * 0.2) * 0.5) * smokeVelocity;
+			-- have mercy
 			particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
 			particle.AirThreshold = particle.AirThreshold * 0.5
 			particle.GlobalAccScalar = 0
@@ -569,6 +595,7 @@ function Update(self)
 		self.fireOneSound:Play(self.Pos);
 		self.spinLoopSound.Volume = 1;
 		self.spinLoopSound:Play(self.Pos);
+		self.ambientLoopSound:Stop(-1);
 		self.ambientLoopSound.Volume = 1;
 		self.ambientLoopSound:Play(self.Pos);
 		self.ambientIntenseLoopSound.Volume = 0;
@@ -618,7 +645,7 @@ function Update(self)
 		self.fireLoopFarSound:Play(self.Pos);
 		
 		local shakenessParticle = CreateMOPixel("Shakeness Particle HYPBORMinigun", "Massive.rte");
-		shakenessParticle.Pos = self.Pos;
+		shakenessParticle.Pos = self.MuzzlePos;
 		self.shakenessParticle = shakenessParticle;
 		MovableMan:AddParticle(shakenessParticle);
 		
