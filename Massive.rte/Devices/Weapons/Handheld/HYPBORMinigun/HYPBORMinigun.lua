@@ -8,6 +8,7 @@ function Create(self)
 	self.ambientIntenseLoopSound = CreateSoundContainer("Ambient Intense Loop HYPBORMinigun", "Massive.rte");
 	
 	self.fireLoopFarSound = CreateSoundContainer("Fire Loop Far HYPBORMinigun", "Massive.rte");
+	self.fireLoopIndoorsSound = CreateSoundContainer("Fire Loop Indoors HYPBORMinigun", "Massive.rte");
 	self.fireOneSound = CreateSoundContainer("Fire One HYPBORMinigun", "Massive.rte");
 	
 	self.reflectionCloseSound = CreateSoundContainer("Reflection Close HYPBORMinigun", "Massive.rte");
@@ -105,6 +106,7 @@ function Update(self)
 	self.spinDownSound.Pos = self.Pos;
 	self.ambientLoopSound.Pos = self.Pos;
 	self.fireLoopFarSound.Pos = self.Pos;
+	self.fireLoopIndoorsSound.Pos = self.Pos;
 
 	if self:GetRootParent().UniqueID == self.UniqueID then
 		self.parent = nil;
@@ -374,6 +376,7 @@ function Update(self)
 			self.ambientLoopSound:FadeOut(150);
 			self.ambientIntenseLoopSound:FadeOut(30)
 			self.fireLoopFarSound:FadeOut(30);
+			self.fireLoopIndoorsSound:FadeOut(30);
 			self.spinDownSound:Play(self.Pos);
 			self.reflectionIntenseSound.Volume = self.ambientIntenseLoopSound.Volume;
 			self.reflectionIntenseIndoorsSound.Volume = self.ambientIntenseLoopSound.Volume;
@@ -447,6 +450,18 @@ function Update(self)
 			self.fireLoopFarSound.Volume = self.fireLoopFarSound.Volume + 0.2 * TimerMan.DeltaTimeSecs;
 			if self.fireLoopFarSound.Volume > 1 then
 				self.fireLoopFarSound.Volume = 1;
+			end
+		end
+		
+		if self.Environment == 0 and self.fireLoopIndoorsSound.Volume > 0 then
+			self.fireLoopIndoorsSound.Volume = self.fireLoopIndoorsSound.Volume - 0.2 * TimerMan.DeltaTimeSecs;
+			if self.fireLoopIndoorsSound.Volume < 0 then
+				self.fireLoopIndoorsSound.Volume = 0;
+			end
+		elseif self.Environment == 1 and self.fireLoopIndoorsSound.Volume < 1 then
+			self.fireLoopIndoorsSound.Volume = self.fireLoopIndoorsSound.Volume + 0.2 * TimerMan.DeltaTimeSecs;
+			if self.fireLoopIndoorsSound.Volume > 1 then
+				self.fireLoopIndoorsSound.Volume = 1;
 			end
 		end
 		if self.environmentCheckTimer:IsPastSimMS(self.environmentCheckDelay) then
@@ -637,11 +652,14 @@ function Update(self)
 		if outdoorRays >= self.rayThreshold then
 			self.Environment = 0;
 			self.fireLoopFarSound.Volume = 1;
+			self.fireLoopIndoorsSound.Volume = 0;
 		else
 			self.Environment = 1;
 			self.fireLoopFarSound.Volume = 0;
+			self.fireLoopIndoorsSound.Volume = 1;
 		end
 		self.fireLoopFarSound:Play(self.Pos);
+		self.fireLoopIndoorsSound:Play(self.Pos);
 		
 		local shakenessParticle = CreateMOPixel("Shakeness Particle HYPBORMinigun", "Massive.rte");
 		shakenessParticle.Pos = self.MuzzlePos;
@@ -703,6 +721,7 @@ function OnDetach(self)
 		self.ambientLoopSound:FadeOut(150);
 		self.ambientIntenseLoopSound:FadeOut(30)
 		self.fireLoopFarSound:FadeOut(30);
+		self.fireLoopIndoorsSound:FadeOut(30);
 		self.spinDownSound:Play(self.Pos);
 		self.reflectionIntenseSound.Volume = self.ambientIntenseLoopSound.Volume;
 		self.reflectionIntenseIndoorsSound.Volume = self.ambientIntenseLoopSound.Volume;

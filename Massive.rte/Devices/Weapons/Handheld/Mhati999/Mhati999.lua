@@ -278,7 +278,7 @@ function Update(self)
 				
 					self.beltInserted = true;
 		
-				elseif self.reloadPhase == 4 then
+				elseif self.reloadPhase == 5 then
 				
 					self.coverClosed = true;
 					
@@ -525,6 +525,7 @@ function Update(self)
 		if outdoorRays >= self.rayThreshold then
 			self.oldNoise:FadeOut(150);
 			local sound = self.noiseOutdoorsSound;
+			sound.Volume = 1 - self.satisfyingVolume / 3;
 			sound:Play(self.Pos);
 			self.oldNoise = sound;
 			

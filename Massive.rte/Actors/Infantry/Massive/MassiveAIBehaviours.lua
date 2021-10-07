@@ -432,13 +432,13 @@ function MassiveAIBehaviours.handleHealth(self)
 						-- if d < 300 then
 							-- local strength = SceneMan:CastStrengthSumRay(self.Pos, actor.Pos, 0, 128);
 							-- if strength < 500 and math.random(1, 100) < 65 then
-								-- actor:SetNumberValue("Scrappers Friendly Down", self.Gender)
+								-- actor:SetNumberValue("Massive Friendly Down", self.Gender)
 								-- break;  -- first come first serve
 							-- else
 								-- if IsAHuman(actor) and actor.Head then -- if it is a human check for head
 									-- local strength = SceneMan:CastStrengthSumRay(self.Pos, ToAHuman(actor).Head.Pos, 0, 128);	
 									-- if strength < 500 and math.random(1, 100) < 65 then		
-										-- actor:SetNumberValue("Scrappers Friendly Down", self.Gender)
+										-- actor:SetNumberValue("Massive Friendly Down", self.Gender)
 										-- break; -- first come first serve
 									-- end
 								-- end
@@ -609,13 +609,13 @@ function MassiveAIBehaviours.handleAITargetLogic(self)
 				-- Target spotted
 				--local posDifference = SceneMan:ShortestDistance(self.Pos,self.AI.Target.Pos,SceneMan.SceneWrapsX)
 				
-				if not self.AI.Target:NumberValueExists("Scrappers Enemy Spotted Age") or -- If no timer exists
-				self.AI.Target:GetNumberValue("Scrappers Enemy Spotted Age") < (self.AI.Target.Age - self.AI.Target:GetNumberValue("Scrappers Enemy Spotted Delay")) or -- If the timer runs out of time limit
+				if not self.AI.Target:NumberValueExists("Massive Enemy Spotted Age") or -- If no timer exists
+				self.AI.Target:GetNumberValue("Massive Enemy Spotted Age") < (self.AI.Target.Age - self.AI.Target:GetNumberValue("Massive Enemy Spotted Delay")) or -- If the timer runs out of time limit
 				math.random(0, 100) < self.spotIgnoreDelayChance -- Small chance to ignore timers, to spice things up
 				then
 					-- Setup the delay timer
-					self.AI.Target:SetNumberValue("Scrappers Enemy Spotted Age", self.AI.Target.Age)
-					self.AI.Target:SetNumberValue("Scrappers Enemy Spotted Delay", math.random(self.spotDelayMin, self.spotDelayMax))
+					self.AI.Target:SetNumberValue("Massive Enemy Spotted Age", self.AI.Target.Age)
+					self.AI.Target:SetNumberValue("Massive Enemy Spotted Delay", math.random(self.spotDelayMin, self.spotDelayMax))
 					
 					self.spotAllowed = false;
 				
@@ -628,8 +628,8 @@ function MassiveAIBehaviours.handleAITargetLogic(self)
 				end
 			else
 				-- Refresh the delay timer
-				if self.AI.Target:NumberValueExists("Scrappers Enemy Spotted Age") then
-					self.AI.Target:SetNumberValue("Scrappers Enemy Spotted Age", self.AI.Target.Age)
+				if self.AI.Target:NumberValueExists("Massive Enemy Spotted Age") then
+					self.AI.Target:SetNumberValue("Massive Enemy Spotted Age", self.AI.Target.Age)
 				end
 			end
 		end
@@ -714,10 +714,13 @@ function MassiveAIBehaviours.handleVoicelines(self)
 		MovableMan:AddParticle(shakenessParticle);
 		
 	elseif not self.warCryTimer:IsPastSimMS(7000) then
+		self.accelerationFactor = 0.5;
 		if self.Health < self.warCryOldHealth then
 			self.Health = self.Health + ((self.warCryOldHealth - self.Health) / 2);
 			self.warCryOldHealth = self.Health;
 		end
+	else
+		self.accelerationFactor = 0.1;
 	end
 	
 	if self:NumberValueExists("Mordhau Arrow Suppression") then
@@ -756,7 +759,7 @@ function MassiveAIBehaviours.handleVoicelines(self)
 			local gunMag = gun.Magazine
 			local reloading = gun:IsReloading();
 			
-			if self.EquippedItem:IsInGroup("Weapons - Primary") and not ToMOSRotating(self.EquippedItem):NumberValueExists("Weapons - Massive Melee") then
+			if self.EquippedItem:IsInGroup("Weapons - Primary") and not ToMOSRotating(self.EquippedItem):NumberValueExists("Weapons - Mordhau Melee") then
 				
 				if gun.FullAuto == true and gunMag and gunMag.Capacity > 40  and gun:IsActivated() then
 					if gun.FiredFrame then
@@ -770,7 +773,7 @@ function MassiveAIBehaviours.handleVoicelines(self)
 					self.gunShotCounter = 0;
 				end			
 				
-			elseif (self.EquippedItem:IsInGroup("Weapons - Massive Melee") or ToMOSRotating(self.EquippedItem):NumberValueExists("Weapons - Massive Melee")) then
+			elseif (self.EquippedItem:IsInGroup("Weapons - Mordhau Melee") or ToMOSRotating(self.EquippedItem):NumberValueExists("Weapons - Mordhau Melee")) then
 				if self:NumberValueExists("Block Foley") then
 					self:RemoveNumberValue("Block Foley");
 					self.movementSounds.AttackLight:Play(self.Pos);
@@ -855,15 +858,15 @@ function MassiveAIBehaviours.handleVoicelines(self)
 	-- the dying actor actually lets us know whether to play a voiceline through 1-time detection and value-setting.
 	-- 0 = male, 1 = female
 	
-	-- if self:NumberValueExists("Scrappers Friendly Down") then
+	-- if self:NumberValueExists("Massive Friendly Down") then
 		-- self.Suppression = self.Suppression + 25;
 		-- if self.friendlyDownTimer:IsPastSimMS(self.friendlyDownDelay) then
-			-- local Sounds = self:GetNumberValue("Scrappers Friendly Down") == 0 and self.voiceSounds.maleDown or self.voiceSounds.femaleDown;
+			-- local Sounds = self:GetNumberValue("Massive Friendly Down") == 0 and self.voiceSounds.maleDown or self.voiceSounds.femaleDown;
 			
 			-- MassiveAIBehaviours.createVoiceSoundEffect(self, Sounds, 4, 4, true);		
 			-- self.friendlyDownTimer:Reset();
 		-- end
-		-- self:RemoveNumberValue("Scrappers Friendly Down")
+		-- self:RemoveNumberValue("Massive Friendly Down")
 	-- end	
 end
 
@@ -912,13 +915,13 @@ function MassiveAIBehaviours.handleDying(self)
 					-- if d < 300 then
 						-- local strength = SceneMan:CastStrengthSumRay(self.Pos, actor.Pos, 0, 128);
 						-- if strength < 500 and math.random(1, 100) < 65 then
-							-- actor:SetNumberValue("Scrappers Friendly Down", self.Gender)
+							-- actor:SetNumberValue("Massive Friendly Down", self.Gender)
 							-- break;  -- first come first serve
 						-- else
 							-- if IsAHuman(actor) and actor.Head then -- if it is a human check for head
 								-- local strength = SceneMan:CastStrengthSumRay(self.Pos, ToAHuman(actor).Head.Pos, 0, 128);	
 								-- if strength < 500 and math.random(1, 100) < 65 then		
-									-- actor:SetNumberValue("Scrappers Friendly Down", self.Gender)
+									-- actor:SetNumberValue("Massive Friendly Down", self.Gender)
 									-- break; -- first come first serve
 								-- end
 							-- end
@@ -976,6 +979,7 @@ function MassiveAIBehaviours.handleRagdoll(self)
 			self.ragdollTerrainImpactDelay = math.random(200, 500)
 			self.ragdollTerrainImpactTimer:Reset()
 			if self.TravelImpulse.Magnitude > self.ImpulseDamageThreshold then
+				self.movementSounds.BassLayer:Play(self.Pos);
 				self.movementSounds.FallDamage:Play(self.Pos);
 				self.movementSounds.FoleyTerrainImpact:Play(self.Pos);
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
@@ -984,6 +988,7 @@ function MassiveAIBehaviours.handleRagdoll(self)
 				shakenessParticle.Lifetime = 1000;
 				MovableMan:AddParticle(shakenessParticle);
 			elseif self.TravelImpulse.Magnitude > self.ImpulseDamageThreshold/2 then
+				self.movementSounds.BassLayer:Play(self.Pos);
 				self.movementSounds.FoleyTerrainImpact:Play(self.Pos);
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.Pos;
@@ -1018,6 +1023,100 @@ function MassiveAIBehaviours.handleHeadFrames(self)
 		end
 	end
 
+end
+
+function MassiveAIBehaviours.DoArmSway(self, pushStrength)
+	local aimAngle = self:GetAimAngle(false);
+	if self.Status == Actor.STABLE and self.lastHandPos then
+		--Flail around if aiming around too fast
+		local angleMovement = self.lastAngle - aimAngle;
+		self.AngularVel = self.AngularVel - (2 * angleMovement * self.FlipFactor)/(math.abs(self.AngularVel) * 0.1 + 1);
+		--Shove when unarmed
+		if self.controller:IsState(Controller.WEAPON_FIRE) and (self.FGArm or self.BGArm) and not (self.EquippedItem or self.EquippedBGItem) then
+			self.AngularVel = self.AngularVel/(self.shoved and 1.3 or 3) + (aimAngle - self.RotAngle * self.FlipFactor - 1.57) * (self.shoved and 0.3 or 3) * self.FlipFactor/(1 + math.abs(self.RotAngle));
+			if not self.shoved then
+				MassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.AttackGrunt, 3, 3);
+				self.Vel = self.Vel + Vector(2/(1 + self.Vel.Magnitude), 0):RadRotate(self:GetAimAngle(true)) * math.abs(math.cos(self:GetAimAngle(true)));
+				self.shoved = true;
+			end
+		else
+			self.shoved = false;
+		end
+		local shove = {};
+		local armPairs = {{self.FGArm, self.FGLeg, self.BGLeg}, {self.BGArm, self.BGLeg, self.FGLeg}};
+		for i = 1, #armPairs do
+			local arm = armPairs[i][1];
+			if arm then
+				arm = ToArm(arm);
+				
+				local armLength = arm.MaxLength;
+				local rotAng = self.RotAngle - (1.57 * self.FlipFactor);
+				local legMain = armPairs[i][2];
+				local legAlt = armPairs[i][3];
+				
+				if self.controller:IsState(Controller.MOVE_LEFT) or self.controller:IsState(Controller.MOVE_RIGHT) then
+					rotAng = (legAlt and legAlt.RotAngle) or (legMain and (-legMain.RotAngle + math.pi) or rotAng);
+				elseif legMain then
+					rotAng = legMain.RotAngle;
+				end
+				--Flail arms in tandem with leg movement or raise them them up for a push if aiming
+				if self.controller:IsState(Controller.AIM_SHARP) then
+					arm.IdleOffset = Vector(0, 1):RadRotate(aimAngle);
+				else
+					arm.IdleOffset = Vector(0, armLength * 0.7):RadRotate(rotAng * self.FlipFactor + 1.5 + (i * 0.2));
+				end
+				if self.shoved or (self.EquippedItem and IsTDExplosive(self.EquippedItem) and self.controller:IsState(Controller.WEAPON_FIRE)) then
+					arm.IdleOffset = Vector(armLength + (pushStrength * armLength), 0):RadRotate(aimAngle);
+					local handVector = SceneMan:ShortestDistance(self.lastHandPos[i], arm.HandPos, SceneMan.SceneWrapsX);
+					--Diminish hand relocation vector to prevent superhuman pushing powers
+					handVector:SetMagnitude(math.min(handVector.Magnitude, 1 + armLength * 0.1));
+					local armStrength = (arm.Mass + arm.Material.StructuralIntegrity * 0.5) * pushStrength;
+
+					shove.Pos = shove.Pos and shove.Pos + SceneMan:ShortestDistance(shove.Pos, arm.HandPos, SceneMan.SceneWrapsX) * 0.5 or arm.HandPos;
+					shove.Power = shove.Power and shove.Power + armStrength or armStrength;
+					shove.Vector = shove.Vector and shove.Vector + handVector * 0.5 or handVector * 0.5;
+				end
+				self.lastHandPos[i] = arm.HandPos;
+			end
+		end
+		if shove.Pos then
+			--local moCheck = SceneMan:GetMOIDPixel(shove.Pos.X + self.FlipFactor, shove.Pos.Y - 1);
+			local moCheck = SceneMan:CastMORay(shove.Pos, shove.Vector, self.ID, self.Team, rte.airID, false, shove.Vector.Magnitude - 1);
+			if moCheck ~= rte.NoMOID then
+				local mo = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
+				if mo and mo.Team ~= self.Team and IsActor(mo) then
+					if self.shoveSoundsPlayed == false then
+						self.shoveSoundsPlayed = true;
+						self.tackleImpactGenericSound:Play(self.Pos);
+						
+						local material = mo.Material.PresetName
+						if string.find(material,"Metal") or string.find(material,"Stuff") then
+							self.tackleImpactMetalActorSound:Play(mo.Pos);
+						end
+					end
+					if self.Mass > mo.Mass then
+						ToActor(mo).Status = Actor.UNSTABLE;
+						--Simulate target actor weight with an attachable
+						local weight = CreateAttachable("Null Attachable");
+						weight.Mass = mo.Mass;
+						weight.Lifetime = 1;
+						self:AddAttachable(weight);
+						local shoveVel = shove.Vector/rte.PxTravelledPerFrame;
+						mo.Vel = mo.Vel * 0.5 + shoveVel:SetMagnitude(math.min(shoveVel.Magnitude, math.sqrt(self.IndividualDiameter))) - SceneMan.GlobalAcc * GetMPP() * rte.PxTravelledPerFrame;
+						mo.AngularVel = (aimAngle - self.lastAngle) * self.FlipFactor * math.pi;
+					else
+						mo:AddForce(shove.Vector * (self.Mass * 0.5) * shove.Power, Vector());
+					end
+				end
+			end
+		else
+			self.shoveSoundsPlayed = false;
+		end
+		self.lastAngle = aimAngle;
+	else
+		self.lastAngle = aimAngle;
+		self.lastHandPos = {self.Pos, self.Pos};
+	end
 end
 
 function MassiveAIBehaviours.handleHeadLoss(self)
