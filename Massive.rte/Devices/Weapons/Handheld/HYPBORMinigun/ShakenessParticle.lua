@@ -19,8 +19,10 @@ function Update(self)
 			local actor = self.shakeTable[i];
 			if actor and IsActor(actor) then
 				actor = ToActor(actor)
+				local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
+				local distFactor = math.sqrt(1 + dist * 0.03)
 				
-				actor.ViewPoint = actor.ViewPoint + Vector(self.shake * RangeRand(-1, 1), self.shake * RangeRand(-1, 1)) * factor;
+				actor.ViewPoint = actor.ViewPoint + Vector(self.shake * RangeRand(-1, 1), self.shake * RangeRand(-1, 1)) * factor / distFactor;
 			end
 		end
 	end

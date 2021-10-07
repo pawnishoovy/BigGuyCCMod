@@ -93,8 +93,6 @@ function Create(self)
 	self.fireDelayTimer = Timer()
 	
 	self.activated = false
-	
-	self.shake = 100;
 
 end
 
@@ -505,11 +503,12 @@ function Update(self)
 		
 		-- Ground Smoke
 		local maxi = 7
-		for i = 1, math.max(math.floor(maxi*self.ambientIntenseLoopSound.Volume), 2) do
+		local changed = math.max(math.floor(maxi*self.ambientIntenseLoopSound.Volume), 2)
+		for i = 1, changed do
 			
 			local effect = CreateMOSRotating("Ground Smoke Particle HYPBORMinigun", "Massive.rte")
 			effect.Pos = self.MuzzlePos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
-			effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / maxi * i + RangeRand(-2,2) / maxi)
+			effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / changed * i + RangeRand(-2,2) / changed)
 			effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)
 			effect.AirResistance = effect.AirResistance * RangeRand(0.5,0.8)
 			MovableMan:AddParticle(effect)
@@ -687,5 +686,75 @@ function Update(self)
 		end
 		
 	end
+
+end
+
+function OnDetach(self)
+
+	if self.shakenessParticle then
+		self.shakenessParticle.ToDelete = true;
+		self.shakenessParticle.Lifetime = 10;
+		self.shakenessParticle = nil;
+	end
+	self.delayedFirstShot = true;
+	if self.Firing == true then
+		self.Firing = false;
+		self.spinLoopSound:FadeOut(30);
+		self.ambientLoopSound:FadeOut(150);
+		self.ambientIntenseLoopSound:FadeOut(30)
+		self.fireLoopFarSound:FadeOut(30);
+		self.spinDownSound:Play(self.Pos);
+		self.reflectionIntenseSound.Volume = self.ambientIntenseLoopSound.Volume;
+		self.reflectionIntenseIndoorsSound.Volume = self.ambientIntenseLoopSound.Volume;
+		local outdoorRays = 0;
+
+		if self.parent and self.parent:IsPlayerControlled() then
+			self.rayThreshold = 2; -- this is the first ray check to decide whether we play outdoors
+			local Vector2 = Vector(0,-700); -- straight up
+			local Vector2Left = Vector(0,-700):RadRotate(45*(math.pi/180));
+			local Vector2Right = Vector(0,-700):RadRotate(-45*(math.pi/180));			
+			local Vector2SlightLeft = Vector(0,-700):RadRotate(22.5*(math.pi/180));
+			local Vector2SlightRight = Vector(0,-700):RadRotate(-22.5*(math.pi/180));		
+			local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
+			local Vector4 = Vector(0,0); -- dont need this but is needed as an arg
+
+			self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			self.rayRight = SceneMan:CastObstacleRay(self.Pos, Vector2Right, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			self.rayLeft = SceneMan:CastObstacleRay(self.Pos, Vector2Left, Vector3, Vector4, self.RootID, self.Team, 128, 7);			
+			self.raySlightRight = SceneMan:CastObstacleRay(self.Pos, Vector2SlightRight, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			self.raySlightLeft = SceneMan:CastObstacleRay(self.Pos, Vector2SlightLeft, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			
+			self.rayTable = {self.ray, self.rayRight, self.rayLeft, self.raySlightRight, self.raySlightLeft};
+		else
+			self.rayThreshold = 1; -- has to be different for AI
+			local Vector2 = Vector(0,-700); -- straight up
+			local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
+			local Vector4 = Vector(0,0); -- dont need this but is needed as an arg		
+			self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			
+			self.rayTable = {self.ray};
+		end
+		
+		for _, rayLength in ipairs(self.rayTable) do
+			if rayLength < 0 then
+				outdoorRays = outdoorRays + 1;
+			end
+		end
+		
+		self.reflectionSatisfyingSound.Volume = math.max(0.8, self.ambientIntenseLoopSound.Volume);
+		self.reflectionSatisfyingSound.Pitch = 1.0 - (0.1*(self.ambientIntenseLoopSound.Volume));
+		
+		if outdoorRays >= self.rayThreshold then
+			self.reflectionIntenseSound:Play(self.Pos);
+			self.reflectionCloseSound:Play(self.Pos);
+			self.reflectionFarSound:Play(self.Pos);
+			self.reflectionSatisfyingSound:Play(self.Pos);
+		else
+			self.reflectionIntenseIndoorsSound:Play(self.Pos);
+			self.reflectionCloseIndoorsSound:Play(self.Pos);
+		end
+	end
+
+	self:DisableScript("Massive.rte/Devices/Weapons/Handheld/HYPBORMinigun/HYPBORMinigun.lua");
 
 end
