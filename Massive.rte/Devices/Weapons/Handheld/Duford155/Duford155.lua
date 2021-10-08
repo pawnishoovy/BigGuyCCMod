@@ -14,6 +14,8 @@ function Create(self)
 	
 	self.reflectionIndoorsSound = CreateSoundContainer("Reflection Indoors Duford155", "Massive.rte");
 	
+	self.artilleryConfirmSound = CreateSoundContainer("Artillery Confirm Duford155", "Massive.rte");
+	
 	self.reloadPrepareSounds = {}
 	self.reloadPrepareSounds.Raise = CreateSoundContainer("Raise Prepare Duford155", "Massive.rte");
 	self.reloadPrepareSounds.Open = CreateSoundContainer("Open Prepare Duford155", "Massive.rte");
@@ -285,25 +287,33 @@ function Update(self)
 		self:RemoveNumberValue("Enter Artillery Mode");
 		if self.artilleryModeEnabled ~= true then
 		
-			self.antiFireHold = true;
+			if self.RoundInMagCount == 1 then
 		
-			self.artilleryPos = nil;
-			self.artilleryOriginPos = Vector(self.Pos.X, self.Pos.Y);
-		
-			self.artilleryModeEnabled = true;
-			-- this is MEGA ANNOYING
-			-- guns are in the wrong update order to affect the viewpoint of actors
-			-- we need to spawn a viewpoint handler particle instead, which is in the right update order
-			local viewpointHandler = CreateMOPixel("Viewpoint Handler Duford155", "Massive.rte");
-			viewpointHandler.Pos = self.Pos;
-			viewpointHandler.Mass = self.parent.UniqueID;
-			viewpointHandler.Sharpness = self.UniqueID;
-			self.viewpointHandlerParticle = viewpointHandler;
-			MovableMan:AddParticle(viewpointHandler);
+				self.antiFireHold = true;
+			
+				self.artilleryPos = nil;
+				self.artilleryOriginPos = Vector(self.Pos.X, self.Pos.Y);
+			
+				self.artilleryModeEnabled = true;
+				-- this is MEGA ANNOYING
+				-- guns are in the wrong update order to affect the viewpoint of actors
+				-- we need to spawn a viewpoint handler particle instead, which is in the right update order
+				local viewpointHandler = CreateMOPixel("Viewpoint Handler Duford155", "Massive.rte");
+				viewpointHandler.Pos = self.Pos;
+				viewpointHandler.Mass = self.parent.UniqueID;
+				viewpointHandler.Sharpness = self.UniqueID;
+				self.viewpointHandlerParticle = viewpointHandler;
+				MovableMan:AddParticle(viewpointHandler);
+			else
+				self.textTimer:Reset();
+				self.textDelay = 3000;
+				self.textToDisplay = "RELOAD FIRST";
+			end
 		end
 	end
 	
 	if self.artilleryModeEnabled == true then
+		self.artilleryConfirmSound.Pos = self.Pos;
 		local originDeviation = SceneMan:ShortestDistance(self.artilleryOriginPos, self.Pos, SceneMan.SceneWrapsX);
 		if UInputMan:KeyPressed(8) or originDeviation.Magnitude > 35 or not self.parent:IsPlayerControlled() then
 			self.artilleryModeEnabled = false;
@@ -324,6 +334,7 @@ function Update(self)
 			self.viewpointHandlerParticle = nil;
 		elseif not self.artilleryPos then
 			if self:IsActivated() then
+				self.artilleryConfirmSound:Play(self.Pos);
 				self.textTimer:Reset();
 				self.textDelay = 10000;
 				self.textToDisplay = "FIRE!";
@@ -342,8 +353,8 @@ function Update(self)
 			self:RemoveNumberValue("Shot Expired");
 			self:RemoveNumberValue("Shot Exited Map");
 			self.shotExists = false;
-			if self.artilleryModeEnabled then
-				self.artilleryModeEnabled = false;
+			if self.artilleryEndText then
+				self.artilleryEndText = false;
 				self.textTimer:Reset();
 				self.textDelay = 5000;
 				self.textToDisplay = "STAND BY FOR IMPACT";
@@ -352,8 +363,8 @@ function Update(self)
 		elseif self:NumberValueExists("Shot Expired") then
 			self:RemoveNumberValue("Shot Expired");
 			self.shotExists = false;
-			if self.artilleryModeEnabled then
-				self.artilleryModeEnabled = false;
+			if self.artilleryEndText then
+				self.artilleryEndText = false;
 				self.textTimer:Reset();
 				self.textDelay = 5000;
 				self.textToDisplay = "ARTILLERY TENDS TO BE FIRED INTO THE SKY";
@@ -382,7 +393,7 @@ function Update(self)
 		
 		if fire and self.antiFireHold then
 			fire = false;
-		elseif self.artilleryPos then
+		elseif self.artilleryPos or self.artilleryModeEnabled ~= true then
 			self.antiFireHold = false;
 		end
 		
@@ -423,6 +434,8 @@ function Update(self)
 			self.textToDisplay = "...";
 			ToMOSRotating(shot):SetNumberValue("PosX", self.artilleryPos);
 			self.artilleryPos = nil;
+			self.artilleryModeEnabled = false;
+			self.artilleryEndText = true;
 		end
 		MovableMan:AddParticle(shot);
 		
