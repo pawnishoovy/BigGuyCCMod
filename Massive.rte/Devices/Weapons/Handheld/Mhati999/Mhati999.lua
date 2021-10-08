@@ -387,7 +387,7 @@ function Update(self)
 		local maxi = 7 + (math.floor(4 * self.satisfyingVolume))
 		for i = 1, maxi do
 			
-			local effect = CreateMOSRotating("Ground Smoke Particle Mhati999", "Massive.rte")
+			local effect = CreateMOSRotating("Ground Smoke Particle Large Massive", "Massive.rte")
 			effect.Pos = self.MuzzlePos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
 			effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / maxi * i + RangeRand(-2,2) / maxi)
 			effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)
@@ -481,7 +481,7 @@ function Update(self)
 		end
 		--
 		
-		local shakenessParticle = CreateMOPixel("Shakeness Particle Mhati999", "Massive.rte");
+		local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
 		shakenessParticle.Pos = self.MuzzlePos;
 		shakenessParticle.Mass = 25 + (25 * self.satisfyingVolume);
 		shakenessParticle.Lifetime = 500;

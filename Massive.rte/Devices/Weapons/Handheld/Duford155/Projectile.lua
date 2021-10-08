@@ -147,7 +147,7 @@ function Destroy(self)
 		smokeParticle.Pos = self.Pos;
 		MovableMan:AddParticle(smokeParticle);
 		
-		local shakenessParticle = CreateMOPixel("Shakeness Particle Mhati999", "Massive.rte");
+		local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 		shakenessParticle.Pos = self.Pos;
 		shakenessParticle.Mass = 45;
 		shakenessParticle.Lifetime = 750;

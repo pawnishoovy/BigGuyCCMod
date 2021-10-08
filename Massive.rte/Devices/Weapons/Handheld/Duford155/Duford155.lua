@@ -426,6 +426,8 @@ function Update(self)
 		local shot = CreateMOSRotating("Duford155 Shot", "Massive.rte");
 		shot.Pos = self.MuzzlePos;
 		shot.Vel = self.Vel + Vector(200 * self.FlipFactor,0):RadRotate(self.RotAngle);
+		shot.Team = self.Team;
+		shot.IgnoresTeamHits = true;
 		shot.Sharpness = self.UniqueID;
 		self.shotExists = true;
 		if self.artilleryPos then
@@ -443,7 +445,7 @@ function Update(self)
 		local maxi = 15
 		for i = 1, maxi do
 			
-			local effect = CreateMOSRotating("Ground Smoke Particle Mhati999", "Massive.rte")
+			local effect = CreateMOSRotating("Ground Smoke Particle Large Massive", "Massive.rte")
 			effect.Pos = self.MuzzlePos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
 			effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / maxi * i + RangeRand(-2,2) / maxi)
 			effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)
@@ -537,7 +539,7 @@ function Update(self)
 		end
 		--
 		
-		local shakenessParticle = CreateMOPixel("Shakeness Particle Mhati999", "Massive.rte");
+		local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
 		shakenessParticle.Pos = self.MuzzlePos;
 		shakenessParticle.Mass = 60;
 		shakenessParticle.Lifetime = 1000;

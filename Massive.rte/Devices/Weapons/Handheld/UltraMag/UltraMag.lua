@@ -333,6 +333,24 @@ function Update(self)
 	
 	if self.FiredFrame then
 	
+		for i = 1, 5 do
+			local shot = CreateMOPixel("Bullet UltraMag", "Massive.rte");
+			shot.Pos = self.MuzzlePos + Vector(0.1*i*self.FlipFactor, 0):RadRotate(self.RotAngle);
+			shot.Vel = self.Vel + Vector(140 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+			shot.Lifetime = shot.Lifetime * math.random(0.8, 1.2);
+			shot.Team = self.Team;
+			shot.IgnoresTeamHits = true;
+			MovableMan:AddParticle(shot);
+		end
+	
+		local shot = CreateMOPixel("Bullet UltraMag Scripted", "Massive.rte");
+		shot.Pos = self.MuzzlePos;
+		shot.Vel = self.Vel + Vector(140 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+		shot.Lifetime = shot.Lifetime * math.random(0.8, 1.2);
+		shot.Team = self.Team;
+		shot.IgnoresTeamHits = true;
+		MovableMan:AddParticle(shot);	
+	
 		self.FireTimer:Reset();
 		
 		self.angVel = self.angVel + RangeRand(0.7,1.1) * -15
@@ -340,7 +358,7 @@ function Update(self)
 		self.satisfyingAddSound.Volume = self.satisfyingVolume;
 		self.satisfyingAddSound:Play(self.Pos);
 		
-		local shakenessParticle = CreateMOPixel("Shakeness Particle Mhati999", "Massive.rte");
+		local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
 		shakenessParticle.Pos = self.MuzzlePos;
 		shakenessParticle.Mass = 0 + (5 * self.satisfyingVolume);
 		shakenessParticle.Lifetime = 500;
@@ -352,7 +370,7 @@ function Update(self)
 		local maxi = 3 + (math.floor(2 * self.satisfyingVolume))
 		for i = 1, maxi do
 			
-			local effect = CreateMOSRotating("Ground Smoke Particle HYPBORMinigun", "Massive.rte")
+			local effect = CreateMOSRotating("Ground Smoke Particle Small Massive", "Massive.rte")
 			effect.Pos = self.MuzzlePos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
 			effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / maxi * i + RangeRand(-2,2) / maxi)
 			effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)

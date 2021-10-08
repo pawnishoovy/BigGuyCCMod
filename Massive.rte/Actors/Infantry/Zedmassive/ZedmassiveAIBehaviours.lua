@@ -159,7 +159,7 @@ function ZedmassiveAIBehaviours.handleMovement(self)
 				-- Ground Smoke
 				local maxi = 7
 				for i = 1, maxi do	
-					local effect = CreateMOSRotating("Ground Smoke Particle HYPBORMinigun", "Massive.rte")
+					local effect = CreateMOSRotating("Ground Smoke Particle Small Massive", "Massive.rte")
 					effect.Pos = self.Pos;
 					effect.Vel = self.Vel + Vector(math.random(-50, 50),math.random(90,150))
 					effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)
@@ -216,7 +216,7 @@ function ZedmassiveAIBehaviours.handleMovement(self)
 				-- Ground Smoke
 				local maxi = 7
 				for i = 1, maxi do	
-					local effect = CreateMOSRotating("Ground Smoke Particle HYPBORMinigun", "Massive.rte")
+					local effect = CreateMOSRotating("Ground Smoke Particle Small Massive", "Massive.rte")
 					effect.Pos = self.Pos;
 					effect.Vel = self.Vel + Vector(math.random(-50, 50),math.random(90,150))
 					effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)
@@ -643,7 +643,7 @@ function ZedmassiveAIBehaviours.handleVoicelines(self)
 		local maxi = 25
 		for i = 1, maxi do
 			
-			local effect = CreateMOSRotating("Ground Smoke Particle HYPBORMinigun", "Massive.rte")
+			local effect = CreateMOSRotating("Ground Smoke Particle Small Massive", "Massive.rte")
 			effect.Pos = self.Pos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
 			effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / maxi * i + RangeRand(-2,2) / maxi)
 			effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)

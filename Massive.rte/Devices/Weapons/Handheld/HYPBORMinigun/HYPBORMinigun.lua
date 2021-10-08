@@ -521,7 +521,7 @@ function Update(self)
 		local changed = math.max(math.floor(maxi*self.ambientIntenseLoopSound.Volume), 2)
 		for i = 1, changed do
 			
-			local effect = CreateMOSRotating("Ground Smoke Particle HYPBORMinigun", "Massive.rte")
+			local effect = CreateMOSRotating("Ground Smoke Particle Small Massive", "Massive.rte")
 			effect.Pos = self.MuzzlePos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
 			effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / changed * i + RangeRand(-2,2) / changed)
 			effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)

@@ -4,7 +4,7 @@ function Create(self)
 	local maxi = 25
 	for i = 1, maxi do
 		
-		local effect = CreateMOSRotating("Ground Smoke Particle Mhati999", "Massive.rte")
+		local effect = CreateMOSRotating("Ground Smoke Particle SmallMassive", "Massive.rte")
 		effect.Pos = self.Pos
 		effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / maxi * i + RangeRand(-2,2) / maxi)
 		effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)
