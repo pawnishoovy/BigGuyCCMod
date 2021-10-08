@@ -1,10 +1,22 @@
 
 function Create(self)
+
+	if self:NumberValueExists("PosX") then
+		self.artilleryPos = self:GetNumberValue("PosX");
+	end
+	
+	if self.Sharpness > 0.5 then -- floating point makes it something stupid like 0.10000000040 in reality so we just check like this
+		self.gunParent = ToMOSRotating(MovableMan:FindObjectByUniqueID(self.Sharpness));
+		self.Sharpness = 0.1;
+	end
 	
 	self.hitMOTable = {}
 	
 	self.soundFlyLoop = CreateSoundContainer("Shell Flying Duford155", "Massive.rte");
 	self.soundFlyLoop:Play(self.Pos);
+	
+	self.soundOutOfMap = CreateSoundContainer("Shell Out Of Map Flying Duford155", "Massive.rte");
+	self.soundLeaveMap = CreateSoundContainer("Shell Leave Map Duford155", "Massive.rte");
 	
 	self.explodeCoreSound = CreateSoundContainer("Explode Core Duford155", "Massive.rte");
 	self.explodeFlavorSound = CreateSoundContainer("Explode Flavor Duford155", "Massive.rte");
@@ -32,6 +44,9 @@ function Create(self)
 end
 
 function Update(self)
+
+	self.lastRotAngle = self.RotAngle;
+
 	self.soundFlyLoop.Pos = self.Pos;
 	
 	if self.Vel.Magnitude > 40 then -- Raycast, stick to things
@@ -102,58 +117,83 @@ function OnCollideWithTerrain(self, terrPixel)
 end
 
 function Destroy(self)
-	self.soundFlyLoop:Stop(-1);
 	
-	local smokeParticle = CreateMOPixel("Smoke Payload Duford155", "Massive.rte");
-	smokeParticle.Pos = self.Pos;
-	MovableMan:AddParticle(smokeParticle);
-	
-	local shakenessParticle = CreateMOPixel("Shakeness Particle Mhati999", "Massive.rte");
-	shakenessParticle.Pos = self.Pos;
-	shakenessParticle.Mass = 45;
-	shakenessParticle.Lifetime = 750;
-	MovableMan:AddParticle(shakenessParticle);
-
-	if not self.ToSettle then
-
-		local outdoorRays = 0;
-
-		self.rayThreshold = 2; -- this is the first ray check to decide whether we play outdoors
-		local Vector2 = Vector(0,-700); -- straight up
-		local Vector2Left = Vector(0,-700):RadRotate(45*(math.pi/180));
-		local Vector2Right = Vector(0,-700):RadRotate(-45*(math.pi/180));			
-		local Vector2SlightLeft = Vector(0,-700):RadRotate(22.5*(math.pi/180));
-		local Vector2SlightRight = Vector(0,-700):RadRotate(-22.5*(math.pi/180));		
-		local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
-		local Vector4 = Vector(0,0); -- dont need this but is needed as an arg
-
-		self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
-		self.rayRight = SceneMan:CastObstacleRay(self.Pos, Vector2Right, Vector3, Vector4, self.RootID, self.Team, 128, 7);
-		self.rayLeft = SceneMan:CastObstacleRay(self.Pos, Vector2Left, Vector3, Vector4, self.RootID, self.Team, 128, 7);			
-		self.raySlightRight = SceneMan:CastObstacleRay(self.Pos, Vector2SlightRight, Vector3, Vector4, self.RootID, self.Team, 128, 7);
-		self.raySlightLeft = SceneMan:CastObstacleRay(self.Pos, Vector2SlightLeft, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+	if self.Pos.Y + self.Vel.Y < (100 + SceneMan.SceneHeight * -1) then --check scene height with a 100 pixel grace distance since it messes up sometimes... VERY IMPERFECT
+		-- we have left the map upwards
+		self.soundFlyLoop:FadeOut(500);
+		self.soundLeaveMap:Play(self.Pos);
+		self.soundOutOfMap:Play(self.Pos);
+		if self.gunParent then
+			self.gunParent:SetNumberValue("Shot Exited Map", 1);
+		end
 		
-		self.rayTable = {self.ray, self.rayRight, self.rayLeft, self.raySlightRight, self.raySlightLeft};
+		local artilleryHandler = CreateMOPixel("Artillery Handler Duford155", "Massive.rte");
+		if not self.artilleryPos then
+			self.artilleryPos = math.random(0, SceneMan.SceneWidth);
+		end
+		artilleryHandler.Pos = Vector(self.artilleryPos, (SceneMan.SceneHeight*-1) + 200);
+		artilleryHandler.Mass = math.deg(self.lastRotAngle)
+		MovableMan:AddParticle(artilleryHandler);		
 		
-		for _, rayLength in ipairs(self.rayTable) do
-			if rayLength < 0 then
-				outdoorRays = outdoorRays + 1;
+	else
+
+		if self.gunParent then
+			self.gunParent:SetNumberValue("Shot Expired", 1);
+		end
+
+		self.soundFlyLoop:Stop(-1);
+		
+		local smokeParticle = CreateMOPixel("Smoke Payload Duford155", "Massive.rte");
+		smokeParticle.Pos = self.Pos;
+		MovableMan:AddParticle(smokeParticle);
+		
+		local shakenessParticle = CreateMOPixel("Shakeness Particle Mhati999", "Massive.rte");
+		shakenessParticle.Pos = self.Pos;
+		shakenessParticle.Mass = 45;
+		shakenessParticle.Lifetime = 750;
+		MovableMan:AddParticle(shakenessParticle);
+
+		if not self.ToSettle then
+
+			local outdoorRays = 0;
+
+			self.rayThreshold = 2; -- this is the first ray check to decide whether we play outdoors
+			local Vector2 = Vector(0,-700); -- straight up
+			local Vector2Left = Vector(0,-700):RadRotate(45*(math.pi/180));
+			local Vector2Right = Vector(0,-700):RadRotate(-45*(math.pi/180));			
+			local Vector2SlightLeft = Vector(0,-700):RadRotate(22.5*(math.pi/180));
+			local Vector2SlightRight = Vector(0,-700):RadRotate(-22.5*(math.pi/180));		
+			local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
+			local Vector4 = Vector(0,0); -- dont need this but is needed as an arg
+
+			self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			self.rayRight = SceneMan:CastObstacleRay(self.Pos, Vector2Right, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			self.rayLeft = SceneMan:CastObstacleRay(self.Pos, Vector2Left, Vector3, Vector4, self.RootID, self.Team, 128, 7);			
+			self.raySlightRight = SceneMan:CastObstacleRay(self.Pos, Vector2SlightRight, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			self.raySlightLeft = SceneMan:CastObstacleRay(self.Pos, Vector2SlightLeft, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			
+			self.rayTable = {self.ray, self.rayRight, self.rayLeft, self.raySlightRight, self.raySlightLeft};
+			
+			for _, rayLength in ipairs(self.rayTable) do
+				if rayLength < 0 then
+					outdoorRays = outdoorRays + 1;
+				end
 			end
+			
+			self.explodeCoreSound:Play(self.Pos);
+			
+			if outdoorRays >= self.rayThreshold then
+				self.explodeReflectionOutdoorsSound:Play(self.Pos);
+				self.explodeFlavorSound:Play(self.Pos);
+			else
+				self.indoorDebrisSound:Play(self.Pos);
+				local smokeParticle = CreateMOPixel("Extra Smoke Payload Duford155", "Massive.rte");
+				smokeParticle.Pos = self.Pos;
+				MovableMan:AddParticle(smokeParticle);
+				self.explodeReflectionIndoorsSound:Play(self.Pos);
+			end
+			
 		end
-		
-		self.explodeCoreSound:Play(self.Pos);
-		
-		if outdoorRays >= self.rayThreshold then
-			self.explodeReflectionOutdoorsSound:Play(self.Pos);
-			self.explodeFlavorSound:Play(self.Pos);
-		else
-			self.indoorDebrisSound:Play(self.Pos);
-			local smokeParticle = CreateMOPixel("Extra Smoke Payload Duford155", "Massive.rte");
-			smokeParticle.Pos = self.Pos;
-			MovableMan:AddParticle(smokeParticle);
-			self.explodeReflectionIndoorsSound:Play(self.Pos);
-		end
-		
-	end	
+	end
 	
 end

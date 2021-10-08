@@ -77,6 +77,13 @@ function Create(self)
 	self.fireDelayTimer = Timer()
 	
 	self.activated = false
+	
+	-- honestly quite incredible
+	
+	self.artilleryModeEnabled = false;
+	
+	self.textTimer = Timer();
+	self.textDelay = 0;
 
 end
 
@@ -274,12 +281,111 @@ function Update(self)
 		self.delayedFire = false;
 	end
 	
+	if self:NumberValueExists("Enter Artillery Mode") then
+		self:RemoveNumberValue("Enter Artillery Mode");
+		if self.artilleryModeEnabled ~= true then
+		
+			self.antiFireHold = true;
+		
+			self.artilleryPos = nil;
+			self.artilleryOriginPos = Vector(self.Pos.X, self.Pos.Y);
+		
+			self.artilleryModeEnabled = true;
+			-- this is MEGA ANNOYING
+			-- guns are in the wrong update order to affect the viewpoint of actors
+			-- we need to spawn a viewpoint handler particle instead, which is in the right update order
+			local viewpointHandler = CreateMOPixel("Viewpoint Handler Duford155", "Massive.rte");
+			viewpointHandler.Pos = self.Pos;
+			viewpointHandler.Mass = self.parent.UniqueID;
+			viewpointHandler.Sharpness = self.UniqueID;
+			self.viewpointHandlerParticle = viewpointHandler;
+			MovableMan:AddParticle(viewpointHandler);
+		end
+	end
+	
+	if self.artilleryModeEnabled == true then
+		local originDeviation = SceneMan:ShortestDistance(self.artilleryOriginPos, self.Pos, SceneMan.SceneWrapsX);
+		if UInputMan:KeyPressed(8) or originDeviation.Magnitude > 35 or not self.parent:IsPlayerControlled() then
+			self.artilleryModeEnabled = false;
+			self.artilleryPos = nil;
+
+			if MovableMan:ValidMO(self.viewpointHandlerParticle) then
+				self.viewpointHandlerParticle.ToDelete = true;
+			end
+			
+			self.textTimer:Reset();
+			self.textDelay = 3000;
+			if not self.parent:IsPlayerControlled() or UInputMan:KeyPressed(8) then
+				self.textToDisplay = "ARTILLERY CANCELLED";
+			else
+				self.textToDisplay = "MOVED TOO FAR!";
+			end
+			
+			self.viewpointHandlerParticle = nil;
+		elseif not self.artilleryPos then
+			if self:IsActivated() then
+				self.textTimer:Reset();
+				self.textDelay = 10000;
+				self.textToDisplay = "FIRE!";
+				self.antiFireHold = true;
+				self.artilleryPos = self.parent.ViewPoint.X;
+				if MovableMan:ValidMO(self.viewpointHandlerParticle) then
+					self.viewpointHandlerParticle.ToDelete = true;
+					self.viewpointHandlerParticle = nil;
+				end
+			end
+		end
+	end
+	
+	if self.shotExists then
+		if self:NumberValueExists("Shot Exited Map") then
+			self:RemoveNumberValue("Shot Expired");
+			self:RemoveNumberValue("Shot Exited Map");
+			self.shotExists = false;
+			if self.artilleryModeEnabled then
+				self.artilleryModeEnabled = false;
+				self.textTimer:Reset();
+				self.textDelay = 5000;
+				self.textToDisplay = "STAND BY FOR IMPACT";
+				self.artilleryPos = nil;
+			end
+		elseif self:NumberValueExists("Shot Expired") then
+			self:RemoveNumberValue("Shot Expired");
+			self.shotExists = false;
+			if self.artilleryModeEnabled then
+				self.artilleryModeEnabled = false;
+				self.textTimer:Reset();
+				self.textDelay = 5000;
+				self.textToDisplay = "ARTILLERY TENDS TO BE FIRED INTO THE SKY";
+				self.artilleryPos = nil;
+			end
+		end
+	end
+	
+	if not self.textTimer:IsPastSimMS(self.textDelay) and self.textToDisplay then
+		local ctrl = self.parent:GetController();
+		local screen = ActivityMan:GetActivity():ScreenOfPlayer(ctrl.Player);
+		local pos = self.parent.AboveHUDPos + Vector(0, 35)
+		PrimitiveMan:DrawTextPrimitive(screen, pos, self.textToDisplay, true, 1)
+	elseif self.artilleryPos then
+		self.artilleryPos = nil;
+		self.artilleryModeEnabled = false;
+		self.textTimer:Reset();
+		self.textDelay = 3000;
+		self.textToDisplay = "CALCULATION EXPIRED...";
+	end
+	
 	local fire = self:IsActivated() and self.RoundInMagCount > 0;
 
 	if self.parent and self.delayedFirstShot == true then
 		self:Deactivate()
 		
-		--if self.parent:GetController():IsState(Controller.WEAPON_FIRE) and not self:IsReloading() then
+		if fire and self.antiFireHold then
+			fire = false;
+		elseif self.artilleryPos then
+			self.antiFireHold = false;
+		end
+		
 		if fire and not self:IsReloading() then
 			if not self.Magazine or self.Magazine.RoundCount < 1 then
 				--self:Reload()
@@ -304,6 +410,21 @@ function Update(self)
 	end
 	
 	if self.FiredFrame then
+
+	
+		local shot = CreateMOSRotating("Duford155 Shot", "Massive.rte");
+		shot.Pos = self.MuzzlePos;
+		shot.Vel = self.Vel + Vector(200 * self.FlipFactor,0):RadRotate(self.RotAngle);
+		shot.Sharpness = self.UniqueID;
+		self.shotExists = true;
+		if self.artilleryPos then
+			self.textTimer:Reset();
+			self.textDelay = 12000;
+			self.textToDisplay = "...";
+			ToMOSRotating(shot):SetNumberValue("PosX", self.artilleryPos);
+			self.artilleryPos = nil;
+		end
+		MovableMan:AddParticle(shot);
 		
 		-- Ground Smoke
 		local maxi = 15
@@ -502,7 +623,27 @@ end
 
 function OnDetach(self)
 
+	self.artilleryModeEnabled = false;
+	self.artilleryPos = nil;
+
+	if MovableMan:ValidMO(self.viewpointHandlerParticle) then
+		self.viewpointHandlerParticle.ToDelete = true;
+	end
+	
+	self.viewpointHandlerParticle = nil;
+
 	self.delayedFirstShot = true;
 	self:DisableScript("Massive.rte/Devices/Weapons/Handheld/Duford155/Duford155.lua");
 
+end
+
+function OnDestroy(self)
+
+	self.artilleryModeEnabled = false;
+	self.artilleryPos = nil;
+
+	if MovablerMan:ValidMO(self.viewpointHandlerParticle) then
+		self.viewpointHandlerParticle.ToDelete = true;
+	end
+	
 end
