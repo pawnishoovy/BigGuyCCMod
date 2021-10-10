@@ -220,6 +220,17 @@ function Update(self)
 			
 				if self.reloadPhase == 0 then
 				
+					self:SetNumberValue("MagRemoved", 1);
+				
+					local fake
+					fake = CreateMOSRotating("Fake Magazine MOSRotating UltraMag", "Massive.rte");
+					fake.Pos = self.Pos + Vector(-3 * self.FlipFactor, 2):RadRotate(self.RotAngle);
+					fake.Vel = self.Vel + Vector(1 * self.FlipFactor, 3):RadRotate(self.RotAngle);
+					fake.RotAngle = self.RotAngle;
+					fake.AngularVel = self.AngularVel + (-1*self.FlipFactor);
+					fake.HFlipped = self.HFlipped;
+					MovableMan:AddParticle(fake);
+				
 					if self.chamberOnReload then
 						self.phaseOnStop = 2;
 					else
@@ -229,9 +240,13 @@ function Update(self)
 			
 				elseif self.reloadPhase == 1 then
 				
+					self:RemoveNumberValue("MagRemoved");
+				
 					self.verticalAnim = -1;
 					
 				elseif self.reloadPhase == 2 then
+				
+					self:RemoveNumberValue("MagRemoved");
 				
 					self.verticalAnim = -1;
 					self.angVel = 1

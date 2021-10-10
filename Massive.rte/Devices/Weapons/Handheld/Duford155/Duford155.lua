@@ -422,6 +422,7 @@ function Update(self)
 	
 	if self.FiredFrame then
 
+		print(self.MuzzlePos)
 	
 		local shot = CreateMOSRotating("Duford155 Shot", "Massive.rte");
 		shot.Pos = self.MuzzlePos;

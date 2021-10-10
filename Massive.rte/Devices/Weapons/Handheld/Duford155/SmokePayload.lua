@@ -1,5 +1,21 @@
 
 function Create(self)
+
+	self.shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+	self.extraSmokeParticle = CreateMOPixel("Extra Smoke Payload Duford155", "Massive.rte");
+
+	self.explodeCoreSound = CreateSoundContainer("Explode Core Duford155", "Massive.rte");
+	self.explodeFlavorSound = CreateSoundContainer("Explode Flavor Duford155", "Massive.rte");
+	self.explodeReflectionOutdoorsSound = CreateSoundContainer("Explode Reflection Outdoors Duford155", "Massive.rte");
+	self.explodeReflectionIndoorsSound = CreateSoundContainer("Explode Reflection Indoors Duford155", "Massive.rte");
+	
+	self.indoorDebrisSound = CreateSoundContainer("Projectile Indoor Debris Duford155", "Massive.rte");
+	
+	self.shakenessParticle.Pos = self.Pos;
+	self.shakenessParticle.Mass = 45;
+	self.shakenessParticle.Lifetime = 750;
+	MovableMan:AddParticle(self.shakenessParticle);
+
 	-- Ground Smoke
 	local maxi = 25
 	for i = 1, maxi do
@@ -73,6 +89,44 @@ function Create(self)
 		particle.GlobalAccScalar = 0
 		MovableMan:AddParticle(particle);
 	end
+
+	local outdoorRays = 0;
+
+	self.rayThreshold = 2; -- this is the first ray check to decide whether we play outdoors
+	local Vector2 = Vector(0,-700); -- straight up
+	local Vector2Left = Vector(0,-700):RadRotate(45*(math.pi/180));
+	local Vector2Right = Vector(0,-700):RadRotate(-45*(math.pi/180));			
+	local Vector2SlightLeft = Vector(0,-700):RadRotate(22.5*(math.pi/180));
+	local Vector2SlightRight = Vector(0,-700):RadRotate(-22.5*(math.pi/180));		
+	local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
+	local Vector4 = Vector(0,0); -- dont need this but is needed as an arg
+
+	self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+	self.rayRight = SceneMan:CastObstacleRay(self.Pos, Vector2Right, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+	self.rayLeft = SceneMan:CastObstacleRay(self.Pos, Vector2Left, Vector3, Vector4, self.RootID, self.Team, 128, 7);			
+	self.raySlightRight = SceneMan:CastObstacleRay(self.Pos, Vector2SlightRight, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+	self.raySlightLeft = SceneMan:CastObstacleRay(self.Pos, Vector2SlightLeft, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+	
+	self.rayTable = {self.ray, self.rayRight, self.rayLeft, self.raySlightRight, self.raySlightLeft};
+	
+	for _, rayLength in ipairs(self.rayTable) do
+		if rayLength < 0 then
+			outdoorRays = outdoorRays + 1;
+		end
+	end
+	
+	self.explodeCoreSound:Play(self.Pos);
+	
+	if outdoorRays >= self.rayThreshold then
+		self.explodeReflectionOutdoorsSound:Play(self.Pos);
+		self.explodeFlavorSound:Play(self.Pos);
+	else
+		self.indoorDebrisSound:Play(self.Pos);
+		self.extraSmokeParticle.Pos = self.Pos;
+		MovableMan:AddParticle(self.extraSmokeParticle);
+		self.explodeReflectionIndoorsSound:Play(self.Pos);
+	end
+		
 	
 	self.ToDelete = true;
 	

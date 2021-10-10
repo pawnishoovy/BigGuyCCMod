@@ -246,6 +246,12 @@ function OnStride(self)
 			if self.isSprinting then
 				local step = self.foot == 0 and self.movementSounds.SprintStepLeft or self.movementSounds.SprintStepRight;
 				step:Play(self.Pos);
+				
+				local smoke = CreateMOSRotating("Ground Smoke Particle Small Massive");
+				smoke.Pos = startPos;
+				smoke.Vel = Vector(0, 9);
+				MovableMan:AddParticle(smoke);				
+
 			else
 				local step = self.foot == 0 and self.movementSounds.WalkStepLeft or self.movementSounds.WalkStepRight;
 				step:Play(self.Pos);
