@@ -238,14 +238,38 @@ function Update(self)
 				self.rotationTarget = 45;
 
 			elseif self.reloadPhase == 1 then
+			
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4)) then
+					self.Frame = 4;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*3)) then
+					self.Frame = 3;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2)) then
+					self.Frame = 2;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1)) then
+					self.Frame = 1;
+				end
 
 			elseif self.reloadPhase == 2 then
+			
+				self.Frame = 5;
 
 			elseif self.reloadPhase == 3 then
+			
+				self.Frame = 4;
 			
 			elseif self.reloadPhase == 4 then
 			
 			elseif self.reloadPhase == 5 then
+			
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4)) then
+					self.Frame = 0;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*3)) then
+					self.Frame = 1;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2)) then
+					self.Frame = 2;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1)) then
+					self.Frame = 3;
+				end
 			
 			elseif self.reloadPhase == 6 then
 				
@@ -266,7 +290,17 @@ function Update(self)
 					
 				elseif self.reloadPhase == 2 then
 					
-					self.drumRemoved = true;
+					if self.drumRemoved ~= true then
+						local fake
+						fake = CreateMOSRotating("Fake Magazine MOSRotating Mhati999", "Massive.rte");
+						fake.Pos = self.Pos + Vector(-6 * self.FlipFactor, 1):RadRotate(self.RotAngle);
+						fake.Vel = self.Vel + Vector(2 * self.FlipFactor, 1):RadRotate(self.RotAngle);
+						fake.RotAngle = self.RotAngle;
+						fake.AngularVel = self.AngularVel + (-1*self.FlipFactor);
+						fake.HFlipped = self.HFlipped;
+						MovableMan:AddParticle(fake);
+						self.drumRemoved = true;
+					end
 					self.verticalAnim = 1;
 					
 				elseif self.reloadPhase == 3 then
@@ -328,6 +362,8 @@ function Update(self)
 		self.rotationTarget = 0
 		
 		self.reloadPhase = 0;
+		
+		self.Frame = self.coverClosed and 0 or self.drumInserted and 4 or self.drumRemoved and 5 or self.coverOpened and 4 or 0
 		
 		self.reloadTimer:Reset();
 		self.prepareSoundPlayed = false;
@@ -584,6 +620,8 @@ function Update(self)
 end
 
 function OnDetach(self)
+
+	self.Frame = self.coverClosed and 0 or self.drumInserted and 4 or self.drumRemoved and 5 or self.coverOpened and 4 or 0
 
 	self.delayedFirstShot = true;
 	self:DisableScript("Massive.rte/Devices/Weapons/Handheld/Mhati999/Mhati999.lua");
