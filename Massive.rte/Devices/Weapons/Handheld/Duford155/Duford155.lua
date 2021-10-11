@@ -207,7 +207,7 @@ function Update(self)
 				local maxTime = self.reloadDelay + ((self.afterDelay/5)*5)
 				
 				local factor = math.pow(math.min(math.max(self.reloadTimer.ElapsedSimTimeMS - minTime, 0) / (maxTime - minTime), 1), 2)
-				local factor = factor^2
+				factor = factor^2
 
 				self.Frame = math.floor(factor * (11) + 0.5)
 				
@@ -237,7 +237,7 @@ function Update(self)
 				local maxTime = self.reloadDelay + ((self.afterDelay/5)*3)
 				
 				local factor = math.pow(math.min(math.max(self.reloadTimer.ElapsedSimTimeMS - minTime, 0) / (maxTime - minTime), 1), 2)
-				local factor = factor^2
+				factor = factor^2
 
 				self.Frame = 11 + math.floor(factor * (8) + 0.5)
 
@@ -247,7 +247,7 @@ function Update(self)
 				local maxTime = self.reloadDelay + ((self.afterDelay/5)*2)
 				
 				local factor = math.pow(math.min(math.max(self.reloadTimer.ElapsedSimTimeMS - minTime, 0) / (maxTime - minTime), 1), 2)
-				local factor = factor^3
+				factor = factor^3
 
 				self.frameNum = 19 + math.floor(factor * (11) + 0.5)
 				
