@@ -56,7 +56,7 @@ function Create(self)
 	
 	self.rotation = 0
 	self.rotationTarget = 0
-	self.rotationSpeed = 5
+	self.rotationSpeed = 4
 	
 	self.horizontalAnim = 0
 	self.verticalAnim = 0
@@ -76,6 +76,7 @@ function Create(self)
 	
 	self.lastAge = self.Age + 0
 	
+	self.FireTimer = Timer();
 	self.fireDelayTimer = Timer()
 	
 	self.activated = false
@@ -151,7 +152,7 @@ function Update(self)
 			self.prepareSoundLength = self.reloadPrepareLengths.Raise;
 			self.afterSound = self.reloadAfterSounds.Raise;
 			
-			self.rotationTarget = 50 * (self.reloadTimer.ElapsedSimTimeMS/self.reloadDelay);
+			self.rotationTarget = 8 * (self.reloadTimer.ElapsedSimTimeMS/self.reloadDelay);
 			
 		elseif self.reloadPhase == 1 then
 			self.reloadDelay = self.reloadPrepareDelay.Open;
@@ -161,7 +162,7 @@ function Update(self)
 			self.prepareSoundLength = self.reloadPrepareLengths.Open;
 			self.afterSound = self.reloadAfterSounds.Open;
 			
-			self.rotationTarget = 40;
+			self.rotationTarget = 2;
 			
 		elseif self.reloadPhase == 2 then
 			self.reloadDelay = self.reloadPrepareDelay.Load;
@@ -171,7 +172,7 @@ function Update(self)
 			self.prepareSoundLength = self.reloadPrepareLengths.Load;
 			self.afterSound = self.reloadAfterSounds.Load;
 			
-			self.rotationTarget = 25;
+			self.rotationTarget = -6;
 			
 		elseif self.reloadPhase == 3 then
 		
@@ -182,7 +183,7 @@ function Update(self)
 			self.prepareSoundLength = self.reloadPrepareLengths.Close;
 			self.afterSound = self.reloadAfterSounds.Close;
 			
-			self.rotationTarget = 15;
+			self.rotationTarget = -3;
 		end
 		
 		if self.prepareSoundPlayed ~= true
@@ -200,15 +201,73 @@ function Update(self)
 		
 			self.phasePrepareFinished = true;
 			
-			if self.reloadPhase == 0 then
+			if self.reloadPhase == 1 then
 			
-				self.rotationTarget = 45;
+				local minTime = self.reloadDelay
+				local maxTime = self.reloadDelay + ((self.afterDelay/5)*5)
+				
+				local factor = math.pow(math.min(math.max(self.reloadTimer.ElapsedSimTimeMS - minTime, 0) / (maxTime - minTime), 1), 2)
+				local factor = factor^2
 
-			elseif self.reloadPhase == 1 then
+				self.Frame = math.floor(factor * (11) + 0.5)
+				
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*3)) then
+					self.reloadingVector = Vector(4, -2);
+					if self.Opened ~= true then
+						local fake
+						fake = CreateMOSRotating("Shell Duford155", "Massive.rte");
+						fake.Pos = self.Pos + Vector(-22 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+						fake.Vel = self.Vel + Vector(-1 * self.FlipFactor, 1):RadRotate(self.RotAngle);
+						fake.RotAngle = self.RotAngle;
+						fake.AngularVel = self.AngularVel + (-0.3*self.FlipFactor);
+						fake.HFlipped = self.HFlipped;
+						MovableMan:AddParticle(fake);
+					
+						self.Opened = true;
+					end
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2)) then
+					self.reloadingVector = Vector(4, -1);
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1)) then
+					self.reloadingVector = Vector(4, 0);
+				end
 
 			elseif self.reloadPhase == 2 then
+			
+				local minTime = self.reloadDelay
+				local maxTime = self.reloadDelay + ((self.afterDelay/5)*3)
+				
+				local factor = math.pow(math.min(math.max(self.reloadTimer.ElapsedSimTimeMS - minTime, 0) / (maxTime - minTime), 1), 2)
+				local factor = factor^2
+
+				self.Frame = 11 + math.floor(factor * (8) + 0.5)
 
 			elseif self.reloadPhase == 3 then
+			
+				local minTime = self.reloadDelay
+				local maxTime = self.reloadDelay + ((self.afterDelay/5)*2)
+				
+				local factor = math.pow(math.min(math.max(self.reloadTimer.ElapsedSimTimeMS - minTime, 0) / (maxTime - minTime), 1), 2)
+				local factor = factor^3
+
+				self.frameNum = 19 + math.floor(factor * (11) + 0.5)
+				
+				if self.frameNum  == 30 then
+					self.Frame = 0;
+				elseif self.frameNum  == 29 then
+					self.Frame = 1;
+				elseif self.frameNum == 28 then
+					self.Frame = 2;
+				else
+					self.Frame = self.frameNum;
+				end
+				
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*5)) then
+					self.reloadingVector = Vector(4, 0);
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4)) then
+					self.reloadingVector = Vector(4, -1);
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2)) then
+					self.reloadingVector = Vector(4, -2);
+				end
 
 			end
 			
@@ -219,8 +278,6 @@ function Update(self)
 					self.verticalAnim = 2;
 			
 				elseif self.reloadPhase == 1 then
-				
-					self.Opened = true;
 					
 				elseif self.reloadPhase == 2 then
 					
@@ -270,6 +327,8 @@ function Update(self)
 		self.rotationTarget = 0
 		
 		self.reloadPhase = 0;
+		
+		self.Frame = self.Loaded and 19 or self.Opened and 11 or 0
 		
 		self.reloadTimer:Reset();
 		self.prepareSoundPlayed = false;
@@ -350,8 +409,6 @@ function Update(self)
 	
 	if self.shotExists then
 		if self:NumberValueExists("Shot Exited Map") then
-			self:RemoveNumberValue("Shot Expired");
-			self:RemoveNumberValue("Shot Exited Map");
 			self.shotExists = false;
 			if self.artilleryEndText then
 				self.artilleryEndText = false;
@@ -361,7 +418,6 @@ function Update(self)
 				self.artilleryPos = nil;
 			end
 		elseif self:NumberValueExists("Shot Expired") then
-			self:RemoveNumberValue("Shot Expired");
 			self.shotExists = false;
 			if self.artilleryEndText then
 				self.artilleryEndText = false;
@@ -372,6 +428,9 @@ function Update(self)
 			end
 		end
 	end
+	
+	self:RemoveNumberValue("Shot Expired");
+	self:RemoveNumberValue("Shot Exited Map");
 	
 	if not self.textTimer:IsPastSimMS(self.textDelay) and self.textToDisplay then
 		local ctrl = self.parent:GetController();
@@ -420,9 +479,11 @@ function Update(self)
 		self.delayedFirstShot = true;
 	end
 	
+	self.SharpLength = self.originalSharpLength * (0.7 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 2500, 1), 5.0) * 0.5)
+	
 	if self.FiredFrame then
-
-		print(self.MuzzlePos)
+	
+		self.FireTimer:Reset();
 	
 		local shot = CreateMOSRotating("Duford155 Shot", "Massive.rte");
 		shot.Pos = self.MuzzlePos;
@@ -626,8 +687,8 @@ function Update(self)
 		-- self:SetNumberValue("MagOffsetY", offsetTotal.Y);
 		
 		if self.reloadingVector then
-			self.StanceOffset = self.reloadingVector + stance
-			self.SharpStanceOffset = self.reloadingVector + stance
+			self.StanceOffset = Vector(self.originalStanceOffset.X, self.originalStanceOffset.Y) + self.reloadingVector + stance
+			self.SharpStanceOffset = Vector(self.originalSharpStanceOffset.X, self.originalSharpStanceOffset.Y) + self.reloadingVector + stance
 		else
 			self.StanceOffset = Vector(self.originalStanceOffset.X, self.originalStanceOffset.Y) + stance
 			self.SharpStanceOffset = Vector(self.originalSharpStanceOffset.X, self.originalSharpStanceOffset.Y) + stance
@@ -638,6 +699,8 @@ function Update(self)
 end
 
 function OnDetach(self)
+
+	self.Frame = self.Loaded and 19 or self.Opened and 11 or 0
 
 	self.artilleryModeEnabled = false;
 	self.artilleryPos = nil;

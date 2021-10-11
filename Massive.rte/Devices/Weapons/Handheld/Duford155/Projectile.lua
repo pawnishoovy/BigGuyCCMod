@@ -215,5 +215,8 @@ end
 function Destroy(self)
 
 	self.soundFlyLoop:Stop(-1);
+	if self.gunParent then
+		self.gunParent:SetNumberValue("Shot Expired", 1);
+	end
 	
 end
