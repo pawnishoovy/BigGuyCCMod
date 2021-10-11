@@ -1,6 +1,8 @@
 function Create(self)
 
 	self.preSound = CreateSoundContainer("Pre Duford155", "Massive.rte");
+	self.bassPreSound = CreateSoundContainer("Bass Pre Duford155", "Massive.rte");
+	
 	
 	self.bassOutdoorsSound = CreateSoundContainer("Bass Outdoors Duford155", "Massive.rte");
 	self.bassIndoorsSound = CreateSoundContainer("Bass Indoors Duford155", "Massive.rte");
@@ -71,7 +73,7 @@ function Create(self)
 	
 	self.delayedFire = false
 	self.delayedFireTimer = Timer();
-	self.delayedFireTimeMS = 120
+	self.delayedFireTimeMS = 150;
 	self.delayedFireEnabled = true
 	
 	self.lastAge = self.Age + 0
@@ -463,6 +465,7 @@ function Update(self)
 			elseif not self.activated and not self.delayedFire and self.fireDelayTimer:IsPastSimMS(1 / (self.RateOfFire / 60) * 1000) then
 				self.activated = true
 				
+				self.bassPreSound:Play(self.Pos);
 				self.preSound:Play(self.Pos);
 				
 				self.fireDelayTimer:Reset()
