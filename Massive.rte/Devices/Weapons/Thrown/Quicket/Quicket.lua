@@ -40,6 +40,8 @@ function Update(self)
 		self.Frame = (self.Frame + 1) % 2
 	
 		self.trackingSound.Pos = self.Pos;
+		self.staticSound.Pos = self.Pos;
+		self.trackEndSound.Pos = self.Pos;
 		
 		if self.Timer:IsPastSimMS(self.trackDelay) then
 			if not self.finalSoundsPlayed then
