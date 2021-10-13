@@ -1,10 +1,14 @@
 function Create(self)
 
+	self.activateSound = CreateSoundContainer("Activate Quicket", "Massive.rte");
+	
 	self.trackingSound = CreateSoundContainer("Tracking Quicket", "Massive.rte");
 	self.trackEndSound = CreateSoundContainer("Track End Quicket", "Massive.rte");
 	self.staticSound = CreateSoundContainer("Static Quicket", "Massive.rte");
 	
 	self.activated = false;
+	
+	self.blipTimer = Timer();
 	
 	self.Timer = Timer();
 	self.trackDelay = math.random(6000, 9000);
@@ -24,6 +28,7 @@ function Update(self)
 	self.lastVel = Vector(self.Vel.X, self.Vel.Y)
 
 	if self:IsActivated() and self.activated == false then
+		self.activateSound:Play(self.Pos);
 		self.trackingSound:Play(self.Pos);
 		self.Timer:Reset();
 		self.activated = true;
@@ -37,8 +42,16 @@ function Update(self)
 	
 	if self.activated then
 		
-		self.Frame = (self.Frame + 1) % 2
-	
+		if self.blipTimer:IsPastSimMS(60) then 
+			self.blipTimer:Reset();
+			self.Frame = (self.Frame + 1) % 2
+			if self.Frame == 1 then
+				local blipParticle = CreateMOPixel("Blip Glow Quicket", "Massive.rte");
+				blipParticle.Pos = self.Pos;
+				MovableMan:AddParticle(blipParticle);
+			end
+		end
+		
 		self.trackingSound.Pos = self.Pos;
 		self.staticSound.Pos = self.Pos;
 		self.trackEndSound.Pos = self.Pos;

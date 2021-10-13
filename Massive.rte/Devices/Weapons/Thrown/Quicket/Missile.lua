@@ -80,8 +80,8 @@ function Update(self)
 		self.PinStrength = 10000;
 		self.originPos = self.Pos; -- pin in place, we should be outside the map
 		
-		if self.scaryDistantLoopSound.Volume < 0.5 then
-			self.scaryDistantLoopSound.Volume = self.scaryDistantLoopSound.Volume + 0.009 * TimerMan.DeltaTimeSecs;
+		if self.scaryDistantLoopSound.Volume < 0.9 then
+			self.scaryDistantLoopSound.Volume = self.scaryDistantLoopSound.Volume + 0.02 * TimerMan.DeltaTimeSecs;
 		end
 	
 		if self:NumberValueExists("Abort") then
@@ -228,7 +228,7 @@ function Update(self)
 	
 	elseif self.phase == 3 then
 
-		if self.scaryDistantLoopSound.Volume < 0.5 then
+		if self.scaryDistantLoopSound.Volume < 0.9 then
 			self.scaryDistantLoopSound.Volume = self.scaryDistantLoopSound.Volume + 0.045 * TimerMan.DeltaTimeSecs;
 		end
 		
@@ -258,7 +258,7 @@ function Update(self)
 			self.scaryCloseLoopSound:Stop(-1);
 			self.rocketBlastLoopSound:Stop(-1);
 			self.windLoopSound:Stop(-1);
-			self.scaryDistantLoopSound:FadeOut(6000);
+			self.scaryDistantLoopSound:FadeOut(10000);
 			
 			self.ToDelete = true;
 		end
