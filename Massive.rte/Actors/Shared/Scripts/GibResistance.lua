@@ -12,7 +12,7 @@ function Update(self)
 		if strengthCheck > 10 then
 			self:RemoveWounds((self.WoundCount - self.oldWoundCount) / 2)
 		end
-		if strengthCheck > 1 and self.WoundCount > self.actualGibWoundLimit then
+		if strengthCheck > 2 and self.WoundCount > self.actualGibWoundLimit then
 			self:GibThis();
 		end
 	end
