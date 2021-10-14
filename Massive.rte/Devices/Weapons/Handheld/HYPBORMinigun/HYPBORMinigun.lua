@@ -356,6 +356,14 @@ function Update(self)
 	local fire = self:IsActivated() and self.RoundInMagCount > 0;
 
 	if self.parent and self.delayedFirstShot == true then
+	
+		if self.powNum > 0.1 then
+			self.powNum = self.powNum - 0.2 * TimerMan.DeltaTimeSecs;
+			if self.powNum < 0.1 then
+				self.powNum = 0.1;
+			end
+		end	
+	
 		if self.RoundInMagCount > 0 then
 			self:Deactivate()
 		end
@@ -538,10 +546,10 @@ function Update(self)
 		end
 		self.firedOnce = true;
 		
-		self.powNum = 0.1 + (0.2 * self.ambientIntenseLoopSound.Volume);
+		self.powNum = self.powNum + TimerMan.DeltaTimeSecs * 0.05;
 	end
 	
-	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (40000 * self.powNum), 1), self.powNum) * 0.5) * math.pi) * -1
+	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (16000), 1), self.powNum) * 0.5) * math.pi) * -1
 	
 	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (200 * 4), 1), 1)
 	self.rotationTarget = math.sin(recoilFactor * math.pi) * (20 * self.powNum)
