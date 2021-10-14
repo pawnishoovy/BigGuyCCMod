@@ -321,7 +321,9 @@ function Update(self)
 	
 	local fire = self:IsActivated() and self.RoundInMagCount > 0;
 	
-	self:Deactivate()
+	if self.RoundInMagCount > 0 then
+		self:Deactivate()
+	end
 
 	if self.parent and self.delayedFirstShot == true then
 		local isOffhand = ToAHuman(self.parent).BGArm and self:GetParent().UniqueID == ToAHuman(self.parent).BGArm.UniqueID

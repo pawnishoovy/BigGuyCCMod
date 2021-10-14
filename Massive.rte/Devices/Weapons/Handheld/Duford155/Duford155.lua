@@ -450,7 +450,9 @@ function Update(self)
 	local fire = self:IsActivated() and self.RoundInMagCount > 0;
 
 	if self.parent and self.delayedFirstShot == true then
-		self:Deactivate()
+		if self.RoundInMagCount > 0 then
+			self:Deactivate()
+		end
 		
 		if fire and self.antiFireHold then
 			fire = false;
@@ -482,7 +484,10 @@ function Update(self)
 		self.delayedFirstShot = true;
 	end
 	
-	self.SharpLength = self.originalSharpLength * (0.7 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 2500, 1), 5.0) * 0.5)
+	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 1500, 1), 2.0) * 0.5) * math.pi) * -1
+	
+	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (300 * 4), 1), 2.0)
+	self.rotationTarget = math.sin(recoilFactor * math.pi) * 13
 	
 	if self.FiredFrame then
 	
@@ -517,6 +522,8 @@ function Update(self)
 			effect.AirResistance = effect.AirResistance * RangeRand(0.5,0.8)
 			MovableMan:AddParticle(effect)
 		end
+		
+		self.angVel = self.angVel + RangeRand(0.7,1.1) * -15
 		
 		local xSpread = 0
 		

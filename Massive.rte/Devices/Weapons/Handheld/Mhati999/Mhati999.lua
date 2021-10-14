@@ -80,6 +80,9 @@ function Create(self)
 	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
 	self.originalSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y)
 	
+	self.FireTimer = Timer();
+	self.powNum = 0.1;
+	
 	self.delayedFire = false
 	self.delayedFireTimer = Timer();
 	self.delayedFireTimeMS = 50
@@ -380,7 +383,9 @@ function Update(self)
 	local fire = self:IsActivated() and self.RoundInMagCount > 0;
 
 	if self.parent and self.delayedFirstShot == true then
-		self:Deactivate()
+		if self.RoundInMagCount > 0 then
+			self:Deactivate()
+		end
 		
 		--if self.parent:GetController():IsState(Controller.WEAPON_FIRE) and not self:IsReloading() then
 		if fire and not self:IsReloading() then
@@ -408,6 +413,11 @@ function Update(self)
 		self.delayedFirstShot = true;
 	end
 	
+	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 900, 1), self.powNum) * 0.5) * math.pi) * -1
+	
+	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (300 * 4), 1), 2.0)
+	self.rotationTarget = math.sin(recoilFactor * math.pi) * 1.7
+	
 	if self.FiredFrame then
 	
 		self.satisfyingVolume = self.satisfyingVolume + 0.082;
@@ -418,6 +428,9 @@ function Update(self)
 		if self.RoundInMagCount == 0 then
 			self.mechFinalSound:Play(self.Pos);
 		end
+		
+		self.FireTimer:Reset();
+		self.powNum = 0.1 + (0.1 * self.satisfyingVolume)
 		
 		-- Ground Smoke
 		local maxi = 7 + (math.floor(4 * self.satisfyingVolume))

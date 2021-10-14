@@ -84,6 +84,9 @@ function Create(self)
 	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
 	self.originalSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y)
 	
+	self.FireTimer = Timer();
+	self.powNum = 0.1;
+	
 	self.delayedFire = false
 	self.delayedFireTimer = Timer();
 	self.delayedFireTimeMS = 150
@@ -94,6 +97,9 @@ function Create(self)
 	self.fireDelayTimer = Timer()
 	
 	self.activated = false
+	
+	self.frameNum = 0
+	self.frameChangeFactor = 0
 
 end
 
@@ -264,12 +270,24 @@ function Update(self)
 					self.beltRemoved = true;
 					
 				elseif self.reloadPhase == 2 then
+				
+					self:SetNumberValue("MagRemoved", 1);
+				
+					local fake
+					fake = CreateMOSRotating("Fake Magazine MOSRotating HYPBORMinigun", "Massive.rte");
+					fake.Pos = self.Pos + Vector(-9 * self.FlipFactor, 1):RadRotate(self.RotAngle);
+					fake.Vel = self.Vel + Vector(-0.5 * self.FlipFactor, 1):RadRotate(self.RotAngle);
+					fake.RotAngle = self.RotAngle;
+					fake.AngularVel = self.AngularVel + (-0.5*self.FlipFactor);
+					fake.HFlipped = self.HFlipped;
+					MovableMan:AddParticle(fake);
 					
 					self.magRemoved = true;
 					self.verticalAnim = 1;
 					
 				elseif self.reloadPhase == 3 then
 					
+					self:RemoveNumberValue("MagRemoved");
 					self.magInserted = true;
 					
 				elseif self.reloadPhase == 4 then
@@ -326,6 +344,9 @@ function Update(self)
 		self.ReloadTime = 9900;
 	end
 	
+	self.frameNum = self.frameNum + (TimerMan.DeltaTimeSecs * self.frameChangeFactor)
+	self.Frame = math.floor(self.frameNum) % 6;
+	
 	if self:DoneReloading() or self:IsReloading() then
 		self.fireDelayTimer:Reset()
 		self.activated = false;
@@ -335,7 +356,13 @@ function Update(self)
 	local fire = self:IsActivated() and self.RoundInMagCount > 0;
 
 	if self.parent and self.delayedFirstShot == true then
-		self:Deactivate()
+		if self.RoundInMagCount > 0 then
+			self:Deactivate()
+		end
+		
+		if not self.Firing and self.frameChangeFactor > 0 then
+			self.frameChangeFactor = self.frameChangeFactor - 2;
+		end
 		
 		--if self.parent:GetController():IsState(Controller.WEAPON_FIRE) and not self:IsReloading() then
 		if fire and not self:IsReloading() then
@@ -344,6 +371,8 @@ function Update(self)
 				self:Activate()
 			elseif not self.activated and not self.delayedFire and self.fireDelayTimer:IsPastSimMS(1 / (self.RateOfFire / 60) * 1000) then
 				self.activated = true
+				
+				self.frameChangeFactor = 60;
 				
 				if self.spinUpSound then
 					self.spinUpSound:Play(self.Pos);
@@ -508,13 +537,22 @@ function Update(self)
 			end
 		end
 		self.firedOnce = true;
+		
+		self.powNum = 0.1 + (0.2 * self.ambientIntenseLoopSound.Volume);
 	end
+	
+	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (40000 * self.powNum), 1), self.powNum) * 0.5) * math.pi) * -1
+	
+	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (200 * 4), 1), 1)
+	self.rotationTarget = math.sin(recoilFactor * math.pi) * (20 * self.powNum)
 	
 	if self.FiredFrame then -- lag code, can't enjoy the game too much now can we
 	
 		if self.RoundInMagCount == 0 then
 			self.beltRemoved = true;
 		end
+		
+		self.FireTimer:Reset();
 		
 		-- Ground Smoke
 		local maxi = 7
@@ -603,6 +641,7 @@ function Update(self)
 	end
 	
 	if self.delayedFire and self.delayedFireTimer:IsPastSimMS(self.delayedFireTimeMS) then
+		self.frameChangeFactor = 120;
 		self:Activate()
 		self.Firing = true;
 		self.firedOnce = false;

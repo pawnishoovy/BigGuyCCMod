@@ -69,8 +69,8 @@ function Create(self)
 	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
 	self.originalSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y)
 	
-	self.sharpLengthNum = 0.5;
 	self.sharpLengthRegainTime = 500;
+	self.powNum = 1;
 	self.FireTimer = Timer();
 	
 	self.delayedFire = false
@@ -313,7 +313,9 @@ function Update(self)
 	local fire = self:IsActivated() and self.RoundInMagCount > 0;
 
 	if self.toFireShotgun == false and self.parent and self.delayedFirstShot == true then
-		self:Deactivate()
+		if self.RoundInMagCount > 0 then
+			self:Deactivate()
+		end
 		
 		--if self.parent:GetController():IsState(Controller.WEAPON_FIRE) and not self:IsReloading() then
 		if fire and not self:IsReloading() then
@@ -339,8 +341,8 @@ function Update(self)
 		
 		self:AddImpulseForce(Vector(-240 * self.FlipFactor, 0):RadRotate(self.RotAngle), Vector());
 	
-		self.sharpLengthNum = 0.9;
 		self.sharpLengthRegainTime = 1000;
+		self.powNum = 0.7;
 	
 		self.Magazine.RoundCount = self.Magazine.RoundCount - 1;
 	
@@ -373,7 +375,7 @@ function Update(self)
 		self.shotgunAddSound:Play(self.Pos);
 		self.shotgunBassSound:Play(self.Pos);
 		
-		self.angVel = self.angVel + RangeRand(0.7,1.1) * -70
+		self.angVel = self.angVel + RangeRand(0.7,1.1) * -25
 		
 		for i = 1, 15 do
 			local spread = RangeRand(-math.rad(2), math.rad(2))
@@ -527,12 +529,15 @@ function Update(self)
 		self.delayedFirstShot = true;
 	end
 	
-	self.SharpLength = self.originalSharpLength * (0.9 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / self.sharpLengthRegainTime, 1), 2.0) * 0.5)
+	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / self.sharpLengthRegainTime, 1), self.powNum) * 0.5) * math.pi) * -1
+	
+	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (self.sharpLengthRegainTime * 4), 1), 2.0)
+	self.rotationTarget = math.sin(recoilFactor * math.pi) * 13
 	
 	if self.FiredFrame then
 	
-		self.sharpLengthNum = 0.5;
 		self.sharpLengthRegainTime = 500;
+		self.powNum = 0.3;
 	
 		self.Frame = 7
 	
