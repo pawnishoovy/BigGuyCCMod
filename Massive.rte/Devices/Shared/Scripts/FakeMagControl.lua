@@ -6,7 +6,6 @@ function Create(self)
 		if string.find(attachable.PresetName, "Fake Magazine") then
 			self.fakeMag = attachable
 			self.fakeMag.InheritsRotAngle = true
-			self.fakeMag:AddScript("Massive.rte/Devices/Shared/Scripts/FakeMag.lua") -- SAFE MEASURE
 		end
 	end
 end

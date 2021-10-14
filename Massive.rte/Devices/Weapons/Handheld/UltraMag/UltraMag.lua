@@ -66,6 +66,8 @@ function Create(self)
 	self.activated = false
 	
 	self.satisfyingVolume = 0;
+	
+	self.offHand = -1;
 
 end
 
@@ -111,6 +113,7 @@ function Update(self)
 
 	-- Check if switched weapons/hide in the inventory, etc.
 	if self.Age > (self.lastAge + TimerMan.DeltaTimeSecs * 2000) then
+		self.offHand = -1
 		if self.delayedFire then
 			self.delayedFire = false
 		end
@@ -274,6 +277,7 @@ function Update(self)
 					self.phaseOnStop = 0;
 					self.reloadingVector = nil;
 					self.chamberOnReload = false;
+					self.offHand = -1;
 				else
 					self.reloadPhase = self.reloadPhase + 1;
 				end
@@ -316,10 +320,55 @@ function Update(self)
 	end
 	
 	local fire = self:IsActivated() and self.RoundInMagCount > 0;
+	
+	self:Deactivate()
 
 	if self.parent and self.delayedFirstShot == true then
-		self:Deactivate()
+		local isOffhand = ToAHuman(self.parent).BGArm and self:GetParent().UniqueID == ToAHuman(self.parent).BGArm.UniqueID
+	
+		-- what a mess
 		
+		if self.offHand == -1 then
+			self.offHand = (isOffhand and 1 or 0)
+		elseif fire then
+			local oppositeHand;
+			if isOffhand then
+				oppositeHand = ToAHuman(self.parent).EquippedItem;
+			else
+				oppositeHand = ToAHuman(self.parent).EquippedBGItem;
+			end
+			if oppositeHand then
+				if (not IsHDFirearm(oppositeHand))
+				or (ToHDFirearm(oppositeHand).RoundInMagCount == 0) then
+					oppositeHand = nil;
+					self.lone = true;
+				elseif self.offHand == 1 and isOffhand then
+					self.lone = false;
+				elseif self.lone == true and self.offHand == 1 and not isOffhand then
+					self.offHand = 0;
+					self.lone = false;
+				end
+			else
+				self.lone = true;
+			end
+			if self.offHand == 0 or not oppositeHand then
+				if oppositeHand and self.lone then
+					self.lone = false;
+					if isOffhand then -- main hand will be expecting us not to fire if it just got here
+						self.offHand = (self.offHand + 1) % 2
+						fire = false;
+					end
+				end
+				self.delayedFirstShot = false;
+			else
+				if not self.lone then
+					fire = false;
+				end
+				self.delayedFirstShot = false;
+			end
+			self.offHand = (self.offHand + 1) % 2
+		end
+			
 		--if self.parent:GetController():IsState(Controller.WEAPON_FIRE) and not self:IsReloading() then
 		if fire and not self:IsReloading() then
 			if not self.Magazine or self.Magazine.RoundCount < 1 then
@@ -535,7 +584,7 @@ function Update(self)
 		self.delayedFirstShot = false;
 	end
 
-	-- Animation
+
 	if self.parent then
 	
 		self.horizontalAnim = math.floor(self.horizontalAnim / (1 + TimerMan.DeltaTimeSecs * 24.0) * 1000) / 1000
@@ -573,6 +622,8 @@ function Update(self)
 end
 
 function OnDetach(self)
+
+	self.offHand = -1;
 
 	self.delayedFirstShot = true;
 	self:DisableScript("Massive.rte/Devices/Weapons/Handheld/UltraMag/UltraMag.lua");
