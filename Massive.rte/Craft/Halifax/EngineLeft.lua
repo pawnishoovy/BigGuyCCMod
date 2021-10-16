@@ -51,5 +51,19 @@ function Update(self)
 	if self.engineFailed == true then
 		self.Throttle = math.min(0.4, math.max(-1, self.Throttle - 0.285));
 	end
+	
+	self.pitchTarget = 1.0 + (0.16 * self.Throttle)
+	
+	if self.EmissionSound.Pitch < self.pitchTarget then
+		self.EmissionSound.Pitch = self.EmissionSound.Pitch + 0.2 * TimerMan.DeltaTimeSecs;
+		if self.EmissionSound.Pitch > self.pitchTarget then
+			self.EmissionSound.Pitch = self.pitchTarget;
+		end
+	elseif 	self.EmissionSound.Pitch > self.pitchTarget then
+		self.EmissionSound.Pitch = self.EmissionSound.Pitch - 0.2 * TimerMan.DeltaTimeSecs;
+		if self.EmissionSound.Pitch < self.pitchTarget then
+			self.EmissionSound.Pitch = self.pitchTarget;
+		end
+	end
 
 end
