@@ -32,6 +32,13 @@ end
 
 function Update(self)
 
+	if self.Health > 0 and self.RotAngle ~= 0 and self.RotAngle < math.pi/2 and self.RotAngle > -math.pi/2 then
+
+		self.AngularVel = self.AngularVel*(1-self.Health/1000)-math.sin(self.RotAngle*2)*(self.Health/1000);
+
+		--print(self.AngularVel);
+	end
+
 	local windEndPoint = Vector(0, 0);
 	
 	if SceneMan:CastObstacleRay(self.Pos, Vector(0, 500), windEndPoint, Vector(0, 0), self.ID, self.Team, 0, 25) >= 0 then
@@ -69,7 +76,7 @@ function Update(self)
 	
 	self.plummetSound.Pos = self.Pos;
 
-	if self.plummetSoundPlayed == false and (not self.RightEngine and not self.LeftEngine) or (self:NumberValueExists("Engine Left Failed") and self:NumberValueExists("Engine Right Failed")) then
+	if self.plummetSoundPlayed == false and (not self.RightEngine or not self.LeftEngine) or (self:NumberValueExists("Engine Left Failed") and self:NumberValueExists("Engine Right Failed")) then
 		self.plummetSoundPlayed = true;
 		self.plummetSound:Play(self.Pos);
 		self.windLoopSound:Stop(-1);
