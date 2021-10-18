@@ -32,9 +32,9 @@ end
 
 function Update(self)
 
-	if self.Health > 0 and self.RotAngle ~= 0 and self.RotAngle < math.pi/2 and self.RotAngle > -math.pi/2 then
+	if self.plummetSoundPlayed == false and self.Health > 0 and self.RotAngle ~= 0 and self.RotAngle < math.pi/2 and self.RotAngle > -math.pi/2 then
 
-		self.AngularVel = self.AngularVel*(1-self.Health/1000)-math.sin(self.RotAngle*2)*(self.Health/1000);
+		self.AngularVel = self.AngularVel*(1-self.Health/1500)-math.sin(self.RotAngle*2)*(self.Health/1500);
 
 		--print(self.AngularVel);
 	end

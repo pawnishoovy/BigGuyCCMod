@@ -61,7 +61,7 @@ function Update(self)
 			self.verticalFactor = 0;
 		end
 		if self.areaMode then	--Area Mode
-			local aimPos = self.Pos + Vector((self.searchRange * 0.5), 0):RadRotate(self.RotAngle);
+			local aimPos = self.Pos
 			--Debug: visualize aim area
 			if self.showAim then
 				PrimitiveMan:DrawCirclePrimitive(self.Team, aimPos, (self.searchRange * 0.5), 13);
@@ -72,10 +72,11 @@ function Update(self)
 				if self.showAim then
 					PrimitiveMan:DrawLinePrimitive(self.Team, aimPos, aimTarget.Pos, 13);
 				end
-				--Check that the target isn't obscured by terrain
+				--Check that the target isn't obscured by terrain or our own craft
 				local aimTrace = SceneMan:ShortestDistance(self.Pos, aimTarget.Pos, SceneMan.SceneWrapsX);
 				local terrCheck = SceneMan:CastStrengthRay(self.Pos, aimTrace, 30, Vector(), 5, 0, SceneMan.SceneWrapsX);
-				if terrCheck == false and self.cooldownTimer:IsPastSimMS(self.cooldownDelay) then
+				local selfCheck = SceneMan:CastFindMORay(self.Pos + Vector(0, -7), aimTrace, parent.ID, Vector(0, 0), 0, true, 10)
+				if terrCheck == false and selfCheck == false and self.cooldownTimer:IsPastSimMS(self.cooldownDelay) then
 					self.RotAngle = aimTrace.AbsRadAngle;
 					--Debug: visualize aim trace
 					if self.showAim then
