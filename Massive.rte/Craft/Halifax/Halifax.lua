@@ -68,9 +68,19 @@ function Update(self)
 		if self.TravelImpulse.Magnitude > 14000 then -- Hit
 			self.terrainImpactFastSound:Play(self.Pos);
 			self.terrainImpactSoundTimer:Reset()
+			local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+			shakenessParticle.Pos = self.Pos;
+			shakenessParticle.Mass = 80;
+			shakenessParticle.Lifetime = 1000;
+			MovableMan:AddParticle(shakenessParticle);
 		else
 			self.terrainImpactSlowSound:Play(self.Pos);
 			self.terrainImpactSoundTimer:Reset()
+			local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+			shakenessParticle.Pos = self.Pos;
+			shakenessParticle.Mass = 60;
+			shakenessParticle.Lifetime = 1000;
+			MovableMan:AddParticle(shakenessParticle);
 		end
 	end
 	
@@ -101,6 +111,12 @@ function OnCollideWithTerrain(self)
 	
 		self.crashLandSoundPlayed = true;
 		self.crashLandSound:Play(self.Pos);
+		
+		local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+		shakenessParticle.Pos = self.Pos;
+		shakenessParticle.Mass = 120;
+		shakenessParticle.Lifetime = 1000;
+		MovableMan:AddParticle(shakenessParticle);
 		
 		if self.LeftEngine then self.LeftEngine:EnableEmission(false) end
 		if self.RightEngine then self.RightEngine:EnableEmission(false) end
