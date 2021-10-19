@@ -87,8 +87,8 @@ function OnCollideWithMO(self, MO, rootMO)
 	if self.Age <= TimerMan.DeltaTimeSecs * 1000 then
 		rootMO.Vel = (rootMO.Vel/2) + (self.Vel/15);
 		MO.Vel = rootMO.Vel
-		if IsActor(rootMO) then
-			ToActor(rootMO).Status = 1;
+		if IsAHuman(rootMO) then
+			ToAHuman(rootMO).Status = 1;
 		end
 	end
 	

@@ -70,7 +70,7 @@ function Update(self)
 			self.terrainImpactSoundTimer:Reset()
 			local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 			shakenessParticle.Pos = self.Pos;
-			shakenessParticle.Mass = 80;
+			shakenessParticle.Mass = 60;
 			shakenessParticle.Lifetime = 1000;
 			MovableMan:AddParticle(shakenessParticle);
 		else
@@ -78,7 +78,7 @@ function Update(self)
 			self.terrainImpactSoundTimer:Reset()
 			local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 			shakenessParticle.Pos = self.Pos;
-			shakenessParticle.Mass = 60;
+			shakenessParticle.Mass = 30;
 			shakenessParticle.Lifetime = 1000;
 			MovableMan:AddParticle(shakenessParticle);
 		end
@@ -114,8 +114,8 @@ function OnCollideWithTerrain(self)
 		
 		local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 		shakenessParticle.Pos = self.Pos;
-		shakenessParticle.Mass = 120;
-		shakenessParticle.Lifetime = 1000;
+		shakenessParticle.Mass = 75;
+		shakenessParticle.Lifetime = 2000;
 		MovableMan:AddParticle(shakenessParticle);
 		
 		if self.LeftEngine then self.LeftEngine:EnableEmission(false) end

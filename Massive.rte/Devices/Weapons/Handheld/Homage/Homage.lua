@@ -478,6 +478,7 @@ function OnDetach(self)
 	self.itHasBloomed = false;
 	self.TheViolence.Volume = 0;
 	self.IsEscalating.Volume = 0;
+	self.TheViolence:Stop(-1);
 	self.IsEscalating:Stop(-1);
 	self:DisableScript("Massive.rte/Devices/Weapons/Handheld/Homage/Homage.lua");
 
