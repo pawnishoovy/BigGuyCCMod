@@ -673,10 +673,15 @@ function MassiveAIBehaviours.handleVoicelines(self)
 		end
 	end	
 	
+	self:RemoveNumberValue("Warcried");
+	
 	if (self:IsPlayerControlled() and UInputMan:KeyPressed(24)) and self.warCryTimer:IsPastSimMS(self.warCryDelay) then
 		MassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.BattleScreamReverb, 9, 4);
 		self.battleScreamImpact:Play(self.Pos);
 		self.warCryTimer:Reset();
+		
+		self:SetNumberValue("Warcried", 1);
+		
 		-- Ground Smoke
 		local maxi = 25
 		for i = 1, maxi do

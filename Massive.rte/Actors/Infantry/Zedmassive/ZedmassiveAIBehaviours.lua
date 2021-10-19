@@ -626,6 +626,8 @@ function ZedmassiveAIBehaviours.handleVoicelines(self)
 		end
 	end	
 	
+	self:RemoveNumberValue("Warcried");
+	
 	if (self:IsPlayerControlled() and UInputMan:KeyPressed(24)) and self.warCryTimer:IsPastSimMS(self.warCryDelay) and self.warCrySetOff ~= true then
 		self.warCryTimer:Reset();
 		self.warCrySetOff = true;
@@ -635,6 +637,7 @@ function ZedmassiveAIBehaviours.handleVoicelines(self)
 	elseif self.warCrySetOff == true and self.warCryTimer:IsPastSimMS(350) then
 	
 		self.warCrySetOff = false;
+		self:SetNumberValue("Warcried", 1);
 	
 		ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.BattleScreamReverb, 10, 4);
 		self.battleScreamImpact:Play(self.Pos);
@@ -671,8 +674,8 @@ function ZedmassiveAIBehaviours.handleVoicelines(self)
 		
 		local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 		shakenessParticle.Pos = self.Pos;
-		shakenessParticle.Mass = 100;
-		shakenessParticle.Lifetime = 3500;
+		shakenessParticle.Mass = 80;
+		shakenessParticle.Lifetime = 2000;
 		MovableMan:AddParticle(shakenessParticle);
 		
 	elseif not self.warCryTimer:IsPastSimMS(7000) then

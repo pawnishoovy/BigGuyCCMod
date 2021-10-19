@@ -1,33 +1,44 @@
 function Create(self)
 
-	self.parentSet = false;
+	self.TheViolence = CreateSoundContainer("Brewing Homage", "Massive.rte");
+	self.TheViolence.Volume = 0;
+	self.IsEscalating = CreateSoundContainer("Storm Homage", "Massive.rte");
+	self.IsEscalating.Immobile = true;
 	
-	-- Sounds --
+	self.noiseOutdoorsSound = CreateSoundContainer("Noise Outdoors Homage", "Massive.rte");
+	self.noiseIndoorsSound = CreateSoundContainer("Noise Indoors Homage", "Massive.rte");
+	
+	self.reloadPrepareSounds = {}
+	self.reloadPrepareSounds.Open = CreateSoundContainer("OpenPrepare Homage", "Massive.rte");
+	self.reloadPrepareSounds.Close = CreateSoundContainer("ClosePrepare Homage", "Massive.rte");
+	
+	self.reloadPrepareLengths = {}
+	self.reloadPrepareLengths.Open = 135
+	self.reloadPrepareLengths.ShellsIn = 0
+	self.reloadPrepareLengths.Close = 145
+	
+	self.reloadPrepareDelay = {}
+	self.reloadPrepareDelay.Open = 480
+	self.reloadPrepareDelay.ShellsIn = 200
+	self.reloadPrepareDelay.Close = 270
+	
+	self.reloadAfterSounds = {}
+	self.reloadAfterSounds.Open = CreateSoundContainer("Open Homage", "Massive.rte");
+	self.reloadAfterSounds.ShellsIn = CreateSoundContainer("ShellsIn Homage", "Massive.rte");
+	self.reloadAfterSounds.Close = CreateSoundContainer("Close Homage", "Massive.rte");
+	
+	self.reloadAfterDelay = {}
+	self.reloadAfterDelay.Open = 150
+	self.reloadAfterDelay.ShellsIn = 200
+	self.reloadAfterDelay.Close = 300
+	
+	self.reloadTimer = Timer();
+	
+	self.reloadPhase = 0;
+	
+	self.ReloadTime = 5000;
 
-	self.reflectionSound = CreateSoundContainer("Reflection Raider", "Heat.rte");
-	
-	self.secondaryAddSound = CreateSoundContainer("Secondary Add Raider", "Heat.rte");
-	
-	self.burstEndTailSound = CreateSoundContainer("Burst End Tail Raider", "Heat.rte");
-	
-	self.openPrepareSound = CreateSoundContainer("OpenPrepare Raider", "Heat.rte");
-	
-	self.openSound = CreateSoundContainer("Open Raider", "Heat.rte");
-	
-	self.loadPrepareSound = CreateSoundContainer("LoadPrepare Raider", "Heat.rte");
-	
-	self.loadSound = CreateSoundContainer("Load Raider", "Heat.rte");
-	
-	self.closePrepareSound = CreateSoundContainer("ClosePrepare Raider", "Heat.rte");
-	
-	self.closeSound = CreateSoundContainer("Close Raider", "Heat.rte");
-	
-	self.lastAge = self.Age
-	
-	self.originalSharpLength = self.SharpLength
-	
-	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
-	self.originalSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y)
+	self.parentSet = false;
 	
 	self.rotation = 0
 	self.rotationTarget = 0
@@ -37,66 +48,39 @@ function Create(self)
 	self.verticalAnim = 0
 	
 	self.angVel = 0
-	self.lastRotAngle = self.RotAngle
+	self.lastRotAngle = (self.RotAngle + self.InheritedRotAngleOffset)
 	
-	self.smokeTimer = Timer();
-	self.smokeDelayTimer = Timer();
-	self.canSmoke = false
-	
-	self.reloadTimer = Timer();
-	
-	self.Burst = false;
-	self.burstInterval = 100; -- in MS
-	self.burstCount = 2; -- excluding main gunshot
-	self.burstTimer = Timer();
-	
-	self.openPrepareDelay = 800;
-	self.openAfterDelay = 550;
-	self.loadPrepareDelay = 450;
-	self.loadAfterDelay = 550;
-	self.closePrepareDelay = 200;
-	self.closeAfterDelay = 150;
-	
-	-- phases:
-	-- 0 open
-	-- 1 load
-	-- 2 close
-	
-	self.reloadPhase = 0;
-	
-	self.ReloadTime = 9999;
-	
-	-- Progressive Recoil System 
-	self.recoilAcc = 0 -- for sinous
-	self.recoilStr = 0 -- for accumulator
-	self.recoilStrength = 15 -- multiplier for base recoil added to the self.recoilStr when firing
-	self.recoilPowStrength = 0.2 -- multiplier for self.recoilStr when firing
-	self.recoilRandomUpper = 2 -- upper end of random multiplier (1 is lower)
-	self.recoilDamping = 0.4
-	
-	self.recoilMax = 1 -- in deg.
 	self.originalSharpLength = self.SharpLength
-	-- Progressive Recoil System 
+	
+	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
+	self.originalSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y)
+	
+	self.FireTimer = Timer();
+	
+	self.satisfyingVolume = -0.5;
+
 end
 
 function Update(self)
+
+	self.TheViolence.Pos = self.Pos;
+	self.TheViolence.Volume = math.max(0, self.satisfyingVolume);
+	self.IsEscalating.Volume = math.max(0, self.satisfyingVolume);
+
 	self.rotationTarget = 0 -- ZERO IT FIRST AAAA!!!!!
-	
-	if self.ID == self.RootID then
+
+	if self:GetRootParent().UniqueID == self.UniqueID then
 		self.parent = nil;
 		self.parentSet = false;
 	elseif self.parentSet == false then
-		local actor = MovableMan:GetMOFromID(self.RootID);
-		if actor and IsAHuman(actor) then
-			self.parent = ToAHuman(actor);
-			self.parentSet = true;
-		end
+		self.parent = ToActor(self:GetRootParent());
+		self.parentSet = true;
 	end
 	
     -- Smoothing
     local min_value = -math.pi;
     local max_value = math.pi;
-    local value = self.RotAngle - self.lastRotAngle
+    local value = (self.RotAngle) - self.lastRotAngle
     local result;
     local ret = 0
     
@@ -109,8 +93,8 @@ function Update(self)
         result = ret + min_value;
     end
     
-    self.lastRotAngle = self.RotAngle
-    self.angVel = (result / TimerMan.DeltaTimeSecs) * self.FlipFactor
+    self.lastRotAngle = (self.RotAngle)
+    self.angVel = (result / TimerMan.DeltaTimeSecs * 0.2) * self.FlipFactor
     
     if self.lastHFlipped ~= nil then
         if self.lastHFlipped ~= self.HFlipped then
@@ -121,79 +105,92 @@ function Update(self)
         self.lastHFlipped = self.HFlipped
     end
 	
-	-- PAWNIS RELOAD ANIMATION HERE
 	if self:IsReloading() then
+	
+		if self.parent and self.reloadPhase > 0 then
+			self.parent:GetController():SetState(Controller.AIM_SHARP,false);
+		end
 
-		if self.reloadPhase == 0 then
-			self.Frame = 0;
-			self.reloadDelay = self.openPrepareDelay;
-			self.afterDelay = self.openAfterDelay;			
-			self.prepareSound = self.openPrepareSound;
-			self.afterSound = self.openSound;
 			
-			self.rotationTarget = 5;
+		if self.reloadPhase == 0 then
+			self.reloadDelay = self.reloadPrepareDelay.Open;
+			self.afterDelay = self.reloadAfterDelay.Open;		
+			
+			self.prepareSound = self.reloadPrepareSounds.Open;
+			self.prepareSoundLength = self.reloadPrepareLengths.Open;
+			self.afterSound = self.reloadAfterSounds.Open;
+			
+			self.rotationTarget = -5;
 			
 		elseif self.reloadPhase == 1 then
-			self.Frame = 3;
-			self.reloadDelay = self.loadPrepareDelay;
-			self.afterDelay = self.loadAfterDelay;
-			self.prepareSound = self.loadPrepareSound;
-			self.afterSound = self.loadSound;
+			self.reloadDelay = self.reloadPrepareDelay.ShellsIn;
+			self.afterDelay = self.reloadAfterDelay.ShellsIn;		
 			
-			self.rotationTarget = 5;
+			self.prepareSound = nil;
+			self.prepareSoundLength = self.reloadPrepareLengths.ShellsIn;
+			self.afterSound = self.reloadAfterSounds.ShellsIn;
+			
+			self.rotationTarget = -5;
 			
 		elseif self.reloadPhase == 2 then
-			self.Frame = 3;
-			self.reloadDelay = self.closePrepareDelay;
-			self.afterDelay = self.closeAfterDelay;
-			self.prepareSound = self.closePrepareSound;
-			self.afterSound = self.closeSound;
-
-			self.rotationTarget = 15;
+			self.reloadDelay = self.reloadPrepareDelay.Close;
+			self.afterDelay = self.reloadAfterDelay.Close;		
+			
+			self.prepareSound = self.reloadPrepareSounds.Close;
+			self.prepareSoundLength = self.reloadPrepareLengths.Close;
+			self.afterSound = self.reloadAfterSounds.Close;
+			
+			self.rotationTarget = -5;
 			
 		end
 		
-		if self.prepareSoundPlayed ~= true then
+		if self.prepareSoundPlayed ~= true
+		and self.reloadTimer:IsPastSimMS(self.reloadDelay - self.prepareSoundLength) then
 			self.prepareSoundPlayed = true;
 			if self.prepareSound then
 				self.prepareSound:Play(self.Pos);
 			end
 		end
+		
+		if self.prepareSound then self.prepareSound.Pos = self.Pos; end
+		self.afterSound.Pos = self.Pos;
 	
 		if self.reloadTimer:IsPastSimMS(self.reloadDelay) then
 		
+			self.phasePrepareFinished = true;
+			
 			if self.reloadPhase == 0 then
-				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.2)) then
+			
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.3)) then
 					self.Frame = 3;
-					self.phaseOnStop = 1;
-					self.barrelsOpen = true;
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.0)) then
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.1)) then
 					self.Frame = 2;
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.5)) then
-					self.Frame = 1;
-				end
-			elseif self.reloadPhase == 2 then
-				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.5)) then
-					self.Frame = 0;
-					if self.barrelsOpen ~= false then
-						self.barrelsOpen = false;
-						self.angVel = self.angVel - 5;
-					end
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.0)) then
-					self.Frame = 1;
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.5)) then
-					self.Frame = 2;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.8)) then
+					self.Frame = 1;	
 				end
 			
+			elseif self.reloadPhase == 1 then
+			
+				
+			elseif self.reloadPhase == 2 then
+			
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.3)) then
+					self.Frame = 0;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.1)) then
+					self.Frame = 1;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.8)) then
+					self.Frame = 2;	
+				end
+
 			end
 			
 			if self.afterSoundPlayed ~= true then
 			
 				if self.reloadPhase == 0 then
-					self.phaseOnStop = 1;
-					 for i = 1, self.Casings do
+				
+					 for i = 1, 2 do
 						 local fake
-						 shell = CreateAEmitter("Shell Raider", "Heat.rte");
+						 shell = CreateAEmitter("Shell Homage", "Massive.rte");
 						 shell.Pos = self.Pos + Vector(-2 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 						 shell.Vel = self.Vel + Vector(-1.5*self.FlipFactor, -6):RadRotate(self.RotAngle + math.rad(5) * RangeRand(-1, 1)) * RangeRand(0.8,1.2);
 						 shell.RotAngle = self.RotAngle;
@@ -201,20 +198,18 @@ function Update(self)
 						 shell.HFlipped = self.HFlipped;
 						 MovableMan:AddParticle(shell);
 					 end
-						
-					self.angVel = self.angVel + 2;
-					self.verticalAnim = self.verticalAnim + 1
-					
+					 
+					self.verticalAnim = 1;
+			
 				elseif self.reloadPhase == 1 then
-					self.angVel = self.angVel + 2;
-					self.verticalAnim = self.verticalAnim + 1	
+				
+					self.verticalAnim = 1;
 					
 				elseif self.reloadPhase == 2 then
-					self.horizontalAnim = self.horizontalAnim - 1;
-					self.angVel = self.angVel - 2;
-					self.phaseOnStop = nil;
-				else
-					self.phaseOnStop = nil;
+								
+					self.verticalAnim = -1;
+					self.angVel = -1
+
 				end
 			
 				self.afterSoundPlayed = true;
@@ -224,132 +219,168 @@ function Update(self)
 			end
 			if self.reloadTimer:IsPastSimMS(self.reloadDelay + self.afterDelay) then
 				self.reloadTimer:Reset();
-				self.afterSoundPlayed = false;
 				self.prepareSoundPlayed = false;
+				self.afterSoundPlayed = false;
 				if self.reloadPhase == 2 then
 					self.ReloadTime = 0;
 					self.reloadPhase = 0;
+					self.phaseOnStop = 0;
 				else
 					self.reloadPhase = self.reloadPhase + 1;
 				end
 			end
-		end		
+		end
 	else
+		self.reloadingVector = nil;
 		
-		self.reloadTimer:Reset();
-		self.afterSoundPlayed = false;
-		self.prepareSoundPlayed = false;
 		if self.phaseOnStop then
 			self.reloadPhase = self.phaseOnStop;
 			self.phaseOnStop = nil;
 		end
-		if self.barrelsOpen == true then
-			self.Frame = 3;
-		else
-			self.Frame = 0;
-		end
-		self.ReloadTime = 9999;
+		
+		self.reloadTimer:Reset();
+		self.prepareSoundPlayed = false;
+		self.afterSoundPlayed = false;
+		self.ReloadTime = 5000;
 	end
 	
-	-- Check if switched weapons/hide in the inventory, etc.
-	if self.Age > (self.lastAge + TimerMan.DeltaTimeSecs * 2000) then
-		self.Burst = false;
-	end
-	self.lastAge = self.Age + 0
-
-	if self.Burst == true then
-		if self.burstTimer:IsPastSimMS(self.burstInterval) then
-		
-			self.angVel = self.angVel - RangeRand(0.7,1.1) * 5
-			
-			self.recoilStr = self.recoilStr + ((math.random(10, self.recoilRandomUpper * 10) / 10) * 0.5 * (self.recoilStrength* 0.5)) + (self.recoilStr * 0.6 * self.recoilPowStrength)
-			self:SetNumberValue("recoilStrengthBase", self.recoilStrength * (1 + self.recoilPowStrength) / self.recoilDamping)
-			
-			self.burstTimer:Reset();
-			self.shotCounter = self.shotCounter + 1;
-			
-			self.secondaryAddSound:Play(self.Pos);
-			
-			if self.shotCounter == self.burstCount then
-				self.Burst = false;
-				self.burstEndTailSound:Play(self.Pos);
-			end
-			
-			-- Bullets
-			for i = 0, 1 do
-				local damagePar = CreateMOPixel("Particle Raider");
-				if damagePar then
-					local spreadDeg = 1
-					local spread = math.rad(spreadDeg) * (i - 0.5) * 2 * self.shotCounter
-					
-					
-					damagePar.Pos = self.MuzzlePos
-					damagePar.Vel = Vector((150 + 25 * self.shotCounter) * self.FlipFactor, 0):RadRotate(self.RotAngle + spread)
-					damagePar.Team = self.Team
-					damagePar.IgnoresTeamHits = true;
-					MovableMan:AddParticle(damagePar)
-				end
-			end
-			
-			--self.shotCounter
-			
-			for i = 1, 2 do
-				local Effect = CreateMOSParticle("Tiny Smoke Ball 1", "Base.rte")
-				if Effect then
-					Effect.Pos = self.MuzzlePos;
-					Effect.Vel = (self.Vel + Vector(RangeRand(-20,20), RangeRand(-20,20)) + Vector(150*self.FlipFactor,0):RadRotate(self.RotAngle)) / 30
-					MovableMan:AddParticle(Effect)
-				end
-			end
-			
-			
-			local Effect = CreateMOSParticle("Side Thruster Blast Ball 1", "Base.rte")
-			if Effect then
-				Effect.Pos = self.MuzzlePos;
-				Effect.Vel = (self.Vel + Vector(150*self.FlipFactor,0):RadRotate(self.RotAngle)) / 10
-				MovableMan:AddParticle(Effect)
-			end
-		end
-	end
+	self.SharpLength = self.originalSharpLength * (0.9 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 500, 1), 2.0) * 0.5)
 	
 	if self.FiredFrame then
-		self.angVel = self.angVel - RangeRand(0.7,1.1) * 15
+	
+		if self.Magazine then self.Magazine.RoundCount = 0 end
+	
+		local shot = CreateMOPixel("Pellet Homage Scripted", "Massive.rte");
+		shot.Pos = self.MuzzlePos;
+		shot.Vel = self.Vel + Vector(160 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+		shot.Lifetime = shot.Lifetime * math.random(0.8, 1.2);
+		shot.Team = self.Team;
+		shot.IgnoresTeamHits = true;
+		MovableMan:AddParticle(shot);	
+	
+		self.FireTimer:Reset();
 		
-		self.canSmoke = true
-		self.smokeTimer:Reset()
+		self.angVel = self.angVel + RangeRand(0.7,1.1) * -15
 		
-		self.Burst = true;
-		self.shotCounter = 0;
+		local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
+		shakenessParticle.Pos = self.MuzzlePos;
+		shakenessParticle.Mass = 20 + (20 * self.satisfyingVolume);
+		shakenessParticle.Lifetime = 500;
+		MovableMan:AddParticle(shakenessParticle);
 		
-		if self.Magazine and self.Magazine.RoundCount == 1 then
-			self.Casings = 1;
-		else
-			self.Casings = 2;
+		if AudioMan.MusicVolume == 0 then
+			self.satisfyingVolume = math.min(1, self.satisfyingVolume + 0.055);
 		end
 		
-		self.burstTimer:Reset();
-		
-		for i = 1, 2 do
-			local Effect = CreateMOSParticle("Tiny Smoke Ball 1", "Base.rte")
-			if Effect then
-				Effect.Pos = self.MuzzlePos;
-				Effect.Vel = (self.Vel + Vector(RangeRand(-20,20), RangeRand(-20,20)) + Vector(150*self.FlipFactor,0):RadRotate(self.RotAngle)) / 30
-				MovableMan:AddParticle(Effect)
-			end
+		if self.satisfyingVolume > 0 and self.itHasEscalated ~= true then
+			self.itHasEscalated = true;
+			self.TheViolence:Play(self.Pos);
+		elseif self.satisfyingVolume < 0 then
+			self.itHasEscalated = false;
+			self.itHasBloomed = false;
+			self.TheViolence:Stop(-1);
+			self.IsEscalating:Stop(-1);
 		end
 		
-		local Effect = CreateMOSParticle("Side Thruster Blast Ball 1", "Base.rte")
-		if Effect then
-			Effect.Pos = self.MuzzlePos;
-			Effect.Vel = (self.Vel + Vector(150*self.FlipFactor,0):RadRotate(self.RotAngle)) / 10
-			MovableMan:AddParticle(Effect)
+		-- Ground Smoke
+		local maxi = 3 + (math.floor(2 * self.satisfyingVolume))
+		for i = 1, maxi do
+			
+			local effect = CreateMOSRotating("Ground Smoke Particle Small Massive", "Massive.rte")
+			effect.Pos = self.MuzzlePos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
+			effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / maxi * i + RangeRand(-2,2) / maxi)
+			effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)
+			effect.AirResistance = effect.AirResistance * RangeRand(0.5,0.8)
+			MovableMan:AddParticle(effect)
 		end
-
+		
+		local xSpread = 0
+		
+		local smokeAmount = 10 + (math.floor(5 * self.satisfyingVolume))
+		local particleSpread = 5 + (math.floor(3 * self.satisfyingVolume))
+		
+		local smokeLingering = math.sqrt(smokeAmount / 8) * (1 + self.satisfyingVolume * 2)
+		local smokeVelocity = (1 + math.sqrt(smokeAmount / 8) ) * 0.5
+		
+		-- Muzzle main smoke
+		for i = 1, math.ceil(smokeAmount / (math.random(2,4))) do
+			local spread = math.pi * RangeRand(-1, 1) * 0.05
+			local velocity = 110 * RangeRand(0.1, 0.9) * 0.4;
+			
+			local particle = CreateMOSParticle((math.random() * particleSpread) < 6.5 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
+			particle.Pos = self.MuzzlePos
+			particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
+			particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
+			particle.AirThreshold = particle.AirThreshold * 0.5
+			particle.GlobalAccScalar = 0
+			MovableMan:AddParticle(particle);
+		end
+		
+		-- Muzzle lingering smoke
+		for i = 1, math.ceil(smokeAmount / (math.random(2,4))) do
+			local spread = math.pi * RangeRand(-1, 1) * 0.05
+			local velocity = 110 * RangeRand(0.1, 0.9) * 0.4;
+			
+			local particle = CreateMOSParticle((math.random() * particleSpread) < 10 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
+			particle.Pos = self.MuzzlePos
+			particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
+			particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering * 3
+			particle.AirThreshold = particle.AirThreshold * 0.5
+			particle.GlobalAccScalar = 0.01
+			MovableMan:AddParticle(particle);
+		end
+		
+		-- Muzzle side smoke
+		for i = 1, math.ceil(smokeAmount / (math.random(4,6))) do
+			local vel = Vector(110 * self.FlipFactor,0):RadRotate(self.RotAngle)
+			
+			local xSpreadVec = Vector(xSpread * self.FlipFactor * math.random() * -1, 0):RadRotate(self.RotAngle)
+			
+			local particle = CreateMOSParticle("Tiny Smoke Ball 1");
+			particle.Pos = self.MuzzlePos + xSpreadVec
+			-- oh LORD
+			particle.Vel = self.Vel + ((Vector(vel.X, vel.Y):RadRotate(math.pi * (math.random(0,1) * 2.0 - 1.0) * 0.5 + math.pi * RangeRand(-1, 1) * 0.15) * RangeRand(0.1, 0.9) * 0.3 + Vector(vel.X, vel.Y):RadRotate(math.pi * RangeRand(-1, 1) * 0.15) * RangeRand(0.1, 0.9) * 0.2) * 0.5) * smokeVelocity;
+			-- have mercy
+			particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
+			particle.AirThreshold = particle.AirThreshold * 0.5
+			particle.GlobalAccScalar = 0
+			MovableMan:AddParticle(particle);
+		end
+		
+		-- Muzzle scary smoke
+		for i = 1, math.ceil(smokeAmount / (math.random(8,12))) do
+			local spread = math.pi * RangeRand(-1, 1) * 0.05
+			local velocity = 110 * RangeRand(0.1, 0.9) * 0.4;
+			
+			local particle = CreateMOSParticle("Side Thruster Blast Ball 1", "Base.rte");
+			particle.Pos = self.MuzzlePos
+			particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
+			particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
+			particle.AirThreshold = particle.AirThreshold * 0.5
+			particle.GlobalAccScalar = 0
+			MovableMan:AddParticle(particle);
+		end
+		
+		-- Muzzle flash-smoke
+		for i = 1, math.ceil(smokeAmount / (math.random(5,10) * 0.5)) do
+			local spread = RangeRand(-math.rad(particleSpread), math.rad(particleSpread)) * (1 + math.random(0,3) * 0.3)
+			local velocity = 110 * 0.6 * RangeRand(0.9,1.1)
+			
+			local xSpreadVec = Vector(xSpread * self.FlipFactor * math.random() * -1, 0):RadRotate(self.RotAngle)
+			
+			local particle = CreateMOSParticle("Flame Smoke 1 Micro")
+			particle.Pos = self.MuzzlePos + xSpreadVec
+			particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
+			particle.Team = self.Team
+			particle.Lifetime = particle.Lifetime * RangeRand(0.9,1.2) * 0.75 * smokeLingering
+			particle.AirResistance = particle.AirResistance * 2.5 * RangeRand(0.9,1.1)
+			particle.IgnoresTeamHits = true
+			particle.AirThreshold = particle.AirThreshold * 0.5
+			MovableMan:AddParticle(particle);
+		end
+		--
+		
 		local outdoorRays = 0;
-		
-		local indoorRays = 0;
-		
-		local bigIndoorRays = 0;
 
 		if self.parent and self.parent:IsPlayerControlled() then
 			self.rayThreshold = 2; -- this is the first ray check to decide whether we play outdoors
@@ -381,20 +412,32 @@ function Update(self)
 		for _, rayLength in ipairs(self.rayTable) do
 			if rayLength < 0 then
 				outdoorRays = outdoorRays + 1;
-			elseif rayLength > 170 then
-				bigIndoorRays = bigIndoorRays + 1;
-			else
-				indoorRays = indoorRays + 1;
 			end
 		end
-
+		
 		if outdoorRays >= self.rayThreshold then
-			self.reflectionSound:Play(self.Pos);
-		end
+			self.noiseOutdoorsSound:Play(self.Pos);
+		else
+			self.noiseIndoorsSound:Play(self.Pos);
+		end		
+
 	end
 	
-	-- Animation
+	if self.satisfyingVolume > -0.5 then
+		self.satisfyingVolume = self.satisfyingVolume - (self.itHasBloomed and 0.006 or 0.01) * TimerMan.DeltaTimeSecs;
+		if self.satisfyingVolume < -0.5 then
+			self.satisfyingVolume = -0.5;
+		end
+	end
+
 	if self.parent then
+	
+		if self.parent:NumberValueExists("Warcried") and self.satisfyingVolume > 0.95 and self.itHasBloomed ~= true then
+			self.itHasBloomed = true;
+			self.TheViolence:FadeOut(100);
+			self.IsEscalating:Play(self.Pos);
+		end
+	
 		self.horizontalAnim = math.floor(self.horizontalAnim / (1 + TimerMan.DeltaTimeSecs * 24.0) * 1000) / 1000
 		self.verticalAnim = math.floor(self.verticalAnim / (1 + TimerMan.DeltaTimeSecs * 15.0) * 1000) / 1000
 		
@@ -402,33 +445,12 @@ function Update(self)
 		stance = stance + Vector(-1,0) * self.horizontalAnim -- Horizontal animation
 		stance = stance + Vector(0,5) * self.verticalAnim -- Vertical animation
 		
-		self.rotationTarget = self.rotationTarget - (self.angVel * 4)
-		
-		-- Progressive Recoil Update
-		if self.FiredFrame then
-			self.recoilStr = self.recoilStr + ((math.random(10, self.recoilRandomUpper * 10) / 10) * 0.5 * self.recoilStrength) + (self.recoilStr * 0.6 * self.recoilPowStrength)
-			self:SetNumberValue("recoilStrengthBase", self.recoilStrength * (1 + self.recoilPowStrength) / self.recoilDamping)
-		end
-		self:SetNumberValue("recoilStrengthCurrent", self.recoilStr)
-		
-		self.recoilStr = math.floor(self.recoilStr / (1 + TimerMan.DeltaTimeSecs * 8.0 * self.recoilDamping) * 1000) / 1000
-		self.recoilAcc = (self.recoilAcc + self.recoilStr * TimerMan.DeltaTimeSecs) % (math.pi * 4)
-		
-		local recoilA = (math.sin(self.recoilAcc) * self.recoilStr) * 0.05 * self.recoilStr
-		local recoilB = (math.sin(self.recoilAcc * 0.5) * self.recoilStr) * 0.01 * self.recoilStr
-		local recoilC = (math.sin(self.recoilAcc * 0.25) * self.recoilStr) * 0.05 * self.recoilStr
-		
-		local recoilFinal = math.max(math.min(recoilA + recoilB + recoilC, self.recoilMax), -self.recoilMax)
-		
-		self.SharpLength = math.max(self.originalSharpLength - (self.recoilStr * 3 + math.abs(recoilFinal)), 0)
-		
-		self.rotationTarget = self.rotationTarget + recoilFinal -- apply the recoil
-		-- Progressive Recoil Update		
+		self.rotationTarget = self.rotationTarget - (self.angVel * 9)
 		
 		self.rotation = (self.rotation + self.rotationTarget * TimerMan.DeltaTimeSecs * self.rotationSpeed) / (1 + TimerMan.DeltaTimeSecs * self.rotationSpeed)
 		local total = math.rad(self.rotation) * self.FlipFactor
 		
-		self.InheritedRotAngleOffset = total * self.FlipFactor;
+		self.RotAngle = self.RotAngle + total;
 		-- self.RotAngle = self.RotAngle + total;
 		-- self:SetNumberValue("MagRotation", total);
 		
@@ -438,21 +460,25 @@ function Update(self)
 		-- self:SetNumberValue("MagOffsetX", offsetTotal.X);
 		-- self:SetNumberValue("MagOffsetY", offsetTotal.Y);
 		
-		self.StanceOffset = Vector(self.originalStanceOffset.X, self.originalStanceOffset.Y) + stance
-		self.SharpStanceOffset = Vector(self.originalSharpStanceOffset.X, self.originalSharpStanceOffset.Y) + stance
-	end
-	
-	if self.canSmoke and not self.smokeTimer:IsPastSimMS(1500) then
-
-		if self.smokeDelayTimer:IsPastSimMS(120) then
-			
-			local poof = CreateMOSParticle("Tiny Smoke Ball 1");
-			poof.Pos = self.Pos + Vector(self.MuzzleOffset.X * self.FlipFactor, self.MuzzleOffset.Y):RadRotate(self.RotAngle);
-			poof.Lifetime = poof.Lifetime * RangeRand(0.3, 1.3) * 0.9;
-			poof.Vel = self.Vel * 0.1
-			poof.GlobalAccScalar = RangeRand(0.9, 1.0) * -0.4; -- Go up and down
-			MovableMan:AddParticle(poof);
-			self.smokeDelayTimer:Reset()
+		if not self.parent:IsPlayerControlled() then
+			self.itHasBloomed = false;
+			self.itHasEscalated = false;
+			self.TheViolence:Stop(-1);
+			self.IsEscalating:Stop(-1);
+			self.satisfyingVolume = math.min(self.satisfyingVolume, 0);
 		end
 	end
+
+
+end
+
+function OnDetach(self)
+
+	self.itHasEscalated = false;
+	self.itHasBloomed = false;
+	self.TheViolence.Volume = 0;
+	self.IsEscalating.Volume = 0;
+	self.IsEscalating:Stop(-1);
+	self:DisableScript("Massive.rte/Devices/Weapons/Handheld/Homage/Homage.lua");
+
 end

@@ -522,9 +522,7 @@ function Update(self)
 			effect.AirResistance = effect.AirResistance * RangeRand(0.5,0.8)
 			MovableMan:AddParticle(effect)
 		end
-		
-		self.angVel = self.angVel + RangeRand(0.7,1.1) * -15
-		
+
 		local xSpread = 0
 		
 		local smokeAmount = 45
