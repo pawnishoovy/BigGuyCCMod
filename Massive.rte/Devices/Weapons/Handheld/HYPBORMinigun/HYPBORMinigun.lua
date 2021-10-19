@@ -125,7 +125,7 @@ function Update(self)
     -- Smoothing
     local min_value = -math.pi;
     local max_value = math.pi;
-    local value = (self.RotAngle + self.InheritedRotAngleOffset) - self.lastRotAngle
+    local value = (self.RotAngle) - self.lastRotAngle
     local result;
     local ret = 0
     
@@ -138,8 +138,8 @@ function Update(self)
         result = ret + min_value;
     end
     
-    self.lastRotAngle = (self.RotAngle + self.InheritedRotAngleOffset)
-    self.angVel = (result / TimerMan.DeltaTimeSecs) * self.FlipFactor
+    self.lastRotAngle = (self.RotAngle)
+    self.angVel = (result / TimerMan.DeltaTimeSecs * 1.0) * self.FlipFactor
     
     if self.lastHFlipped ~= nil then
         if self.lastHFlipped ~= self.HFlipped then
@@ -730,9 +730,9 @@ function Update(self)
 		self.rotationTarget = self.rotationTarget - (self.angVel * 9)
 		
 		self.rotation = (self.rotation + self.rotationTarget * TimerMan.DeltaTimeSecs * self.rotationSpeed) / (1 + TimerMan.DeltaTimeSecs * self.rotationSpeed)
-		local total = math.rad(self.rotation)
+		local total = math.rad(self.rotation) * self.FlipFactor
 		
-		self.InheritedRotAngleOffset = total
+		self.RotAngle = self.RotAngle + total;
 		-- self.RotAngle = self.RotAngle + total;
 		-- self:SetNumberValue("MagRotation", total);
 		
