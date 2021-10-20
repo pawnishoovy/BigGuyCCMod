@@ -18,7 +18,7 @@ function Create(self)
 end
 function Update(self)
 	
-	local parent = self:GetParent();
+	local parent = self:GetRootParent();
 	if parent then
 		--Aim directly away from parent
 		local posTrace = SceneMan:ShortestDistance(parent.Pos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.searchRange * 0.5);

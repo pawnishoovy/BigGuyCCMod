@@ -6,11 +6,14 @@ require("AI/NativeDropShipAI")
 function Create(self)
 	self.AI = NativeDropShipAI:Create(self)
 	
+	self.Frame = 1; -- buy menu
+	
 	self.windLoopSound = CreateSoundContainer("WindLoop Halifax Massive", "Massive.rte");
 	self.windLoopSound.Volume = 0;
 	self.windLoopSound:Play(self.Pos);
 	
 	
+	self.damageReactionSound = CreateSoundContainer("DamageReaction Halifax Massive", "Massive.rte");
 	self.terrainImpactSlowSound = CreateSoundContainer("TerrainImpactSlow Halifax Massive", "Massive.rte");
 	self.terrainImpactFastSound = CreateSoundContainer("TerrainImpactFast Halifax Massive", "Massive.rte");
 	self.plummetSound = CreateSoundContainer("Plummet Halifax Massive", "Massive.rte");
@@ -31,6 +34,17 @@ function Create(self)
 end
 
 function Update(self)
+
+	if self:NumberValueExists("Damage Reaction") then
+		self:RemoveNumberValue("Damage Reaction");
+		self.damageReactionSound:Play(self.Pos);
+	end
+	
+	if self.lostLeftCompartment ~= true and self:NumberValueExists("Lost Left Compartment") then
+		self.lostLeftCompartment = true;
+		local attachable = CreateAttachable("Halifax Massive Compartment Left BG", "Massive.rte");
+		self:AddAttachable(attachable);
+	end
 
 	if self.plummetSoundPlayed == false and self.Health > 0 and self.RotAngle ~= 0 and self.RotAngle < math.pi/2 and self.RotAngle > -math.pi/2 then
 
