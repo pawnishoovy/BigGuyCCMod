@@ -19,7 +19,10 @@ function Create(self)
 	self.hitMOTable = {}
 	
 	self.soundFlyLoop = CreateSoundContainer("Shell Flying Duford155", "Massive.rte");
+	self.soundFlyLoop.Volume = 0.5;
 	self.soundFlyLoop:Play(self.Pos);
+	
+	self.soundFlyBy = CreateSoundContainer("Shell FlyBy Duford155", "Massive.rte");
 	
 	self.soundOutOfMap = CreateSoundContainer("Shell Out Of Map Flying Duford155", "Massive.rte");
 	self.soundLeaveMap = CreateSoundContainer("Shell Leave Map Duford155", "Massive.rte");
@@ -39,6 +42,9 @@ function Create(self)
 			[180] = CreateSoundContainer("Duford155 Projectile Hit SolidMetal", "Massive.rte"),
 			[181] = CreateSoundContainer("Duford155 Projectile Hit SolidMetal", "Massive.rte"),
 			[182] = CreateSoundContainer("Duford155 Projectile Hit SolidMetal", "Massive.rte")}}
+			
+	self.flyby = true
+	self.flybyTimer = Timer()
 			
 	-- this thing goes QUICK, better check on create too
 	
@@ -152,6 +158,40 @@ function Update(self)
 				end
 			end	
 		end
+		
+		--Flyby sound (epic haxx)
+		if self.flyby and self.flybyTimer:IsPastSimMS(80) then
+			--local cameraPos = Vector(SceneMan:GetScrollTarget(0).X, SceneMan:GetScrollTarget(0).Y)
+			
+			local controlledActor = ActivityMan:GetActivity():GetControlledActor(0);
+			
+			if controlledActor then
+			
+				local distA = SceneMan:ShortestDistance(self.Pos,controlledActor.Pos,SceneMan.SceneWrapsX).Magnitude
+				local vectorA = SceneMan:ShortestDistance(self.Pos,controlledActor.Pos,SceneMan.SceneWrapsX)
+				local distAMin = math.random(100,200)		
+				
+				if distA < distAMin and SceneMan:CastObstacleRay(self.Pos, vectorA, Vector(0, 0), Vector(0, 0), controlledActor.ID, -1, 128, 8) < 0 then
+					self.flyby = false
+					
+					self.soundFlyBy:Play(controlledActor.Pos);
+				else
+					local offset = Vector(self.Vel.X, self.Vel.Y) * RangeRand(0.2,1.0)
+					local distB = SceneMan:ShortestDistance(self.Pos + offset,controlledActor.Pos,SceneMan.SceneWrapsX).Magnitude
+					local distBMin = math.random(80,160)
+					if distB < distBMin and SceneMan:CastObstacleRay(self.Pos, vectorA, Vector(0, 0), Vector(0, 0), controlledActor.ID, -1, 128, 8) < 0 then
+						self.flyby = false
+						
+						self.soundFlyBy:Play(controlledActor.Pos);
+						
+					end
+				end
+			end
+			
+			local s = self.UniqueID % 7 + 1
+			--PrimitiveMan:DrawCirclePrimitive(cameraPos, s, 5)
+		end		
+		
 	end
 	
 	if self.ToDelete then
