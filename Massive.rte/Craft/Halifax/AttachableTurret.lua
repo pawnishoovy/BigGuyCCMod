@@ -27,7 +27,7 @@ function Update(self)
 	self.rattleLoopSound.Pos = self.Pos;
 	self.rattleEndSound.Pos = self.Pos;
 	
-	local parent = self:GetParent();
+	local parent = self:GetRootParent();
 	if parent then
 		--Aim vertically away from parent
 		local posTrace = SceneMan:ShortestDistance(parent.Pos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.searchRange * 0.5);

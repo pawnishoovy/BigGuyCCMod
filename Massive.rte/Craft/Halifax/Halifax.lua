@@ -42,8 +42,10 @@ function Update(self)
 	
 	if self.lostLeftCompartment ~= true and self:NumberValueExists("Lost Left Compartment") then
 		self.lostLeftCompartment = true;
-		local attachable = CreateAttachable("Halifax Massive Compartment Left BG", "Massive.rte");
-		self:AddAttachable(attachable);
+	end
+	
+	if self.lostRightCompartment ~= true and self:NumberValueExists("Lost Right Compartment") then
+		self.lostRightCompartment = true;
 	end
 
 	if self.plummetSoundPlayed == false and self.Health > 0 and self.RotAngle ~= 0 and self.RotAngle < math.pi/2 and self.RotAngle > -math.pi/2 then
