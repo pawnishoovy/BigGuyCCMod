@@ -244,9 +244,21 @@ function Update(self)
 		self.ReloadTime = 5000;
 	end
 	
-	self.SharpLength = self.originalSharpLength * (0.9 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 500, 1), 2.0) * 0.5)
+	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 1500, 1), 2.0) * 0.5) * math.pi) * -1
+	
+	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (300 * 4), 1), 2.0)
+	self.rotationTarget = math.sin(recoilFactor * math.pi) * 13
+	
+	if self.FireTimer:IsPastSimMS(250) then
+		if self.Reloadable == false then
+			self.Reloadable = true;
+			self:Reload();
+		end
+	end
 	
 	if self.FiredFrame then
+	
+		self.Reloadable = false;
 	
 		if self.Magazine then self.Magazine.RoundCount = 0 end
 	
@@ -260,7 +272,7 @@ function Update(self)
 	
 		self.FireTimer:Reset();
 		
-		self.angVel = self.angVel + RangeRand(0.7,1.1) * -15
+		self.angVel = self.angVel + RangeRand(0.7,1.1) * -5
 		
 		local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
 		shakenessParticle.Pos = self.MuzzlePos;
