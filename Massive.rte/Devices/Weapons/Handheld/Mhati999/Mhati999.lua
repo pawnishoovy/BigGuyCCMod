@@ -2,6 +2,7 @@ function Create(self)
 
 	self.preSound = CreateSoundContainer("Pre Mhati999", "Massive.rte");
 	
+	self.satisfyingAddSound = CreateSoundContainer("Satisfying Add Mhati999", "Massive.rte");
 	self.satisfyingReflectionOutdoorsSound = CreateSoundContainer("Satisfying Reflection Outdoors Mhati999", "Massive.rte");
 	
 	self.mechSound = CreateSoundContainer("Mech Mhati999", "Massive.rte");
@@ -25,7 +26,7 @@ function Create(self)
 	self.reloadPrepareLengths.boltForward = 0
 	
 	self.reloadPrepareDelay = {}
-	self.reloadPrepareDelay.magOut = 630
+	self.reloadPrepareDelay.magOut = 1200
 	self.reloadPrepareDelay.magIn = 2350
 	self.reloadPrepareDelay.boltBack = 540
 	self.reloadPrepareDelay.boltForward = 200
@@ -363,6 +364,9 @@ function Update(self)
 		end
 	
 		self.satisfyingVolume = math.min(1, self.satisfyingVolume + 0.0333);
+		
+		self.satisfyingAddSound.Volume = self.satisfyingVolume;
+		self.satisfyingAddSound:Play(self.Pos);
 	
 		self.mechSound:Play(self.Pos);
 		
