@@ -2,60 +2,45 @@ function Create(self)
 
 	self.preSound = CreateSoundContainer("Pre Mhati999", "Massive.rte");
 	
-	self.satisfyingAddSound = CreateSoundContainer("Satisfying Add Mhati999", "Massive.rte");
-	self.satisfyingReflectionSound = CreateSoundContainer("Satisfying Reflection Mhati999", "Massive.rte");
+	self.satisfyingReflectionOutdoorsSound = CreateSoundContainer("Satisfying Reflection Outdoors Mhati999", "Massive.rte");
 	
-	self.mechFinalSound = CreateSoundContainer("Mech Final Mhati999", "Massive.rte");
+	self.mechSound = CreateSoundContainer("Mech Mhati999", "Massive.rte");
 	
 	self.noiseOutdoorsSound = CreateSoundContainer("Noise Outdoors Mhati999", "Massive.rte");
 	self.noiseIndoorsSound = CreateSoundContainer("Noise Indoors Mhati999", "Massive.rte");
 	
+	self.reflectionIndoorsSound = CreateSoundContainer("Reflection Indoors Mhati999", "Massive.rte");
+	
 	self.oldNoise = self.noiseOutdoorsSound;
 	
 	self.reloadPrepareSounds = {}
-	self.reloadPrepareSounds.Raise = CreateSoundContainer("Raise Prepare Mhati999", "Massive.rte");
-	self.reloadPrepareSounds.coverOpen = CreateSoundContainer("Cover Open Prepare Mhati999", "Massive.rte");
-	self.reloadPrepareSounds.drumOut = CreateSoundContainer("Drum Out Prepare Mhati999", "Massive.rte");
-	self.reloadPrepareSounds.drumIn = CreateSoundContainer("Drum In Prepare Mhati999", "Massive.rte");
-	self.reloadPrepareSounds.beltIn = CreateSoundContainer("Belt In Prepare Mhati999", "Massive.rte");
-	self.reloadPrepareSounds.coverClose = CreateSoundContainer("Cover Close Prepare Mhati999", "Massive.rte");
-	self.reloadPrepareSounds.Lower = CreateSoundContainer("Lower Prepare Mhati999", "Massive.rte");
+	self.reloadPrepareSounds.magOut = CreateSoundContainer("Mag Out Prepare Mhati999", "Massive.rte");
+	self.reloadPrepareSounds.magIn = CreateSoundContainer("Mag In Prepare Mhati999", "Massive.rte");
+	self.reloadPrepareSounds.boltBack = CreateSoundContainer("Bolt Back Prepare Mhati999", "Massive.rte");
 	
 	self.reloadPrepareLengths = {}
-	self.reloadPrepareLengths.Raise = 580
-	self.reloadPrepareLengths.coverOpen = 600
-	self.reloadPrepareLengths.drumOut = 480
-	self.reloadPrepareLengths.drumIn = 1700
-	self.reloadPrepareLengths.beltIn = 760
-	self.reloadPrepareLengths.coverClose = 720
-	self.reloadPrepareLengths.Lower = 715
+	self.reloadPrepareLengths.magOut = 630
+	self.reloadPrepareLengths.magIn = 2200
+	self.reloadPrepareLengths.boltBack = 390
+	self.reloadPrepareLengths.boltForward = 0
 	
 	self.reloadPrepareDelay = {}
-	self.reloadPrepareDelay.Raise = 845
-	self.reloadPrepareDelay.coverOpen = 500
-	self.reloadPrepareDelay.drumOut = 520
-	self.reloadPrepareDelay.drumIn = 1700
-	self.reloadPrepareDelay.beltIn = 760
-	self.reloadPrepareDelay.coverClose = 720
-	self.reloadPrepareDelay.Lower = 970
+	self.reloadPrepareDelay.magOut = 630
+	self.reloadPrepareDelay.magIn = 2350
+	self.reloadPrepareDelay.boltBack = 540
+	self.reloadPrepareDelay.boltForward = 200
 	
 	self.reloadAfterSounds = {}
-	self.reloadAfterSounds.Raise = CreateSoundContainer("Raise Mhati999", "Massive.rte");
-	self.reloadAfterSounds.coverOpen = CreateSoundContainer("Cover Open Mhati999", "Massive.rte");
-	self.reloadAfterSounds.drumOut = CreateSoundContainer("Drum Out Mhati999", "Massive.rte");
-	self.reloadAfterSounds.drumIn = CreateSoundContainer("Drum In Mhati999", "Massive.rte");
-	self.reloadAfterSounds.beltIn = CreateSoundContainer("Belt In Mhati999", "Massive.rte");
-	self.reloadAfterSounds.coverClose = CreateSoundContainer("Cover Close Mhati999", "Massive.rte");
-	self.reloadAfterSounds.Lower = CreateSoundContainer("Lower Mhati999", "Massive.rte");
+	self.reloadAfterSounds.magOut = CreateSoundContainer("Mag Out Mhati999", "Massive.rte");
+	self.reloadAfterSounds.magIn = CreateSoundContainer("Mag In Mhati999", "Massive.rte");
+	self.reloadAfterSounds.boltBack = CreateSoundContainer("Bolt Back Mhati999", "Massive.rte");
+	self.reloadAfterSounds.boltForward = CreateSoundContainer("Bolt Forward Mhati999", "Massive.rte");
 	
 	self.reloadAfterDelay = {}
-	self.reloadAfterDelay.Raise = 100
-	self.reloadAfterDelay.coverOpen = 300
-	self.reloadAfterDelay.drumOut = 450
-	self.reloadAfterDelay.drumIn = 1000
-	self.reloadAfterDelay.beltIn = 1000
-	self.reloadAfterDelay.coverClose = 400
-	self.reloadAfterDelay.Lower = 300
+	self.reloadAfterDelay.magOut = 450
+	self.reloadAfterDelay.magIn = 350
+	self.reloadAfterDelay.boltBack = 200
+	self.reloadAfterDelay.boltForward = 750
 	
 	self.reloadTimer = Timer();
 	
@@ -151,74 +136,45 @@ function Update(self)
 		end
 
 		if self.reloadPhase == 0 then
-			self.reloadDelay = self.reloadPrepareDelay.Raise;
-			self.afterDelay = self.reloadAfterDelay.Raise;		
+			self.reloadDelay = self.reloadPrepareDelay.magOut;
+			self.afterDelay = self.reloadAfterDelay.magOut;		
 			
-			self.prepareSound = self.reloadPrepareSounds.Raise;
-			self.prepareSoundLength = self.reloadPrepareLengths.Raise;
-			self.afterSound = self.reloadAfterSounds.Raise;
+			self.prepareSound = self.reloadPrepareSounds.magOut;
+			self.prepareSoundLength = self.reloadPrepareLengths.magOut;
+			self.afterSound = self.reloadAfterSounds.magOut;
 			
-			self.rotationTarget = 50 * (self.reloadTimer.ElapsedSimTimeMS/self.reloadDelay);
+			self.rotationTarget = 10;
 			
 		elseif self.reloadPhase == 1 then
-			self.reloadDelay = self.reloadPrepareDelay.coverOpen;
-			self.afterDelay = self.reloadAfterDelay.coverOpen;		
+			self.reloadDelay = self.reloadPrepareDelay.magIn;
+			self.afterDelay = self.reloadAfterDelay.magIn;		
 			
-			self.prepareSound = self.reloadPrepareSounds.coverOpen;
-			self.prepareSoundLength = self.reloadPrepareLengths.coverOpen;
-			self.afterSound = self.reloadAfterSounds.coverOpen;
+			self.prepareSound = self.reloadPrepareSounds.magIn;
+			self.prepareSoundLength = self.reloadPrepareLengths.magIn;
+			self.afterSound = self.reloadAfterSounds.magIn;
 			
-			self.rotationTarget = 45;
+			self.rotationTarget = 10;
 			
 		elseif self.reloadPhase == 2 then
-			self.reloadDelay = self.reloadPrepareDelay.drumOut;
-			self.afterDelay = self.reloadAfterDelay.drumOut;		
+			self.reloadDelay = self.reloadPrepareDelay.boltBack;
+			self.afterDelay = self.reloadAfterDelay.boltBack;		
 			
-			self.prepareSound = self.reloadPrepareSounds.drumOut;
-			self.prepareSoundLength = self.reloadPrepareLengths.drumOut;
-			self.afterSound = self.reloadAfterSounds.drumOut;
+			self.prepareSound = self.reloadPrepareSounds.boltBack;
+			self.prepareSoundLength = self.reloadPrepareLengths.boltBack;
+			self.afterSound = self.reloadAfterSounds.boltBack;
 			
-			self.rotationTarget = 45;
+			self.rotationTarget = 25 * (self.reloadTimer.ElapsedSimTimeMS/self.reloadDelay);
 			
 		elseif self.reloadPhase == 3 then
-			self.reloadDelay = self.reloadPrepareDelay.drumIn;
-			self.afterDelay = self.reloadAfterDelay.drumIn;		
+			self.reloadDelay = self.reloadPrepareDelay.boltForward;
+			self.afterDelay = self.reloadAfterDelay.boltForward;		
 			
-			self.prepareSound = self.reloadPrepareSounds.drumIn;
-			self.prepareSoundLength = self.reloadPrepareLengths.drumIn;
-			self.afterSound = self.reloadAfterSounds.drumIn;
+			self.prepareSound = nil;
+			self.prepareSoundLength = self.reloadPrepareLengths.boltForward;
+			self.afterSound = self.reloadAfterSounds.boltForward;
 			
-			self.rotationTarget = 30;
-			
-		elseif self.reloadPhase == 4 then
-			self.reloadDelay = self.reloadPrepareDelay.beltIn;
-			self.afterDelay = self.reloadAfterDelay.beltIn;		
-			
-			self.prepareSound = self.reloadPrepareSounds.beltIn;
-			self.prepareSoundLength = self.reloadPrepareLengths.beltIn;
-			self.afterSound = self.reloadAfterSounds.beltIn;
-			
-			self.rotationTarget = 25;
-			
-		elseif self.reloadPhase == 5 then
-			self.reloadDelay = self.reloadPrepareDelay.coverClose;
-			self.afterDelay = self.reloadAfterDelay.coverClose;		
-			
-			self.prepareSound = self.reloadPrepareSounds.coverClose;
-			self.prepareSoundLength = self.reloadPrepareLengths.coverClose;
-			self.afterSound = self.reloadAfterSounds.coverClose;
-			
-			self.rotationTarget = 25;
-			
-		elseif self.reloadPhase == 6 then
-			self.reloadDelay = self.reloadPrepareDelay.Lower;
-			self.afterDelay = self.reloadAfterDelay.Lower;		
-			
-			self.prepareSound = self.reloadPrepareSounds.Lower;
-			self.prepareSoundLength = self.reloadPrepareLengths.Lower;
-			self.afterSound = self.reloadAfterSounds.Lower;
-
 			self.rotationTarget = 20;
+			
 		end
 		
 		if self.prepareSoundPlayed ~= true
@@ -237,10 +193,10 @@ function Update(self)
 			self.phasePrepareFinished = true;
 			
 			if self.reloadPhase == 0 then
-			
-				self.rotationTarget = 45;
 
 			elseif self.reloadPhase == 1 then
+
+			elseif self.reloadPhase == 2 then
 			
 				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4)) then
 					self.Frame = 4;
@@ -252,17 +208,7 @@ function Update(self)
 					self.Frame = 1;
 				end
 
-			elseif self.reloadPhase == 2 then
-			
-				self.Frame = 5;
-
 			elseif self.reloadPhase == 3 then
-			
-				self.Frame = 4;
-			
-			elseif self.reloadPhase == 4 then
-			
-			elseif self.reloadPhase == 5 then
 			
 				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4)) then
 					self.Frame = 0;
@@ -273,11 +219,6 @@ function Update(self)
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1)) then
 					self.Frame = 3;
 				end
-			
-			elseif self.reloadPhase == 6 then
-				
-			
-				self.rotationTarget = 5;
 
 			end
 			
@@ -285,39 +226,31 @@ function Update(self)
 			
 				if self.reloadPhase == 0 then
 				
-					self.verticalAnim = 2;
+					self.phaseOnStop = 1;
+				
+					self:SetNumberValue("MagRemoved", 1);
+					
+					local fake
+					fake = CreateMOSRotating("Fake Magazine MOSRotating Mhati999", "Massive.rte");
+					fake.Pos = self.Pos + Vector(-6 * self.FlipFactor, 1):RadRotate(self.RotAngle);
+					fake.Vel = self.Vel + Vector(2 * self.FlipFactor, 1):RadRotate(self.RotAngle);
+					fake.RotAngle = self.RotAngle;
+					fake.AngularVel = self.AngularVel + (-1*self.FlipFactor);
+					fake.HFlipped = self.HFlipped;
+					MovableMan:AddParticle(fake);
 			
 				elseif self.reloadPhase == 1 then
 				
-					self.coverOpened = true;
+					self:RemoveNumberValue("MagRemoved");
+					self.phaseOnStop = 2;
 					
 				elseif self.reloadPhase == 2 then
-					
-					if self.drumRemoved ~= true then
-						local fake
-						fake = CreateMOSRotating("Fake Magazine MOSRotating Mhati999", "Massive.rte");
-						fake.Pos = self.Pos + Vector(-6 * self.FlipFactor, 1):RadRotate(self.RotAngle);
-						fake.Vel = self.Vel + Vector(2 * self.FlipFactor, 1):RadRotate(self.RotAngle);
-						fake.RotAngle = self.RotAngle;
-						fake.AngularVel = self.AngularVel + (-1*self.FlipFactor);
-						fake.HFlipped = self.HFlipped;
-						MovableMan:AddParticle(fake);
-						self.drumRemoved = true;
-					end
-					self.verticalAnim = 1;
+				
+					self.phaseOnStop = 2;
 					
 				elseif self.reloadPhase == 3 then
-					
-					self.drumInserted = true;
-					self.verticalAnim = 1;
-					
-				elseif self.reloadPhase == 4 then
 				
-					self.beltInserted = true;
-		
-				elseif self.reloadPhase == 5 then
-				
-					self.coverClosed = true;
+					self.phaseOnStop = 2;
 					
 				end
 			
@@ -330,26 +263,14 @@ function Update(self)
 				self.reloadTimer:Reset();
 				self.prepareSoundPlayed = false;
 				self.afterSoundPlayed = false;
-				if self.reloadPhase == 0 then
-					if self.coverClosed then
-						self.reloadPhase = 6;
-					elseif self.beltInserted then
-						self.reloadPhase = 5;					
-					elseif self.drumInserted then
-						self.reloadPhase = 4;
-					elseif self.drumRemoved then
-						self.reloadPhase = 3;
-					elseif self.coverOpened then
-						self.reloadPhase = 2;
-					else
-						self.reloadPhase = 1;
-					end
-				elseif self.reloadPhase == 6 then
-					self.coverOpened = false;
-					self.drumRemoved = false;
-					self.drumInserted = false;
-					self.beltInserted = false;
-					self.coverClosed = false;
+
+				if self.reloadPhase == 1 and self.chamberOnReload == false then
+					self.phaseOnStop = nil;
+					self.ReloadTime = 0;
+					self.reloadPhase = 0;
+					self.reloadingVector = nil;
+				elseif self.reloadPhase == 3 then
+					self.phaseOnStop = nil;
 					self.ReloadTime = 0;
 					self.reloadPhase = 0;
 					self.reloadingVector = nil;
@@ -364,9 +285,12 @@ function Update(self)
 		self.reloadingVector = nil;
 		self.rotationTarget = 0
 		
-		self.reloadPhase = 0;
+		if self.phaseOnStop then
+			self.reloadPhase = self.phaseOnStop
+			self.phaseOnStop = nil;
+		end
 		
-		self.Frame = self.coverClosed and 0 or self.drumInserted and 4 or self.drumRemoved and 5 or self.coverOpened and 4 or 0
+		self.Frame = 0;
 		
 		self.reloadTimer:Reset();
 		self.prepareSoundPlayed = false;
@@ -379,6 +303,20 @@ function Update(self)
 		self.activated = false;
 		self.delayedFire = false;
 	end
+	
+	if self:DoneReloading() then
+		if self.chamberOnReload == true then
+			if self.Magazine then
+				self.Magazine.RoundCount = 30;
+			end
+			self.chamberOnReload = false;
+		else
+			if self.Magazine then
+				self.Magazine.RoundCount = 31;
+			end
+		end
+	end
+		
 	
 	local fire = self:IsActivated() and self.RoundInMagCount > 0;
 
@@ -420,14 +358,13 @@ function Update(self)
 	
 	if self.FiredFrame then
 	
-		self.satisfyingVolume = self.satisfyingVolume + 0.082;
-		
-		self.satisfyingAddSound.Volume = self.satisfyingVolume;
-		self.satisfyingAddSound:Play(self.Pos);
-	
 		if self.RoundInMagCount == 0 then
-			self.mechFinalSound:Play(self.Pos);
+			self.chamberOnReload = true;
 		end
+	
+		self.satisfyingVolume = math.min(1, self.satisfyingVolume + 0.0333);
+	
+		self.mechSound:Play(self.Pos);
 		
 		self.FireTimer:Reset();
 		self.powNum = 0.1 + (0.1 * self.satisfyingVolume)
@@ -436,7 +373,7 @@ function Update(self)
 		local maxi = 7 + (math.floor(4 * self.satisfyingVolume))
 		for i = 1, maxi do
 			
-			local effect = CreateMOSRotating("Ground Smoke Particle Large Massive", "Massive.rte")
+			local effect = CreateMOSRotating("Ground Smoke Particle Small Massive", "Massive.rte")
 			effect.Pos = self.MuzzlePos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
 			effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / maxi * i + RangeRand(-2,2) / maxi)
 			effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)
@@ -446,7 +383,7 @@ function Update(self)
 		
 		local xSpread = 0
 		
-		local smokeAmount = 20 + (math.floor(10 * self.satisfyingVolume))
+		local smokeAmount = 5 + (math.floor(5 * self.satisfyingVolume))
 		local particleSpread = 10 + (math.floor(7 * self.satisfyingVolume))
 		
 		local smokeLingering = math.sqrt(smokeAmount / 8) * (1 + self.satisfyingVolume * 2)
@@ -532,7 +469,7 @@ function Update(self)
 		
 		local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
 		shakenessParticle.Pos = self.MuzzlePos;
-		shakenessParticle.Mass = 25 + (25 * self.satisfyingVolume);
+		shakenessParticle.Mass = 10 + (10 * self.satisfyingVolume);
 		shakenessParticle.Lifetime = 500;
 		MovableMan:AddParticle(shakenessParticle);
 		
@@ -572,19 +509,18 @@ function Update(self)
 		end
 		
 		if outdoorRays >= self.rayThreshold then
-			self.oldNoise:FadeOut(150);
 			local sound = self.noiseOutdoorsSound;
-			sound.Volume = 1 - self.satisfyingVolume / 3;
 			sound:Play(self.Pos);
 			self.oldNoise = sound;
 			
-			self.satisfyingReflectionSound.Volume = self.satisfyingVolume;
-			self.satisfyingReflectionSound:Play(self.Pos);
+			self.satisfyingReflectionOutdoorsSound.Volume = self.satisfyingVolume;
+			self.satisfyingReflectionOutdoorsSound:Play(self.Pos);
 		else
-			self.oldNoise:FadeOut(150);
 			local sound = self.noiseIndoorsSound;
 			sound:Play(self.Pos);
 			self.oldNoise = sound;
+			
+			self.reflectionIndoorsSound:Play(self.Pos);
 		end		
 
 	end
@@ -634,7 +570,7 @@ end
 
 function OnDetach(self)
 
-	self.Frame = self.coverClosed and 0 or self.drumInserted and 4 or self.drumRemoved and 5 or self.coverOpened and 4 or 0
+	self.Frame = self.coverClosed and 0 or self.magInserted and 4 or self.magRemoved and 5 or self.boltForwarded and 4 or 0
 
 	self.delayedFirstShot = true;
 	self:DisableScript("Massive.rte/Devices/Weapons/Handheld/Mhati999/Mhati999.lua");
