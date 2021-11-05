@@ -1,6 +1,6 @@
 function Create(self)	
 	
-	self.magDropSound = CreateSoundContainer("Mag Drop Maxav", "Massive.rte");
+	self.magDropSound = CreateSoundContainer("Mag Drop Mhati999", "Massive.rte");
 	
 
 end

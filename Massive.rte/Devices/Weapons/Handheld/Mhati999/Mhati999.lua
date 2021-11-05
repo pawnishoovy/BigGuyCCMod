@@ -2,6 +2,8 @@ function Create(self)
 
 	self.preSound = CreateSoundContainer("Pre Mhati999", "Massive.rte");
 	
+	self.addSound = CreateSoundContainer("Add Mhati999", "Massive.rte");
+	
 	self.satisfyingAddSound = CreateSoundContainer("Satisfying Add Mhati999", "Massive.rte");
 	self.satisfyingReflectionOutdoorsSound = CreateSoundContainer("Satisfying Reflection Outdoors Mhati999", "Massive.rte");
 	
@@ -66,6 +68,7 @@ function Create(self)
 	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
 	self.originalSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y)
 	
+	self.fireDuration = 60000/self.RateOfFire
 	self.FireTimer = Timer();
 	self.powNum = 0.1;
 	
@@ -164,7 +167,7 @@ function Update(self)
 			self.prepareSoundLength = self.reloadPrepareLengths.boltBack;
 			self.afterSound = self.reloadAfterSounds.boltBack;
 			
-			self.rotationTarget = 25 * (self.reloadTimer.ElapsedSimTimeMS/self.reloadDelay);
+			self.rotationTarget = 12 * (self.reloadTimer.ElapsedSimTimeMS/self.reloadDelay);
 			
 		elseif self.reloadPhase == 3 then
 			self.reloadDelay = self.reloadPrepareDelay.boltForward;
@@ -174,7 +177,7 @@ function Update(self)
 			self.prepareSoundLength = self.reloadPrepareLengths.boltForward;
 			self.afterSound = self.reloadAfterSounds.boltForward;
 			
-			self.rotationTarget = 20;
+			self.rotationTarget = 10;
 			
 		end
 		
@@ -199,27 +202,23 @@ function Update(self)
 
 			elseif self.reloadPhase == 2 then
 			
-				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4)) then
-					self.Frame = 4;
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*3)) then
-					self.Frame = 3;
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2)) then
-					self.Frame = 2;
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1)) then
-					self.Frame = 1;
-				end
+				local minTime = self.reloadDelay
+				local maxTime = self.reloadDelay + ((self.afterDelay/5)*5)
+				
+				local factor = math.pow(math.min(math.max(self.reloadTimer.ElapsedSimTimeMS - minTime, 0) / (maxTime - minTime), 1), 2)
+				factor = factor^2
+
+				self.Frame = math.floor(factor * (6) + 0.5)
 
 			elseif self.reloadPhase == 3 then
 			
-				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4)) then
-					self.Frame = 0;
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*3)) then
-					self.Frame = 1;
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2)) then
-					self.Frame = 2;
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1)) then
-					self.Frame = 3;
-				end
+				local minTime = self.reloadDelay
+				local maxTime = self.reloadDelay + ((self.afterDelay/5)*2)
+				
+				local factor = math.pow(math.min(math.max(self.reloadTimer.ElapsedSimTimeMS - minTime, 0) / (maxTime - minTime), 1), 2)
+				factor = factor^3
+
+				self.Frame = 6 - math.floor(factor * (6 + 0.5))
 
 			end
 			
@@ -233,14 +232,16 @@ function Update(self)
 					
 					local fake
 					fake = CreateMOSRotating("Fake Magazine MOSRotating Mhati999", "Massive.rte");
-					fake.Pos = self.Pos + Vector(-6 * self.FlipFactor, 1):RadRotate(self.RotAngle);
-					fake.Vel = self.Vel + Vector(2 * self.FlipFactor, 1):RadRotate(self.RotAngle);
+					fake.Pos = self.Pos + Vector(-1 * self.FlipFactor, -6):RadRotate(self.RotAngle);
+					fake.Vel = self.Vel + Vector(2 * self.FlipFactor, -2):RadRotate(self.RotAngle);
 					fake.RotAngle = self.RotAngle;
 					fake.AngularVel = self.AngularVel + (-1*self.FlipFactor);
 					fake.HFlipped = self.HFlipped;
 					MovableMan:AddParticle(fake);
 			
 				elseif self.reloadPhase == 1 then
+				
+					self.verticalAnim = 1;
 				
 					self:RemoveNumberValue("MagRemoved");
 					self.phaseOnStop = 2;
@@ -355,19 +356,22 @@ function Update(self)
 	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 900, 1), self.powNum) * 0.5) * math.pi) * -1
 	
 	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (300 * 4), 1), 2.0)
-	self.rotationTarget = math.sin(recoilFactor * math.pi) * 1.7
+	self.rotationTarget = self.rotationTarget + math.sin(recoilFactor * math.pi) * 1.7
 	
 	if self.FiredFrame then
 	
 		if self.RoundInMagCount == 0 then
 			self.chamberOnReload = true;
 		end
+		
+		self.FireTimerFired = true;
 	
 		self.satisfyingVolume = math.min(1, self.satisfyingVolume + 0.0333);
 		
 		self.satisfyingAddSound.Volume = self.satisfyingVolume;
 		self.satisfyingAddSound:Play(self.Pos);
 	
+		self.addSound:Play(self.Pos);
 		self.mechSound:Play(self.Pos);
 		
 		self.FireTimer:Reset();
@@ -527,6 +531,24 @@ function Update(self)
 			self.reflectionIndoorsSound:Play(self.Pos);
 		end		
 
+	end
+	
+	if self.FireTimerFired then
+		
+		local factor = math.min(self.FireTimer.ElapsedSimTimeMS / self.fireDuration, 1)
+		local middleFactor = 0.2
+		local backwardFactor = 0.7
+		if factor < (backwardFactor + middleFactor) then
+			local f = math.sqrt(math.min(factor / middleFactor, 1), 2)
+			self.Frame = math.floor(5 * f + 0.5)
+		else
+			local f = math.sqrt(math.min((factor - middleFactor - backwardFactor) / (1 - middleFactor - backwardFactor), 1))
+			self.Frame = 5 - math.floor(5 * f + 0.5)
+		end
+		
+		if self.FireTimer:IsPastSimMS(self.fireDuration) then
+			self.FireTimerFired = false
+		end
 	end
 	
 	if self.delayedFire and self.delayedFireTimer:IsPastSimMS(self.delayedFireTimeMS) then

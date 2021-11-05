@@ -416,7 +416,7 @@ function Update(self)
 	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 900, 1), self.powNum) * 0.5) * math.pi) * -1
 	
 	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (300 * 4), 1), 2.0)
-	self.rotationTarget = math.sin(recoilFactor * math.pi) * 1.7
+	self.rotationTarget = self.rotationTarget + math.sin(recoilFactor * math.pi) * 1.7
 	
 	if self.FiredFrame then
 	
