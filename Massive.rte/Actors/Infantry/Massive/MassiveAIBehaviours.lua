@@ -78,14 +78,14 @@ end
 
 function MassiveAIBehaviours.handleMovement(self)
 
-	if self.EquippedItem and IsHDFirearm(self.EquippedItem) and self.EquippedItem.Mass < 35 then
-		local gun = ToHDFirearm(self.EquippedItem)
-		if not gun:NumberValueExists("MassiveOneHand") then
-			local attachment = CreateAttachable("One Hand Attachment Massive", "Massive.rte");
-			gun:AddAttachable(attachment);
-			gun:SetNumberValue("MassiveOneHand", 1);
-		end
-	end
+	--if self.EquippedItem and IsHDFirearm(self.EquippedItem) and self.EquippedItem.Mass < 35 then
+	--	local gun = ToHDFirearm(self.EquippedItem)
+	--	if not gun:NumberValueExists("MassiveOneHand") then
+	--		local attachment = CreateAttachable("One Hand Attachment Massive", "Massive.rte");
+	--		gun:AddAttachable(attachment);
+	--		gun:SetNumberValue("MassiveOneHand", 1);
+	--	end
+	--end
 
 	if self:NumberValueExists("Mordhau Disable Movement") then
 		return;
@@ -93,6 +93,20 @@ function MassiveAIBehaviours.handleMovement(self)
 	
 	local crouching = self.controller:IsState(Controller.BODY_CROUCH)
 	local moving = self.controller:IsState(Controller.MOVE_LEFT) or self.controller:IsState(Controller.MOVE_RIGHT);
+	
+	if self.hunchTimer:IsPastSimMS(3000) then
+		self.hunchTimer:Reset();
+		if self.Head then
+			local roofCheckRay = SceneMan:CastStrengthSumRay(self.Head.Pos, self.Head.Pos + Vector(0, -24), 4, 0);
+			if roofCheckRay > 150 then
+				self:SetRotAngleTarget(AHuman.STAND, -0.7);
+				self:SetRotAngleTarget(AHuman.WALK, -0.75);
+			else
+				self:SetRotAngleTarget(AHuman.STAND, 0);
+				self:SetRotAngleTarget(AHuman.WALK, -0.2);
+			end
+		end
+	end
 	
 	-- Leg Collision Detection system
     --local i = 0

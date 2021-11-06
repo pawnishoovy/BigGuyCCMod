@@ -138,6 +138,10 @@ function Create(self)
 	self.ragdollTerrainImpactTimer = Timer();
 	self.ragdollTerrainImpactDelay = math.random(200, 500);
 	
+	-- dont bump your head
+	
+	self.hunchTimer = Timer();
+	
 	-- extremely epic, 2000-tier combat/idle mode system
 	self.inCombat = false;
 	self.combatExitTimer = Timer();

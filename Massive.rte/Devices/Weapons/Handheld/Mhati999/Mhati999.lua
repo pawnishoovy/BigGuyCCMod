@@ -571,7 +571,7 @@ function Update(self)
 	
 		if self.shoveStart then
 			self.horizontalAnim = 3;
-			self.rotationTarget = self.rotationTarget + 45;
+			self.rotationTarget = self.rotationTarget + 75;
 			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 2) then
 				self.shoveStart = false;
 				self.parent:SetNumberValue("Gun Shove Massive", 1);
