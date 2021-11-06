@@ -758,6 +758,18 @@ function MassiveAIBehaviours.handleVoicelines(self)
 	end
 	
 	if self.EquippedItem then	
+	
+		if self:NumberValueExists("Gun Shove Start Massive") then
+			self:RemoveNumberValue("Gun Shove Start Massive");
+			self.movementSounds.AttackLight:Play(self.Pos);
+		end	
+	
+		if self:NumberValueExists("Gun Shove Massive") then
+			self:RemoveNumberValue("Gun Shove Massive");
+			MassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.AttackGrunt, 3, 3);
+			self.movementSounds.AttackLight:Play(self.Pos);
+		end	
+	
 		-- SUPPRESSING
 		if (IsHDFirearm(self.EquippedItem)) then
 			local gun = ToHDFirearm(self.EquippedItem);

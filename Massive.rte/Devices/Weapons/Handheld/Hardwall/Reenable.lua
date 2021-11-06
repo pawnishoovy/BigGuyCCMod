@@ -6,4 +6,10 @@ function OnAttach(self)
 		self.Magazine.RoundCount = self.Magazine.RoundCount - 1;
 	end
 	
+	if self:GetRootParent().PresetName == "Massive" or self:GetRootParent().PresetName == "Zedmassive" then
+		self.equippedByMassive = true;
+	else
+		self.equippedByMassive = false;
+	end
+	
 end

@@ -506,9 +506,6 @@ function Update(self)
 							end
 							
 							if IsActor(MO) then -- if we hit torso
-								if ToActor(MO).BodyHitSound then
-									ToActor(MO).BodyHitSound:Play(self.Pos)
-								end
 								if MO.WoundCount + woundsToAdd >= MO.GibWoundLimit and math.random(0, 100) < 95 then
 									addWounds = false;
 									addSingleWound = true;

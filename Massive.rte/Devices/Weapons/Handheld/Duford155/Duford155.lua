@@ -1,5 +1,11 @@
 function Create(self)
 
+	if self:GetRootParent() and self:GetRootParent().PresetName == "Massive" or self:GetRootParent().PresetName == "Zedmassive" then
+		self.equippedByMassive = true;
+	else
+		self.equippedByMassive = false;
+	end
+
 	self.preSound = CreateSoundContainer("Pre Duford155", "Massive.rte");
 	self.bassPreSound = CreateSoundContainer("Bass Pre Duford155", "Massive.rte");
 	
@@ -89,6 +95,9 @@ function Create(self)
 	
 	self.textTimer = Timer();
 	self.textDelay = 0;
+	
+	self.shoveTimer = Timer();
+	self.shoveCooldown = 1300;
 
 end
 
@@ -447,7 +456,7 @@ function Update(self)
 		self.textToDisplay = "CALCULATION EXPIRED...";
 	end
 	
-	local fire = self:IsActivated() and self.RoundInMagCount > 0;
+	local fire = self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self:IsActivated() and self.RoundInMagCount > 0;
 
 	if self.parent and self.delayedFirstShot == true then
 		if self.RoundInMagCount > 0 then
@@ -672,6 +681,133 @@ function Update(self)
 	-- Animation
 	if self.parent then
 	
+		if self.shoveStart then
+			self.horizontalAnim = 4;
+			self.rotationTarget = self.rotationTarget - 10;
+			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 2) then
+				self.shoveStart = false;
+				self.parent:SetNumberValue("Gun Shove Massive", 1);
+			end
+		elseif self.shoving then
+			self.horizontalAnim = -5;
+			self.rotationTarget = self.rotationTarget + 10;
+			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 1.3) then
+				self.shoving = false;
+			end
+			
+			local rayVec = Vector(8 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+			local rayOrigin = self.MuzzlePos + Vector(0, 0);
+			
+			--PrimitiveMan:DrawLinePrimitive(rayOrigin, rayOrigin + rayVec,  5);
+			--PrimitiveMan:DrawCirclePrimitive(self.Pos, 3, 5);
+			
+			local moCheck = SceneMan:CastMORay(rayOrigin, rayVec, self.IDToIgnore or self.ID, self.Team, 0, false, 2); -- Raycast		
+			
+			if moCheck and moCheck ~= rte.NoMOID then
+				local rayHitPos = SceneMan:GetLastRayHitPos()
+				local rayHitPos = Vector(rayHitPos.X, rayHitPos.Y);
+				local MO = MovableMan:GetMOFromID(moCheck)
+				
+				local dist = SceneMan:ShortestDistance(self.Pos, rayHitPos, SceneMan.SceneWrapsX)
+							
+				if IsMOSRotating(MO) then
+					--print("HIT BEGIN")
+					if self.shoveDamage == true then
+						self.shoveDamage = false;
+						MO = ToMOSRotating(MO)
+						--print("HIT THE FOLLOWING")
+						--print(MO)
+						--print(MO.UniqueID)
+						--print(MO:GetRootParent())
+						--print(MO:GetRootParent().UniqueID)
+						--print("TABLE NOW CONTAINS")
+						local woundName = MO:GetEntryWoundPresetName()
+						local woundNameExit = MO:GetExitWoundPresetName()
+						local woundOffset = (rayHitPos - MO.Pos):RadRotate(MO.RotAngle * -1.0)
+						
+						local material = MO.Material.PresetName
+						--if crit then
+						--	woundName = woundNameExit
+						--end
+						
+						if self.equippedByMassive then
+							if IsAttachable(MO) and ToAttachable(MO):IsAttached() then
+								if MO:IsDevice() and math.random(0, 100) >= 90 then
+									ToAttachable(MO):RemoveFromParent(true, true);
+								end
+								
+								if MO:IsInGroup("Shields") and math.random(0, 100) >= 95 then
+									ToAttachable(MO):RemoveFromParent(true, true);
+								end
+							end
+						end
+						
+						local damage = self.equippedByMassive and 2 or 1;
+						
+						local addWounds = true;
+						
+						local woundsToAdd = damage;
+						
+						-- Hurt the actor, add extra damage
+						local actorHit = MovableMan:GetMOFromID(MO.RootID)
+						if (actorHit and IsActor(actorHit)) then-- and (MO.RootID == moCheck or (not IsAttachable(MO) or string.find(MO.PresetName,"Arm") or string.find(MO,"Leg") or string.find(MO,"Head"))) then -- Apply addational damage			
+						
+							actorHit = ToActor(actorHit)
+							
+							if actorHit.BodyHitSound then
+								actorHit.BodyHitSound:Play(actorHit.Pos)
+							end
+							
+							if self.equippedByMassive then
+								if math.random(0, 100) >= 75 then
+									actorHit.Status = 1;
+								end
+								actorHit.Vel = actorHit.Vel + Vector(5, 0):RadRotate(self.RotAngle);
+							end
+							
+							if (actorHit.Health - (damage * 10)) < 0 then -- bad estimation, but...
+								if math.random(0, 100) < 15 then
+									self.parent:SetNumberValue("Attack Killed", 1); -- celebration!!
+								end
+							elseif math.random(0, 100) < 30 then
+								self.parent:SetNumberValue("Attack Success", 1); -- celebration!!
+							end
+							
+							if IsActor(MO) then -- if we hit torso
+								if MO.WoundCount + woundsToAdd >= MO.GibWoundLimit and math.random(0, 100) < 95 then
+									addWounds = false;
+									addSingleWound = true;
+									ToActor(MO).Health = 0;
+								end
+							end
+							
+							if addWounds == true and woundName and woundName ~= "" then
+								for i = 1, woundsToAdd do
+									MO:AddWound(CreateAEmitter(woundName), woundOffset, true)
+								end
+							elseif addSingleWound == true and woundName and woundName ~= "" then
+								MO:AddWound(CreateAEmitter(woundName), woundOffset, true)
+							end
+
+						elseif woundName and woundName ~= "" then -- generic wound adding for non-actors
+							for i = 1, woundsToAdd do
+								MO:AddWound(CreateAEmitter(woundName), woundOffset, true)
+							end
+						end
+					end
+				end	
+			end
+			
+		end
+	
+		if self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(22) then
+			self.shoveTimer:Reset();
+			self.parent:SetNumberValue("Gun Shove Start Massive", 1);
+			self.shoving = true;
+			self.shoveStart = true;
+			self.shoveDamage = true;
+		end
+	
 		self.horizontalAnim = math.floor(self.horizontalAnim / (1 + TimerMan.DeltaTimeSecs * 24.0) * 1000) / 1000
 		self.verticalAnim = math.floor(self.verticalAnim / (1 + TimerMan.DeltaTimeSecs * 15.0) * 1000) / 1000
 		
@@ -725,6 +861,9 @@ function OnDetach(self)
 end
 
 function OnDestroy(self)
+
+	self.shoveStart = false;
+	self.shoving = false;
 
 	self.artilleryModeEnabled = false;
 	self.artilleryPos = nil;

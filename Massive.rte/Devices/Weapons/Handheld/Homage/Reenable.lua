@@ -6,6 +6,12 @@ function OnAttach(self)
 	self.IsEscalating.Immobile = true;
 	self:EnableScript("Massive.rte/Devices/Weapons/Handheld/Homage/Homage.lua");
 	
+	if self:GetRootParent().PresetName == "Massive" or self:GetRootParent().PresetName == "Zedmassive" then
+		self.equippedByMassive = true;
+	else
+		self.equippedByMassive = false;
+	end
+	
 end
 
 function Destroy()
