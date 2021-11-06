@@ -272,6 +272,34 @@ function Update(self)
 						self.reloadPhase = 1;
 					end
 				elseif self.reloadPhase == 1 or self.reloadPhase == 2 then
+					local isOffhand = ToAHuman(self.parent).BGArm and self:GetParent().UniqueID == ToAHuman(self.parent).BGArm.UniqueID
+					
+					local oppositeHand;
+					if isOffhand then
+						oppositeHand = ToAHuman(self.parent).EquippedItem;
+					else
+						oppositeHand = ToAHuman(self.parent).EquippedBGItem;
+					end
+					if oppositeHand then
+						if (not IsHDFirearm(oppositeHand))
+						or (ToHDFirearm(oppositeHand).RoundInMagCount == 0)
+						or not oppositeHand.PresetName == "RINOBI Ultra-Mag" then
+							oppositeHand = nil;
+							self.lone = true;
+						elseif self.offHand == 1 and isOffhand then
+							self.lone = false;
+						elseif self.lone == true and self.offHand == 1 and not isOffhand then
+							self.offHand = 0;
+							self.lone = false;
+						end
+					else
+						self.lone = true;
+					end
+
+					if oppositeHand then
+						ToMOSRotating(oppositeHand):SetNumberValue("Force Opposite Hand Update", 1);
+					end
+					
 					self.ReloadTime = 0;
 					self.reloadPhase = 0;
 					self.phaseOnStop = 0;
@@ -330,6 +358,39 @@ function Update(self)
 	
 		-- what a mess
 		
+		if self:NumberValueExists("Force BG Hand Set") then
+			self:RemoveNumberValue("Force BG Hand Set");
+			self.offHand = 0;
+			fire = false;
+		end
+		
+		if self:NumberValueExists("Force Opposite Hand Update") then
+			self:RemoveNumberValue("Force Opposite Hand Update");
+			if isOffhand then
+				oppositeHand = ToAHuman(self.parent).EquippedItem;
+			else
+				oppositeHand = ToAHuman(self.parent).EquippedBGItem;
+			end
+			if oppositeHand then
+				if (not IsHDFirearm(oppositeHand))
+				or (ToHDFirearm(oppositeHand).RoundInMagCount == 0)
+				or not oppositeHand.PresetName == "RINOBI Ultra-Mag" then
+					oppositeHand = nil;
+					self.lone = true;
+				elseif self.offHand == 1 and isOffhand then
+					self.lone = false;
+				elseif self.lone == true and self.offHand == 1 and not isOffhand then
+					self.offHand = 0;
+					self.lone = false;
+				end
+			else
+				self.lone = true;
+			end
+			
+			self.offHand = -1;
+			
+		end
+		
 		if self.offHand == -1 then
 			self.offHand = (isOffhand and 1 or 0)
 		elseif fire then
@@ -341,7 +402,8 @@ function Update(self)
 			end
 			if oppositeHand then
 				if (not IsHDFirearm(oppositeHand))
-				or (ToHDFirearm(oppositeHand).RoundInMagCount == 0) then
+				or (ToHDFirearm(oppositeHand).RoundInMagCount == 0)
+				or oppositeHand.PresetName ~= "RINOBI Ultra-Mag" then
 					oppositeHand = nil;
 					self.lone = true;
 				elseif self.offHand == 1 and isOffhand then
@@ -377,6 +439,9 @@ function Update(self)
 				--self:Reload()
 				self:Activate()
 			elseif not self.activated and not self.delayedFire and self.fireDelayTimer:IsPastSimMS(1 / (self.RateOfFire / 60) * 1000) then
+				if not isOffhand and oppositeHand then
+					ToMOSRotating(oppositeHand):SetNumberValue("Force BG Hand Set", 1);
+				end
 				self.activated = true
 				
 				self.preSound:Play(self.Pos);
