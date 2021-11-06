@@ -266,7 +266,7 @@ function Update(self)
 				self.prepareSoundPlayed = false;
 				self.afterSoundPlayed = false;
 
-				if self.reloadPhase == 1 and self.chamberOnReload == false then
+				if self.reloadPhase == 1 and self.chamberOnReload ~= true then
 					self.phaseOnStop = nil;
 					self.ReloadTime = 0;
 					self.reloadPhase = 0;
