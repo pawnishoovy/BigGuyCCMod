@@ -1054,6 +1054,8 @@ function MassiveAIBehaviours.DoArmSway(self, pushStrength)
 			if arm then
 				arm = ToArm(arm);
 				
+				local moving
+				
 				local armLength = arm.MaxLength;
 				local rotAng = self.RotAngle - (1.57 * self.FlipFactor);
 				local legMain = armPairs[i][2];
@@ -1061,14 +1063,15 @@ function MassiveAIBehaviours.DoArmSway(self, pushStrength)
 				
 				if self.controller:IsState(Controller.MOVE_LEFT) or self.controller:IsState(Controller.MOVE_RIGHT) then
 					rotAng = (legAlt and legAlt.RotAngle) or (legMain and (-legMain.RotAngle + math.pi) or rotAng);
+					moving = true;
 				elseif legMain then
 					rotAng = legMain.RotAngle;
 				end
 				--Flail arms in tandem with leg movement or raise them them up for a push if aiming
-				if self.controller:IsState(Controller.AIM_SHARP) then
-					arm.IdleOffset = Vector(0, 1):RadRotate(aimAngle);
+				if self.controller:IsState(Controller.AIM_SHARP) and not moving then
+					arm.IdleOffset = Vector(3, 5):RadRotate(aimAngle);
 				else
-					arm.IdleOffset = Vector(0, armLength * 0.7):RadRotate(rotAng * self.FlipFactor + 1.5 + (i * 0.2));
+					arm.IdleOffset = Vector(0, armLength * 0.8):RadRotate(rotAng * self.FlipFactor + 1.5 + (i * 0.2));
 				end
 				if self.shoved or (self.EquippedItem and IsTDExplosive(self.EquippedItem) and self.controller:IsState(Controller.WEAPON_FIRE)) then
 					arm.IdleOffset = Vector(armLength + (pushStrength * armLength), 0):RadRotate(aimAngle);
