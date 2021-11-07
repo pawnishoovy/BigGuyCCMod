@@ -25,12 +25,12 @@ function Update(self)
 		else
 			self.fakeMag.Frame = 1;
 		end
-		-- if self:NumberValueExists("MagRotation") then
-			-- self.fakeMag.RotAngle = self.RotAngle + self:GetNumberValue("MagRotation");
-		-- end
-		-- if self:NumberValueExists("MagOffsetX") and self:NumberValueExists("MagOffsetY") then
-			-- self.fakeMag.Pos = self.fakeMag.Pos + Vector(self:GetNumberValue("MagOffsetX"), self:GetNumberValue("MagOffsetY"));
-		-- end
+		if self:NumberValueExists("MagRotation") then
+			self.fakeMag.RotAngle = self.RotAngle + self:GetNumberValue("MagRotation");
+		end
+		if self:NumberValueExists("MagOffsetX") and self:NumberValueExists("MagOffsetY") then
+			self.fakeMag.Pos = self.fakeMag.Pos + Vector(self:GetNumberValue("MagOffsetX"), self:GetNumberValue("MagOffsetY"));
+		end
 	end
 	
 end

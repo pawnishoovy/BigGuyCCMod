@@ -730,21 +730,21 @@ function Update(self)
 	if self.parent then
 	
 		if self.shoveStart then
-			self.horizontalAnim = 4;
+			self.horizontalAnim = 8;
 			self.rotationTarget = self.rotationTarget - 10;
 			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 2) then
 				self.shoveStart = false;
 				self.parent:SetNumberValue("Gun Shove Massive", 1);
 			end
 		elseif self.shoving then
-			self.horizontalAnim = -5;
-			self.rotationTarget = self.rotationTarget + 10;
+			self.horizontalAnim = -8;
+			self.rotationTarget = self.rotationTarget + self.shoveRot;
 			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 1.3) then
 				self.shoving = false;
 			end
 			
-			local rayVec = Vector(4 * self.FlipFactor, 0):RadRotate(self.RotAngle);
-			local rayOrigin = self.MuzzlePos + Vector(0, 0);
+			local rayVec = Vector(self.MuzzleOffset.X * self.FlipFactor + 8 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+			local rayOrigin = self.Pos + Vector(0, 0);
 			
 			--PrimitiveMan:DrawLinePrimitive(rayOrigin, rayOrigin + rayVec,  5);
 			--PrimitiveMan:DrawCirclePrimitive(self.Pos, 3, 5);
@@ -849,6 +849,7 @@ function Update(self)
 		end
 	
 		if not self:IsReloading() and self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(22) then
+			self.shoveRot = 15 * (math.random(80, 120) / 100);
 			self.shoveTimer:Reset();
 			self.parent:SetNumberValue("Gun Shove Start Massive", 1);
 			self.shoving = true;
@@ -870,13 +871,13 @@ function Update(self)
 		
 		self.RotAngle = self.RotAngle + total;
 		-- self.RotAngle = self.RotAngle + total;
-		-- self:SetNumberValue("MagRotation", total);
+		self:SetNumberValue("MagRotation", total);
 		
 		-- local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
 		-- local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
 		-- self.Pos = self.Pos + offsetTotal;
-		-- self:SetNumberValue("MagOffsetX", offsetTotal.X);
-		-- self:SetNumberValue("MagOffsetY", offsetTotal.Y);
+		--self:SetNumberValue("MagOffsetX", offsetTotal.X);
+		--self:SetNumberValue("MagOffsetY", offsetTotal.Y);
 		
 		if self.reloadingVector then
 			self.StanceOffset = self.reloadingVector + stance

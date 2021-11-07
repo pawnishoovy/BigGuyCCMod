@@ -571,14 +571,14 @@ function Update(self)
 	
 		if self.shoveStart then
 			self.horizontalAnim = 3;
-			self.rotationTarget = self.rotationTarget + 75;
+			self.rotationTarget = self.rotationTarget + 65;
 			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 2) then
 				self.shoveStart = false;
 				self.parent:SetNumberValue("Gun Shove Massive", 1);
 			end
 		elseif self.shoving then
 			self.horizontalAnim = -15;
-			self.rotationTarget = self.rotationTarget + 85;
+			self.rotationTarget = self.rotationTarget + self.shoveRot;
 			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 1.3) then
 				self.shoving = false;
 			end
@@ -689,6 +689,7 @@ function Update(self)
 		end
 	
 		if self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(22) then
+			self.shoveRot = 80 * (math.random(90, 110) / 100);
 			self.shoveTimer:Reset();
 			self.parent:SetNumberValue("Gun Shove Start Massive", 1);
 			self.shoving = true;
@@ -710,13 +711,13 @@ function Update(self)
 		
 		self.RotAngle = self.RotAngle + total;
 		-- self.RotAngle = self.RotAngle + total;
-		-- self:SetNumberValue("MagRotation", total);
+		self:SetNumberValue("MagRotation", total);
 		
 		-- local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
 		-- local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
 		-- self.Pos = self.Pos + offsetTotal;
-		-- self:SetNumberValue("MagOffsetX", offsetTotal.X);
-		-- self:SetNumberValue("MagOffsetY", offsetTotal.Y);
+		--self:SetNumberValue("MagOffsetX", offsetTotal.X);
+		--self:SetNumberValue("MagOffsetY", offsetTotal.Y);
 		
 		if self.reloadingVector then
 			self.StanceOffset = self.reloadingVector + stance

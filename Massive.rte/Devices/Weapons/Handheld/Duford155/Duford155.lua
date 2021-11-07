@@ -690,13 +690,13 @@ function Update(self)
 			end
 		elseif self.shoving then
 			self.horizontalAnim = -5;
-			self.rotationTarget = self.rotationTarget + 10;
+			self.rotationTarget = self.rotationTarget + self.shoveRot;
 			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 1.3) then
 				self.shoving = false;
 			end
 			
-			local rayVec = Vector(8 * self.FlipFactor, 0):RadRotate(self.RotAngle);
-			local rayOrigin = self.MuzzlePos + Vector(0, 0);
+			local rayVec = Vector(self.MuzzleOffset.X * self.FlipFactor + 12 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+			local rayOrigin = self.Pos + Vector(0, 0);
 			
 			--PrimitiveMan:DrawLinePrimitive(rayOrigin, rayOrigin + rayVec,  5);
 			--PrimitiveMan:DrawCirclePrimitive(self.Pos, 3, 5);
@@ -801,6 +801,7 @@ function Update(self)
 		end
 	
 		if not self:IsReloading() and self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(22) then
+			self.shoveRot = 10 * (math.random(80, 120) / 100);
 			self.shoveTimer:Reset();
 			self.parent:SetNumberValue("Gun Shove Start Massive", 1);
 			self.shoving = true;
