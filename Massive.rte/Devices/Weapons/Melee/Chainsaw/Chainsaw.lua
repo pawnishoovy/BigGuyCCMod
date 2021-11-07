@@ -1,4 +1,20 @@
+function OnAttach(self)
+
+	if self:GetRootParent() and self:GetRootParent().PresetName == "Massive" or self:GetRootParent().PresetName == "Zedmassive" then
+		self.equippedByMassive = true;
+	else
+		self.equippedByMassive = false;
+	end
+	
+end
+
 function Create(self)
+
+	if self:GetRootParent() and self:GetRootParent().PresetName == "Massive" or self:GetRootParent().PresetName == "Zedmassive" then
+		self.equippedByMassive = true;
+	else
+		self.equippedByMassive = false;
+	end
 
 	self.Frame = 1;
 
@@ -40,8 +56,9 @@ function Create(self)
 	
 	self.turnOnTimer = Timer();
 	
+	self.startTimer = Timer();
 	self.Starts = 0;
-	self.startsRequired = math.random(1, 2);
+	self.startsRequired = math.random(1, 4);
 
 end
 function Update(self)
@@ -94,6 +111,8 @@ function Update(self)
 	
 		if self.turnOnTimer:IsPastSimMS(self.turnOnTime) then
 		
+			self.stickMO = nil;
+		
 			if self.shakenessParticle then
 				self.shakenessParticle.ToDelete = true;
 				self.shakenessParticle.Lifetime = 10;
@@ -111,7 +130,7 @@ function Update(self)
 			self.startActivated = true;
 		
 			self.Starts = 0;
-			self.startsRequired = math.random(1, 2);
+			self.startsRequired = math.random(1, 4);
 		
 			self.turnedOn = false;
 			self.activated = false;
@@ -190,8 +209,9 @@ function Update(self)
 					MovableMan:AddParticle(shakenessParticle);
 					
 				end
-				--Dismemberment: detach limbs via MO detection
-				local moCheck = SceneMan:CastMORay(self.Pos, Vector(self.length * 0.8 * self.FlipFactor, 0):RadRotate(self.RotAngle), self.ID, self.Team, rte.airID, true, 2);
+				--Dismemberment: detach limbs via MO detection among other things done
+				local moCheck = SceneMan:CastMORay(self.Pos, Vector(self.length * 0.5 * self.FlipFactor, 0):RadRotate(self.RotAngle), self.ID, self.Team, rte.airID, true, 2);
+				--PrimitiveMan:DrawLinePrimitive(self.Pos, self.Pos + Vector(self.length * 0.5 * self.FlipFactor, 0):RadRotate(self.RotAngle),  5);
 				if moCheck ~= rte.NoMOID then
 					local mo = MovableMan:GetMOFromID(moCheck);
 					if mo and IsAttachable(mo) and ToAttachable(mo):IsAttached() and not (IsHeldDevice(mo) or IsThrownDevice(mo)) then
@@ -200,7 +220,24 @@ function Update(self)
 						if SceneMan:ShortestDistance(self.Pos, jointPos, SceneMan.SceneWrapsX).Magnitude < 3 and math.random(self.dismemberStrength) > mo.JointStrength then
 							ToMOSRotating(mo:GetParent()):RemoveAttachable(mo.UniqueID, true, true);
 						end
+					elseif IsAHuman(mo) and self.stickMO == nil and self.equippedByMassive == true then
+						self.stickMO = mo;
+						self.stickMOAngle = mo.RotAngle - self.RotAngle
 					end
+						
+				end
+				
+				local stickObstructionCheckRay = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + Vector(self.length * 1.0 * self.FlipFactor, 0):RadRotate(self.RotAngle), 4, 0);
+				if stickObstructionCheckRay > 100 then
+					self.stickMO = nil;
+				end
+				
+				if self.stickMO and MovableMan:ValidMO(self.stickMO) then				
+					self.stickMO.Vel = self.Vel;
+					self.stickMO.Pos = Vector(self.Pos.X, self.Pos.Y) + Vector(20 * self.FlipFactor, 0):RadRotate(self.RotAngle)
+					self.stickMO.RotAngle = self.RotAngle + self.stickMOAngle;					
+				else
+					self.stickMO = nil;
 				end
 				
 				if self.shakenessParticle then
@@ -218,6 +255,7 @@ function Update(self)
 				end
 				
 			elseif self.fired == true then
+				self.stickMO = nil;
 				if self.shakenessParticle then
 					self.shakenessParticle.ToDelete = true;
 					self.shakenessParticle.Lifetime = 10;
@@ -273,6 +311,7 @@ function Update(self)
 		
 		if self.startActivated ~= true then
 			if self:IsActivated() then
+				self.startTimer:Reset();
 				self.angVel = -10
 				self.startActivated = true;
 				if self.Starts < self.startsRequired then
@@ -335,7 +374,7 @@ function Update(self)
 				end
 			end
 		else
-			if not self:IsActivated() then
+			if not self:IsActivated() and self.startTimer:IsPastSimMS(500) then
 				self.startActivated = false;
 			end
 		end
@@ -373,6 +412,10 @@ function Update(self)
 	if actor and IsAHuman(actor) then
 
 		local parent = ToAHuman(actor);
+		if self.turnedOn ~= true and not parent:IsPlayerControlled() and self.startTimer:IsPastSimMS(500) then
+			self:Deactivate();
+			self.startActivated = false;
+		end
 		parent:GetController():SetState(Controller.AIM_SHARP, false);
 		turn = math.abs(self.lastAngle - parent:GetAimAngle(false));
 
@@ -436,6 +479,8 @@ end
 
 function Destroy(self)
 
+	self.stickMO = nil;
+
 	if ValidMO(self.shakenessParticle) then
 		self.shakenessParticle.ToDelete = true;
 		self.shakenessParticle.Lifetime = 10;
@@ -455,6 +500,8 @@ function Destroy(self)
 end
 
 function OnDetach(self)
+
+	self.stickMO = nil;
 
 	self:RemoveNumberValue("Turned On");
 	if self.shakenessParticle then
