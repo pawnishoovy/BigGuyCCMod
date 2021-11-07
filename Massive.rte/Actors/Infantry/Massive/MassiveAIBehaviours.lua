@@ -790,6 +790,8 @@ function MassiveAIBehaviours.handleVoicelines(self)
 			local gunMag = gun.Magazine
 			local reloading = gun:IsReloading();
 			
+			self.equippedMelee = false;
+			
 			if self.EquippedItem:IsInGroup("Weapons - Primary") and not ToMOSRotating(self.EquippedItem):NumberValueExists("Weapons - Mordhau Melee") then
 				
 				if gun.FullAuto == true and gunMag and gunMag.Capacity > 40  and gun:IsActivated() then
@@ -805,6 +807,7 @@ function MassiveAIBehaviours.handleVoicelines(self)
 				end			
 				
 			elseif (self.EquippedItem:IsInGroup("Weapons - Mordhau Melee") or ToMOSRotating(self.EquippedItem):NumberValueExists("Weapons - Mordhau Melee")) then
+				self.equippedMelee = true;
 				if self:NumberValueExists("Block Foley") then
 					self:RemoveNumberValue("Block Foley");
 					self.movementSounds.AttackLight:Play(self.Pos);
@@ -836,11 +839,9 @@ function MassiveAIBehaviours.handleVoicelines(self)
 					self.attackKilledTimer:Reset();
 				end
 				
-			elseif ToHeldDevice(self.EquippedItem):NumberValueExists("Tackle Sprint Cooldown") then
-				self.noSprint = true;
-			else
-				self.noSprint = false;
-			end
+			elseif self.EquippedItem:IsInGroup("Weapons - Melee") then
+				self.equippedMelee = true;
+			end 
 			
 			if self.EquippedBGItem and ToHeldDevice(self.EquippedBGItem):NumberValueExists("Tackle Sprint Cooldown") then
 				self.noSprint = true;

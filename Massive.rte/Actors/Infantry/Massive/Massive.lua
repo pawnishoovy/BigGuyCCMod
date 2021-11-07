@@ -366,7 +366,7 @@ function Update(self)
 		
 	-- CHARGING
 	
-		if math.abs(self.Vel.X) > 2 and self.isSprinting then
+		if math.abs(self.Vel.X) > 2 and self.isSprinting and not self.equippedMelee then
 		
 			if self.hitMOTableResetTimer:IsPastSimMS(1000) then
 				self.hitMOTable = {};

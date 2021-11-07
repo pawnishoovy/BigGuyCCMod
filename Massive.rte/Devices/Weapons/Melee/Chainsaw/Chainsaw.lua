@@ -46,6 +46,8 @@ function Create(self)
 	self.revUpOneShotSound = CreateSoundContainer("Brutal Rev Up One Shot Massive Chainsaw", "Massive.rte");
 	self.startTwoSound = CreateSoundContainer("Brutal Start Two Massive Chainsaw", "Massive.rte");
 	
+	self.sawTerrainHardGFX = CreateMOSRotating("GFX Light Bullet Impact SolidMetal Massive", "Massive.rte");
+	
 	self.rotation = 0
 	self.rotationTarget = 0
 	self.rotationSpeed = 9
@@ -81,7 +83,6 @@ function Update(self)
 	self.brutalStartOneSound.Pos = self.Pos;
 	self.revUpOneShotSound.Pos = self.Pos;
 	self.startTwoSound.Pos = self.Pos;
-	
 	local turn = math.abs(self.AngularVel);
 
 	if self.turnedOn == true and self.turnOnTimer:IsPastSimMS(500) then
@@ -232,6 +233,14 @@ function Update(self)
 					self.stickMO = nil;
 				end
 				
+				local obstructionCheckRay = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + Vector(self.length * 0.7 * self.FlipFactor, 0):RadRotate(self.RotAngle), 4, 0);
+				if obstructionCheckRay > 99 then
+					local GFX = self.sawTerrainHardGFX:Clone();
+					GFX.Pos = self.Pos
+					GFX.Vel = self.Vel + Vector(self.length * 0.7 * self.FlipFactor, 0):RadRotate(self.RotAngle)
+					MovableMan:AddParticle(GFX)
+				end
+				
 				if self.stickMO and MovableMan:ValidMO(self.stickMO) then				
 					self.stickMO.Vel = self.Vel;
 					self.stickMO.Pos = Vector(self.Pos.X, self.Pos.Y) + Vector(20 * self.FlipFactor, 0):RadRotate(self.RotAngle)
@@ -338,7 +347,6 @@ function Update(self)
 						particle.GlobalAccScalar = 0
 						MovableMan:AddParticle(particle);
 					end
-					self.brutalDieSound:Stop(-1);
 					self.Starts = self.Starts + 1;
 					self.brutalStartOneSound:Play(self.Pos);
 				else
@@ -449,7 +457,7 @@ function Update(self)
 			end
 		end
 
-		self.StanceOffset = Vector(10 + self.rotFactor * 3, 5):RadRotate(math.sin(self.rotFactor * 0.3) - 0.3);
+		self.StanceOffset = Vector(7 + self.rotFactor * 3, 5):RadRotate(math.sin(self.rotFactor * 0.3) - 0.3);
 
 		self.lastAngle = parent:GetAimAngle(true);
 		
@@ -486,6 +494,7 @@ function Destroy(self)
 		self.shakenessParticle.Lifetime = 10;
 		self.shakenessParticle = nil;
 	end
+
 
 	self.brutalDieSound:Stop(-1);
 	self.brutalFirstRevSound:Stop(-1);
