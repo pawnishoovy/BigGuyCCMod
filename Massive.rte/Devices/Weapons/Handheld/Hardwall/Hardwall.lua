@@ -347,6 +347,8 @@ function Update(self)
 			end
 		end
 	elseif self.toFireShotgun == true and self.FireTimer:IsPastSimMS(400) then
+	
+		self.heatNum = self.heatNum + 50;
 		
 		self:AddImpulseForce(Vector(-240 * self.FlipFactor, 0):RadRotate(self.RotAngle), Vector());
 	
@@ -544,6 +546,8 @@ function Update(self)
 	self.rotationTarget = math.sin(recoilFactor * math.pi) * 3
 	
 	if self.FiredFrame then
+	
+		self.heatNum = self.heatNum + 10;
 	
 		self.sharpLengthRegainTime = 500;
 		self.powNum = 0.3;
@@ -915,10 +919,34 @@ function Update(self)
 		end
 		
 	end
+	
+	if self.GFXTimer:IsPastSimMS(self.GFXDelay) then
+		if self.heatNum > 2 then
+			local particles = {"Tiny Smoke Ball 1"}
+			
+			if self.heatNum > 100 then
+				table.insert(particles, "Small Smoke Ball 1")
+			end
+			
+			for i = 1, math.random(1,3) do
+				local particle = CreateMOSParticle(particles[math.random(1,#particles)]);
+				particle.Lifetime = math.random(250, 600);
+				particle.Vel = self.Vel + Vector(0, -0.1);
+				particle.Pos = self.MuzzlePos;
+				MovableMan:AddParticle(particle);
+			end
+				
+		end
+		
+		self.GFXTimer:Reset()
+		self.GFXDelay = math.max(50, math.random(self.GFXDelayMin, self.GFXDelayMax) - self.heatNum) 
+	end
 
 end
 
 function OnDetach(self)
+
+	self.heatNum = 0;
 	
 	self.shoveStart = false;
 	self.shoving = false;	

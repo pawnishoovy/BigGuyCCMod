@@ -472,6 +472,7 @@ function Update(self)
 	self.SharpLength = self.originalSharpLength * (0.9 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 500, 1), 2.0) * 0.5)
 	
 	if self.FiredFrame then
+		self.heatNum = self.heatNum + 10;
 	
 		for i = 1, 5 do
 			local shot = CreateMOPixel("Bullet UltraMag", "Massive.rte");
@@ -822,10 +823,34 @@ function Update(self)
 		end
 		
 	end
-
+	
+	if self.GFXTimer:IsPastSimMS(self.GFXDelay) then
+		if self.heatNum > 2 then
+			local particles = {"Tiny Smoke Ball 1"}
+			
+			if self.heatNum > 100 then
+				table.insert(particles, "Small Smoke Ball 1")
+			end
+			
+			for i = 1, math.random(1,3) do
+				local particle = CreateMOSParticle(particles[math.random(1,#particles)]);
+				particle.Lifetime = math.random(250, 600);
+				particle.Vel = self.Vel + Vector(0, -0.1);
+				particle.Pos = self.MuzzlePos;
+				MovableMan:AddParticle(particle);
+			end
+				
+		end
+		
+		self.GFXTimer:Reset()
+		self.GFXDelay = math.max(50, math.random(self.GFXDelayMin, self.GFXDelayMax) - self.heatNum) 
+	end
+	
 end
 
 function OnDetach(self)
+
+	self.heatNum = 0;
 
 	self.shoveStart = false;
 	self.shoving = false;
