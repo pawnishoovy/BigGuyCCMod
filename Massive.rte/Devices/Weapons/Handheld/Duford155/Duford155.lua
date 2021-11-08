@@ -74,6 +74,7 @@ function Create(self)
 	
 	self.originalSharpLength = self.SharpLength
 	
+	self.originalJointOffset = Vector(self.JointOffset.X, self.JointOffset.Y)
 	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
 	self.originalSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y)
 	
@@ -496,7 +497,7 @@ function Update(self)
 	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 1500, 1), 2.0) * 0.5) * math.pi) * -1
 	
 	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (300 * 4), 1), 2.0)
-	self.rotationTarget = math.sin(recoilFactor * math.pi) * 13
+	self.rotationTarget = self.rotationTarget + math.sin(recoilFactor * math.pi) * 13
 	
 	if self.FiredFrame then
 	
@@ -536,7 +537,7 @@ function Update(self)
 
 		local xSpread = 0
 		
-		local smokeAmount = 45
+		local smokeAmount = math.floor((45) * MassiveSettings.GunshotSmokeMultiplier);
 		local particleSpread = 21
 		
 		local smokeLingering = math.sqrt(smokeAmount / 8) * 4
@@ -802,7 +803,7 @@ function Update(self)
 			
 		end
 	
-		if not self:IsReloading() and self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(22) then
+		if not self:IsReloading() and self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(MassiveSettings.GunShoveHotkey) then
 			self.shoveRot = 10 * (math.random(80, 120) / 100);
 			self.shoveTimer:Reset();
 			self.parent:SetNumberValue("Gun Shove Start Massive", 1);
@@ -827,9 +828,9 @@ function Update(self)
 		-- self.RotAngle = self.RotAngle + total;
 		-- self:SetNumberValue("MagRotation", total);
 		
-		-- local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
-		-- local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
-		-- self.Pos = self.Pos + offsetTotal;
+		local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
+		local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
+		self.Pos = self.Pos + offsetTotal;
 		-- self:SetNumberValue("MagOffsetX", offsetTotal.X);
 		-- self:SetNumberValue("MagOffsetY", offsetTotal.Y);
 		

@@ -83,6 +83,7 @@ function Create(self)
 	
 	self.originalSharpLength = self.SharpLength
 	
+	self.originalJointOffset = Vector(self.JointOffset.X, self.JointOffset.Y)
 	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
 	self.originalSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y)
 	
@@ -457,7 +458,7 @@ function Update(self)
 		
 		local xSpread = 0
 		
-		local smokeAmount = 20 + (math.floor(10 * self.satisfyingVolume))
+		local smokeAmount = math.floor((20 + (math.floor(10 * self.satisfyingVolume))) * MassiveSettings.GunshotSmokeMultiplier);
 		local particleSpread = 10 + (math.floor(7 * self.satisfyingVolume))
 		
 		local smokeLingering = math.sqrt(smokeAmount / 8) * (1 + self.satisfyingVolume * 2)
@@ -728,7 +729,7 @@ function Update(self)
 			
 		end
 	
-		if not self:IsReloading() and self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(22) then
+		if not self:IsReloading() and self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(MassiveSettings.GunShoveHotkey) then
 			self.shoveRot = 12 * (math.random(80, 120) / 100);
 			self.shoveTimer:Reset();
 			self.parent:SetNumberValue("Gun Shove Start Massive", 1);
@@ -753,9 +754,9 @@ function Update(self)
 		-- self.RotAngle = self.RotAngle + total;
 		-- self:SetNumberValue("MagRotation", total);
 		
-		-- local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
-		-- local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
-		-- self.Pos = self.Pos + offsetTotal;
+		local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
+		local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
+		self.Pos = self.Pos + offsetTotal;
 		-- self:SetNumberValue("MagOffsetX", offsetTotal.X);
 		-- self:SetNumberValue("MagOffsetY", offsetTotal.Y);
 		

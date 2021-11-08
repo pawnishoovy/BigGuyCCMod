@@ -689,7 +689,7 @@ function MassiveAIBehaviours.handleVoicelines(self)
 	
 	self:RemoveNumberValue("Warcried");
 	
-	if (self:IsPlayerControlled() and UInputMan:KeyPressed(24)) and self.warCryTimer:IsPastSimMS(self.warCryDelay) then
+	if (self:IsPlayerControlled() and UInputMan:KeyPressed(MassiveSettings.WarcryHotkey)) and self.warCryTimer:IsPastSimMS(self.warCryDelay) then
 		MassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.BattleScreamReverb, 9, 4);
 		self.battleScreamImpact:Play(self.Pos);
 		self.warCryTimer:Reset();

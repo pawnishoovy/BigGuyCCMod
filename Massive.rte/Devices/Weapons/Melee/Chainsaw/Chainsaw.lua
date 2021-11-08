@@ -6,6 +6,14 @@ function OnAttach(self)
 		self.equippedByMassive = false;
 	end
 	
+	if self.RootID == 255 then --equipped from inv
+	
+		self.turnedOn = false;
+		self.Starts = 0;
+		self.startsRequired = math.random(1, 4);
+		
+	end
+	
 end
 
 function Create(self)
@@ -520,5 +528,15 @@ function OnDetach(self)
 	end
 
 	self.turnOnTime = 0;
+	
+	self.brutalDieSound:Stop(-1);
+	self.brutalFirstRevSound:Stop(-1);
+	--self.brutalHighLoopSound:Stop(-1);
+	self.brutalIdleSound:Stop(-1);
+	self.brutalRevDownSound:Stop(-1);
+	self.brutalRevUpSound:Stop(-1);
+	self.brutalStartOneSound:Stop(-1);
+	self.revUpOneShotSound:Stop(-1);
+	self.startTwoSound:Stop(-1);
 	
 end

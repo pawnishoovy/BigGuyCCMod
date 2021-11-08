@@ -87,6 +87,7 @@ function Create(self)
 	
 	self.originalSharpLength = self.SharpLength
 	
+	self.originalJointOffset = Vector(self.JointOffset.X, self.JointOffset.Y)
 	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
 	self.originalSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y)
 	
@@ -561,7 +562,7 @@ function Update(self)
 	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (16000), 1), self.powNum) * 0.5) * math.pi) * -1
 	
 	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (200 * 4), 1), 1)
-	self.rotationTarget = math.sin(recoilFactor * math.pi) * (20 * self.powNum)
+	self.rotationTarget = self.rotationTarget + math.sin(recoilFactor * math.pi) * (20 * self.powNum)
 	
 	if self.FiredFrame then -- lag code, can't enjoy the game too much now can we
 	
@@ -588,7 +589,7 @@ function Update(self)
 		
 		local xSpread = 0
 		
-		local smokeAmount = math.max(3, math.floor(20*self.ambientIntenseLoopSound.Volume))
+		local smokeAmount = math.floor((math.max(3, math.floor(20*self.ambientIntenseLoopSound.Volume))) * MassiveSettings.GunshotSmokeMultiplier);
 		local particleSpread = math.max(5, math.floor(15*self.ambientIntenseLoopSound.Volume))
 		
 		local smokeLingering = math.sqrt(smokeAmount / 8) * 1
@@ -850,7 +851,7 @@ function Update(self)
 			
 		end
 	
-		if not self:IsReloading() and self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(22) then
+		if not self:IsReloading() and self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(MassiveSettings.GunShoveHotkey) then
 			self.shoveRot = 15 * (math.random(80, 120) / 100);
 			self.shoveTimer:Reset();
 			self.parent:SetNumberValue("Gun Shove Start Massive", 1);
@@ -873,13 +874,14 @@ function Update(self)
 		
 		self.RotAngle = self.RotAngle + total;
 		-- self.RotAngle = self.RotAngle + total;
-		self:SetNumberValue("MagRotation", total);
 		
-		-- local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
-		-- local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
-		-- self.Pos = self.Pos + offsetTotal;
-		--self:SetNumberValue("MagOffsetX", offsetTotal.X);
-		--self:SetNumberValue("MagOffsetY", offsetTotal.Y);
+		local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
+		local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
+		self.Pos = self.Pos + offsetTotal;
+		if self.fakeMag and not self:NumberValueExists("LostFakeMag") then
+			self.fakeMag.RotAngle = self.RotAngle;
+			self.fakeMag.Pos = self.fakeMag.Pos + offsetTotal;
+		end
 		
 		if self.reloadingVector then
 			self.StanceOffset = self.reloadingVector + stance

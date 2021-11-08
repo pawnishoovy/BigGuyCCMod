@@ -58,6 +58,7 @@ function Create(self)
 	
 	self.originalSharpLength = self.SharpLength
 	
+	self.originalJointOffset = Vector(self.JointOffset.X, self.JointOffset.Y)
 	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
 	self.originalSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y)
 	
@@ -291,7 +292,7 @@ function Update(self)
 		
 		local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
 		shakenessParticle.Pos = self.MuzzlePos;
-		shakenessParticle.Mass = 20 + (20 * self.satisfyingVolume);
+		shakenessParticle.Mass = 40 + (20 * self.satisfyingVolume);
 		shakenessParticle.Lifetime = 500;
 		MovableMan:AddParticle(shakenessParticle);
 		
@@ -323,10 +324,12 @@ function Update(self)
 		
 		local xSpread = 0
 		
-		local smokeAmount = 10 + (math.floor(5 * self.satisfyingVolume))
-		local particleSpread = 5 + (math.floor(3 * self.satisfyingVolume))
+		local smokeSatisfyingFactor = math.max(self.satisfyingVolume, 0)
 		
-		local smokeLingering = math.sqrt(smokeAmount / 8) * (1 + self.satisfyingVolume * 2)
+		local smokeAmount = math.floor((40 + (math.floor(5 * smokeSatisfyingFactor))) * MassiveSettings.GunshotSmokeMultiplier);
+		local particleSpread = 5 + (math.floor(3 * smokeSatisfyingFactor))
+		
+		local smokeLingering = math.sqrt(smokeAmount / 8) * (1 + smokeSatisfyingFactor * 2)
 		local smokeVelocity = (1 + math.sqrt(smokeAmount / 8) ) * 0.5
 		
 		-- Muzzle main smoke
@@ -578,7 +581,7 @@ function Update(self)
 			
 		end
 	
-		if self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(22) then
+		if self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(MassiveSettings.GunShoveHotkey) then
 			self.shoveRot = 55 * (math.random(80, 120) / 100);
 			self.shoveTimer:Reset();
 			self.parent:SetNumberValue("Gun Shove Start Massive", 1);
@@ -605,15 +608,15 @@ function Update(self)
 		self.rotation = (self.rotation + self.rotationTarget * TimerMan.DeltaTimeSecs * self.rotationSpeed) / (1 + TimerMan.DeltaTimeSecs * self.rotationSpeed)
 		local total = math.rad(self.rotation) * self.FlipFactor
 		
-		self.RotAngle = self.RotAngle + total;
+		self.RotAngle = total;
 		-- self.RotAngle = self.RotAngle + total;
 		-- self:SetNumberValue("MagRotation", total);
 		
-		-- local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
-		-- local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
-		-- self.Pos = self.Pos + offsetTotal;
-		-- self:SetNumberValue("MagOffsetX", offsetTotal.X);
-		-- self:SetNumberValue("MagOffsetY", offsetTotal.Y);
+		local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
+		local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
+		self.Pos = self.Pos + offsetTotal;
+		self:SetNumberValue("MagOffsetX", offsetTotal.X);
+		self:SetNumberValue("MagOffsetY", offsetTotal.Y);
 		
 		if self.reloadingVector then
 			self.StanceOffset = self.reloadingVector + stance

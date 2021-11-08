@@ -6,7 +6,7 @@ function Create(self)
 		table.insert(self.shakeTable, actor);
 	end
 	
-	self.shake = 60
+	self.shake = math.floor(60 * MassiveSettings.GlobalShakeMultiplier)
 	
 	self.ToSettle = false
 end
