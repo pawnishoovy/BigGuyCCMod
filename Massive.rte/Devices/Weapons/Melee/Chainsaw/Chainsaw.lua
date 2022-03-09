@@ -387,6 +387,15 @@ function Update(self)
 					self.turnedOn = true;
 					self.turnOnTimer:Reset();
 					self.brutalIdleVolumeTarget = 0.5;
+					local closeActorCount = 0;
+					for actor in MovableMan.Actors do
+						if SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude < 500 then
+							closeActorCount = closeActorCount + 1;
+						end
+					end
+					if closeActorCount > 5 then
+						ArmageddonEngageExtreme = true;
+					end
 				end
 			end
 		else
@@ -497,7 +506,7 @@ function Destroy(self)
 
 	self.stickMO = nil;
 
-	if ValidMO(self.shakenessParticle) then
+	if MovableMan:ValidMO(self.shakenessParticle) then
 		self.shakenessParticle.ToDelete = true;
 		self.shakenessParticle.Lifetime = 10;
 		self.shakenessParticle = nil;
