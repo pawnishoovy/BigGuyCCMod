@@ -1,3 +1,72 @@
+ArmageddonMusicFunctions = {};
+
+function ArmageddonMusicFunctions.checkForPreferencePossibility(self, prefersTable, possibilityTable)
+
+	local resultsTable = {};
+	local foundAny = false;
+	-- possibly inefficient?
+	for k, v in pairs(possibilityTable) do
+		for pKey, pValue in pairs(prefersTable) do
+			if v == pValue then
+				foundAny = true;
+				table.insert(resultsTable, v);
+			end
+		end
+	end
+	if foundAny then
+		print("foundpreferredtoo")
+		return resultsTable;
+	else
+		return false;
+	end
+	
+end
+
+function ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable)
+
+	print("possiblebegin")
+
+	-- basically just avoids repeats and any loops the currentloop says to Never play
+
+	local resultIndex
+	local loopSelectedTable = {};
+	for k, v in pairs(loopTable) do
+		local valid = true;
+		if v ~= self.currentIndex then
+			if self.currentTune.Components[self.currentIndex].Never then
+				for k, neverV in pairs(self.currentTune.Components[self.currentIndex].Never) do
+					if v == neverV then
+						valid = false;
+						break;
+					end
+				end
+			end
+			if valid == true then
+				table.insert(loopSelectedTable, v);
+			end
+		end
+	end
+	resultIndex = loopSelectedTable[math.random(1, #loopSelectedTable)];
+	
+	-- if there's any compatibility between our final curated selection and loop preferences,
+	-- 80% chance to pick one (not always so things are at least a little random)
+	
+	if math.random(0, 100) < 80 and self.currentTune.Components[self.currentIndex].Prefers ~= nil then
+		local prefersTable = self.currentTune.Components[self.currentIndex].Prefers
+		local resultsTable = ArmageddonMusicFunctions.checkForPreferencePossibility(self, prefersTable, loopSelectedTable)
+		if resultsTable then
+			resultIndex = prefersTable[math.random(1, #prefersTable)];
+		end
+	end
+	
+	print(resultIndex)
+	
+	print("possibleend")
+	
+	return resultIndex
+
+end
+
 function ArmageddonMusicScript:StartScript()
 	self.activity = ActivityMan:GetActivity();
 	
@@ -13,7 +82,8 @@ function ArmageddonMusicScript:StartScript()
 	-- our dynamic music is just normal sound, so get the current ratio between sound and music volume
 	-- to set the container volumes
 	
-	self.dynamicVolume = AudioMan.MusicVolume / AudioMan.SoundsVolume;
+	self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume) + 0.1;
+	-- and then add some... what do you think you're listening to?
 	
 	self.MUSIC_STATE = "Main";
 	
@@ -26,10 +96,11 @@ function ArmageddonMusicScript:StartScript()
 	
 	self.desiredIntensity = 1;
 	self.Intensity = 1;
+	self.lastIntensityIncreaseFactor = 0;
 	
 	-- checks amount of ACTION going on to decide appropriate intensity
 	self.intensityUpdateTimer = Timer();
-	self.intensityUpdateDelay = 5000;
+	self.intensityUpdateDelay = 3000;
 	
 	self.timesNothingHasHappened = 0;
 	
@@ -349,7 +420,6 @@ function ArmageddonMusicScript:UpdateScript()
 	elseif UInputMan:KeyPressed(42) then
 		self.desiredIntensity = 8;
 	elseif UInputMan:KeyPressed(43) then
-		self.desiredIntensity = 8;
 		ArmageddonEngageExtreme = true;
 	elseif UInputMan:KeyPressed(44) then
 		-- debug start new song
@@ -371,7 +441,7 @@ function ArmageddonMusicScript:UpdateScript()
 		self.currentTuneIndex = math.random(1, #tuneTable);
 		self.currentTune = tuneTable[self.currentTuneIndex];
 		
-		self.dynamicVolume = AudioMan.MusicVolume / AudioMan.SoundsVolume;
+		self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume) + 0.1;
 		
 		self.componentTimer:Reset();
 		self.interludePlayed = false;
@@ -416,13 +486,13 @@ function ArmageddonMusicScript:UpdateScript()
 			end
 			
 			if #loopTable ~= 0 then
-				index = loopTable[math.random(1, #loopTable)];
+				index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
 				self.MUSIC_STATE = "Transition";
 			else
 				-- if we lack a transition go right into the Main instead
 				self.MUSIC_STATE = "Main";
 				loopTable = self.currentTune.typeTables[self.Intensity].Loops;
-				index = loopTable[math.random(1, #loopTable)];
+				index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
 			end
 									
 			
@@ -434,12 +504,6 @@ function ArmageddonMusicScript:UpdateScript()
 			
 			self.intensityLowerPreLength = nil;
 			
-			print("intensity:")
-			print(self.Intensity);
-			
-			print("oldindex")
-			print(self.currentIndex)
-			
 			local oldIndex = self.currentIndex + 0;
 			self.instantUpgradeOldContainer = self.currentTune.Components[oldIndex].Container
 			
@@ -449,7 +513,7 @@ function ArmageddonMusicScript:UpdateScript()
 			-- -- maybe a bit messy? just stop it when the new thing plays proper?
 			-- self.currentTune.Components[oldIndex].Container:FadeOut(self.currentTune.Components[self.currentIndex].preLength);
 			
-			self.dynamicVolume = AudioMan.MusicVolume / AudioMan.SoundsVolume;
+			self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume) + 0.1;
 			
 			self.currentTune.Components[self.currentIndex].Container.Volume = self.dynamicVolume;
 			self.currentTune.Components[self.currentIndex].Container:Play();
@@ -470,16 +534,8 @@ function ArmageddonMusicScript:UpdateScript()
 					
 					if self.MUSIC_STATE == "Transition" then
 
-						-- out of a transition, just play current intensity's random Main, easy
-						
-
-
 						loopTable = self.currentTune.typeTables[self.Intensity].Loops;
-						index = loopTable[math.random(1, #loopTable)];
-						
-						print("selectedoutoftransition")
-						
-						print(index)
+						index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
 						
 						self.MUSIC_STATE = "Main";
 					
@@ -490,59 +546,26 @@ function ArmageddonMusicScript:UpdateScript()
 						if self.Intensity == 8 then
 							-- use heavy transition (should never happen, code above auto-plays extreme again)
 							loopTable = self.currentTune.typeTables[5].Loops;
-						else
+						elseif self.Intensity > 1 then -- ambient has no transition so prevent trying that
 							-- minus one: transition
 							loopTable = self.currentTune.typeTables[self.Intensity - 1].Loops;
 						end
 						
-						if #loopTable ~= 0 then
-							index = loopTable[math.random(1, #loopTable)];
+						if loopTable and #loopTable ~= 0 then
+							index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
 							self.MUSIC_STATE = "Transition";
 						else
 							-- if we lack a transition go right into the Main instead
 							self.MUSIC_STATE = "Main";
 							loopTable = self.currentTune.typeTables[self.Intensity].Loops;
-							index = loopTable[math.random(1, #loopTable)];
+							index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
 						end
 						
 					else
 						
-						print("basiccheck")
-						
 						loopTable = self.currentTune.typeTables[self.Intensity].Loops;
-						-- in case of just regular Main looping, avoid repeats and specific indexes we wanna avoid
-						local loopSelectedTable = {};
-						for k, v in pairs(loopTable) do
-							print(k)
-							print(v)
-							local valid = true;
-							if v ~= self.currentIndex then
-								if self.currentTune.Components[self.currentIndex].Never then
-									for k, neverV in pairs(self.currentTune.Components[self.currentIndex].Never) do
-										if v == neverV then
-											valid = false;
-											break;
-										end
-									end
-								end
-								if valid == true then
-									table.insert(loopSelectedTable, v);
-								end
-							end
-						end
-						index = loopSelectedTable[math.random(1, #loopSelectedTable)];
-						print("tablecount")
-						print(#loopSelectedTable)
 						
-						-- and in case our main loop has a preferred loop to go to, high chance to do that
-						
-						if math.random(0, 100) < 80 and self.currentTune.Components[self.currentIndex].Prefers then
-							local prefersTable = self.currentTune.Components[self.currentIndex].Prefers
-							index = prefersTable[math.random(1, #prefersTable)];
-						end
-						
-						print("basiccheckend")
-						print(index)
+						index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
 					
 						if (self.desiredIntensity ~= self.Intensity and self.loopNumber > 2) or (self.totalLoopNumber >= self.tuneMaxLoops) then					
 							
@@ -559,13 +582,13 @@ function ArmageddonMusicScript:UpdateScript()
 								end
 								
 								if #loopTable ~= 0 then
-									index = loopTable[math.random(1, #loopTable)];
+									index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
 									self.MUSIC_STATE = "Comedown";
 								else
 									-- if we lack a comedown go right into the Main instead (should never happen?)
 									self.MUSIC_STATE = "Main";
 									loopTable = self.currentTune.typeTables[self.Intensity].Loops;
-									index = loopTable[math.random(1, #loopTable)];
+									index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
 								end			
 								
 							else
@@ -576,19 +599,20 @@ function ArmageddonMusicScript:UpdateScript()
 								if self.Intensity == 8 then
 									-- use heavy transition
 									loopTable = self.currentTune.typeTables[5].Loops;
+
 								else
 									-- minus one: transition
 									loopTable = self.currentTune.typeTables[self.Intensity - 1].Loops;
 								end
 								
 								if #loopTable ~= 0 then
-									index = loopTable[math.random(1, #loopTable)];
+									index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
 									self.MUSIC_STATE = "Transition";
 								else
 									-- if we lack a transition go right into the Main instead
 									self.MUSIC_STATE = "Main";
 									loopTable = self.currentTune.typeTables[self.Intensity].Loops;
-									index = loopTable[math.random(1, #loopTable)];
+									index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
 								end
 								
 							end
@@ -603,8 +627,6 @@ function ArmageddonMusicScript:UpdateScript()
 						
 					
 					self.indexToPlay = index;
-					print("hasactuallyset")
-					print(index)
 					
 				end
 						
@@ -620,14 +642,9 @@ function ArmageddonMusicScript:UpdateScript()
 					
 					self.intensityLowerPreLength = nil;
 					
-					print("intensity:")
-					print(self.Intensity);
-					
-					print(self.currentIndex)
-					
 					self.currentIndex = self.indexToPlay;
 					
-					self.dynamicVolume = AudioMan.MusicVolume / AudioMan.SoundsVolume;
+					self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume) + 0.1;
 					
 					self.currentTune.Components[self.currentIndex].Container.Volume = self.dynamicVolume;
 					self.currentTune.Components[self.currentIndex].Container:Play();
@@ -679,6 +696,7 @@ function ArmageddonMusicScript:UpdateScript()
 		
 		local eventlessUpdate = true;
 		local intensityIncreaseFactor = 0;
+		intensityIncreaseFactor = self.lastIntensityIncreaseFactor / 2;
 		
 		for uniqueID, team in pairs(self.actorTable) do
 			local actor = MovableMan:FindObjectByUniqueID(uniqueID);
@@ -711,7 +729,7 @@ function ArmageddonMusicScript:UpdateScript()
 				self.desiredIntensity = 6;
 			elseif self.Intensity == 6 and self.timesNothingHasHappened > 8 then
 				self.desiredIntensity = 3;
-			elseif self.Intensity == 3 and self.timesNothingHasHappened > 10 then
+			elseif self.Intensity == 3 and self.timesNothingHasHappened > 15 then
 				self.desiredIntensity = 1; -- peace? on the battlefield?
 			end
 		else
@@ -739,6 +757,10 @@ function ArmageddonMusicScript:UpdateScript()
 			self.timesNothingHasHappened = 0;
 		end
 		
+		self.lastIntensityIncreaseFactor = intensityIncreaseFactor;
+		if self.lastIntensityIncreaseFactor < 1 then
+			self.lastIntensityIncreaseFactor = 0;
+		end
 		print(intensityIncreaseFactor)
 		
 	end
