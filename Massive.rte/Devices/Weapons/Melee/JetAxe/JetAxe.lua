@@ -66,6 +66,10 @@ function OnDetach(self)
 end
 
 function Create(self)
+
+	self.hitMOTable = {};
+
+	self.jetFactor = 0;
 	
 	self.chargeSound = CreateSoundContainer("Charge JetAxe Massive", "Massive.rte");
 	self.gigaSlashSound = CreateSoundContainer("GigaSlash JetAxe Massive", "Massive.rte");
@@ -154,8 +158,7 @@ function Create(self)
 	
 	self.blockedSound = CreateSoundContainer("Blocked JetAxe Massive", "Massive.rte");
 	
-	self.blockSounds = {};
-	self.blockSounds.Slash = CreateSoundContainer("Block JetAxe Massive", "Massive.rte");
+	self.blockSound = CreateSoundContainer("Block JetAxe Massive", "Massive.rte");
 	
 	self.blockGFX = {};
 	self.blockGFX.Slash = "Slash Block Effect Massive";
@@ -1471,6 +1474,14 @@ function Update(self)
 				self.chargeDecided = true;
 				if activated or (player == false and math.random(0, 100) < 20) then
 					self.wasCharged = true;
+					
+					local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+					shakenessParticle.Pos = self.Pos;
+					shakenessParticle.Mass = 4;
+					shakenessParticle.Lifetime = 500;
+					MovableMan:AddParticle(shakenessParticle);							
+					
+					self.jetFactor = 50;
 					self.chargeSound:Play(self.Pos);
 					self.hitMax = 4;
 					self.parent:SetNumberValue("Extreme Attack", 1);
@@ -1530,11 +1541,36 @@ function Update(self)
 			if not self.currentAttackStart then -- Start of the sequence
 				self.currentAttackStart = true
 				if currentPhase.soundStart then
+					self.jetFactor = 20;
 					self.activeSound = currentPhase.soundStart;
 					currentPhase.soundStart.Pitch = self.wasCharged and 0.9 or 1.0;
 					currentPhase.soundStart:Play(self.Pos);
 					if self.wasCharged then
+					
+						local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+						shakenessParticle.Pos = self.Pos;
+						shakenessParticle.Mass = 30;
+						shakenessParticle.Lifetime = 500;
+						MovableMan:AddParticle(shakenessParticle);					
+					
+						self.jetFactor = 23;
+						local particle = CreateMOSParticle("Explosion Smoke 1");
+						particle.Lifetime = math.random(500, 1000);
+						particle.Vel = self.Vel + Vector(-0.2*self.FlipFactor*self.jetFactor, 0):RadRotate(self.RotAngle);
+						particle.Pos = self.Pos + Vector(-6*self.FlipFactor, -15):RadRotate(self.RotAngle);
+						MovableMan:AddParticle(particle);
+						local particle = CreateAEmitter("Explosion Trail 1");
+						particle.Lifetime = math.random(100, 250);
+						particle.Vel = self.Vel + Vector(-0.2*self.FlipFactor*self.jetFactor, 0):RadRotate(self.RotAngle);
+						particle.Pos = self.Pos + Vector(-6*self.FlipFactor, -15):RadRotate(self.RotAngle);
+						MovableMan:AddParticle(particle);
 						self.gigaSlashSound:Play(self.Pos);
+					else
+						local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+						shakenessParticle.Pos = self.Pos;
+						shakenessParticle.Mass = 15;
+						shakenessParticle.Lifetime = 200;
+						MovableMan:AddParticle(shakenessParticle);		
 					end
 				end
 			end
@@ -1595,6 +1631,7 @@ function Update(self)
 			if self.partiallyRecovered == true and (self.moveBuffered) then
 			
 				self.chargeDecided = false;
+				self.wasCharged = false;
 				playAttackAnimation(self, self.attackAnimationBuffered)
 		
 				if self.attackAnimationBuffered == 15 then
@@ -1714,23 +1751,24 @@ function Update(self)
 			if self:NumberValueExists("Mordhau Flinched") or self.parent:NumberValueExists("Mordhau Flinched") then
 				self:RemoveNumberValue("Mordhau Flinched")
 				self.parent:RemoveNumberValue("Mordhau Flinched");
-				self.attackCooldown = true;
-				self.parriedCooldown = true;
-				self.parriedCooldownTimer:Reset();
-				self.parriedCooldownDelay = 600;
-				self.wasCharged = false;
-				self.currentAttackAnimation = 0
-				self.currentAttackSequence = 0
-				self.attackAnimationIsPlaying = false
-				self.Parrying = false;
-				self:RemoveStringValue("Parrying Type");
+				-- CANNOT BE FLINCHED! it's literally jet-powered
+				-- self.attackCooldown = true;
+				-- self.parriedCooldown = true;
+				-- self.parriedCooldownTimer:Reset();
+				-- self.parriedCooldownDelay = 600;
+				-- self.wasCharged = false;
+				-- self.currentAttackAnimation = 0
+				-- self.currentAttackSequence = 0
+				-- self.attackAnimationIsPlaying = false
+				-- self.Parrying = false;
+				-- self:RemoveStringValue("Parrying Type");
 				
-				self:RemoveNumberValue("AI Parry");
-				self:RemoveNumberValue("AI Eligible");
+				-- self:RemoveNumberValue("AI Parry");
+				-- self:RemoveNumberValue("AI Eligible");
 				
-				self:SetNumberValue("Blocked", 0);
-				self:SetNumberValue("Current Attack Type", 0);
-				self:SetNumberValue("Current Attack Range", 0);
+				-- self:SetNumberValue("Blocked", 0);
+				-- self:SetNumberValue("Current Attack Type", 0);
+				-- self:SetNumberValue("Current Attack Range", 0);
 			end
 			
 		else -- default behaviour, modify it if you wish
@@ -1867,7 +1905,7 @@ function Update(self)
 				self.rotationInterpolationSpeed = 50;
 				self.baseRotation = self.baseRotation - (math.random(15, 20) * -1)
 				
-				self.blockSounds[self:GetStringValue("Blocked Type")]:Play(self.Pos);
+				self.blockSound:Play(self.Pos);
 				if self:NumberValueExists("Blocked Heavy") then
 				
 					if self.parent then
@@ -1981,6 +2019,13 @@ function Update(self)
 					if hitAllowed == true then
 						self.Hits = self.Hits + 1;
 						hit = true
+						
+						local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+						shakenessParticle.Pos = self.Pos;
+						shakenessParticle.Mass = 10;
+						shakenessParticle.Lifetime = 500;
+						MovableMan:AddParticle(shakenessParticle);		
+						
 						self.hitMOTable[MO.UniqueID] = MO:GetRootParent().UniqueID;
 						MO.Vel = MO.Vel + (self.Vel + pushVector) / MO.Mass * 15 * (damagePush)
 						local crit = RangeRand(0, 1) < damageStun
@@ -2129,6 +2174,13 @@ function Update(self)
 					if (MO:NumberValueExists("Blocking") or (MO:StringValueExists("Parrying Type")
 					and (MO:GetStringValue("Parrying Type") == self.attackAnimationsTypes[self.currentAttackAnimation] or MO:GetStringValue("Parrying Type") == "Flourish")))
 					or (MO:NumberValueExists("AI Parry Eligible")) then
+					
+						local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+						shakenessParticle.Pos = self.Pos;
+						shakenessParticle.Mass = 5;
+						shakenessParticle.Lifetime = 500;
+						MovableMan:AddParticle(shakenessParticle);						
+					
 						self:SetNumberValue("Blocked", 1)
 						if MO:StringValueExists("Parrying Type") or (MO:NumberValueExists("AI Parry Eligible")) then
 							self.parriedCooldown = true;
@@ -2174,6 +2226,13 @@ function Update(self)
 					local rayHitPos = SceneMan:GetLastRayHitPos()
 					if not ignoreTerrain then
 						hitTerrain = true
+						
+						local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+						shakenessParticle.Pos = self.Pos;
+						shakenessParticle.Mass = 5;
+						shakenessParticle.Lifetime = 500;
+						MovableMan:AddParticle(shakenessParticle);							
+						
 						hit = true
 						self.attack = false
 						self.charged = false
@@ -2238,5 +2297,51 @@ function Update(self)
 			end
 		end
 	end
+	
+	if self.jetFactor > 0 then
+	
+		self.jetFactor = self.jetFactor - (50 * TimerMan.DeltaTimeSecs);
+
+		if self.jetFactor < 0 then
+			self.jetFactor = 0;
+		end	
+	
+		if math.random(0, 15) < self.jetFactor then
+		
+			local animationPosNum = 0;
+			if self.Frame == 1 then
+				animationPosNum = 5;
+			elseif self.Frame == 2 then
+				animationPosNum = 8;
+			elseif self.Frame == 3 then
+				animationPosNum = 14;
+			elseif self.Frame == 4 then
+				animationPosNum = 20;
+			elseif self.Frame == 5 then
+				animationPosNum = 20;
+			elseif self.Frame == 6 then
+				animationPosNum = 26;
+			elseif self.Frame == 7 then
+				animationPosNum = 18;
+			elseif self.Frame == 8 then
+				animationPosNum = 11;
+			elseif self.Frame == 9 then
+				animationPosNum = 5;
+			elseif self.Frame == 10 then
+				animationPosNum = 5;
+			end
+		
+			local particles = {"Flame Smoke 2", "Tiny Smoke Ball 1"}
+			
+			local particle = CreateMOSParticle(particles[math.random(1,#particles)]);
+			particle.Lifetime = math.random(250, 600);
+			particle.Vel = self.Vel + Vector(-0.2*self.FlipFactor*self.jetFactor, 0):RadRotate(self.RotAngle);
+			particle.Pos = self.Pos + Vector(-6*self.FlipFactor, -13 + animationPosNum):RadRotate(self.RotAngle);
+			MovableMan:AddParticle(particle);
+				
+		end
+		
+	end	
+	
 	self:RemoveNumberValue("AI Block");
 end

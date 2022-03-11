@@ -302,6 +302,7 @@ function ArmageddonMusicScript:StartScript()
 	self.Tunes.samuelsBase.Components[29].Type = "Extreme";
 	self.Tunes.samuelsBase.Components[29].Prefers = {30};
 	self.Tunes.samuelsBase.Components[29].Never = {29};
+	self.Tunes.samuelsBase.Components[29].returnToHeavy = true;
 	
 	self.Tunes.samuelsBase.Components[30] = {};
 	self.Tunes.samuelsBase.Components[30].Container = CreateSoundContainer("SamuelsBase Extreme 2", "Massive.rte");
@@ -325,11 +326,12 @@ function ArmageddonMusicScript:StartScript()
 	self.Tunes.samuelsBase.Components[32].totalPost = 18982;
 	self.Tunes.samuelsBase.Components[32].Type = "Extreme";
 	self.Tunes.samuelsBase.Components[32].Never = {29};
+	self.Tunes.samuelsBase.Components[32].returnToHeavy = true;
 	
 	self.Tunes.samuelsBase.Components[33] = {};
 	self.Tunes.samuelsBase.Components[33].Container = CreateSoundContainer("SamuelsBase Extreme 5", "Massive.rte");
 	self.Tunes.samuelsBase.Components[33].preLength = 544;
-	self.Tunes.samuelsBase.Components[33].totalPost = 18982;
+	self.Tunes.samuelsBase.Components[33].totalPost = 19258;
 	self.Tunes.samuelsBase.Components[33].Type = "Extreme";
 	self.Tunes.samuelsBase.Components[33].Prefers = {32};
 	self.Tunes.samuelsBase.Components[33].Never = {29};
@@ -462,7 +464,7 @@ function ArmageddonMusicScript:UpdateScript()
 	
 		if (self.Intensity == 1 and self.desiredIntensity ~= 1)
 		or (self.MUSIC_STATE == "Comedown" and self.desiredIntensity > self.Intensity)
-		or (self.desiredIntensity ~= 8 and ArmageddonEngageExtreme == true) then
+		or (self.Intensity ~= 8 and ArmageddonEngageExtreme == true) then
 		
 			if ArmageddonEngageExtreme == true then
 				ArmageddonEngageExtreme = false;
@@ -480,7 +482,7 @@ function ArmageddonMusicScript:UpdateScript()
 			if self.Intensity == 8 then
 				-- use heavy transition
 				loopTable = self.currentTune.typeTables[5].Loops;
-			else
+			elseif self.Intensity > 1 then
 				-- minus one: transition
 				loopTable = self.currentTune.typeTables[self.Intensity - 1].Loops;
 			end
@@ -511,6 +513,7 @@ function ArmageddonMusicScript:UpdateScript()
 			
 			-- -- fade the ambience/comedown out by the prelength of what we're about to play
 			-- -- maybe a bit messy? just stop it when the new thing plays proper?
+			-- note: it was a bit messy and i just did the second thing
 			-- self.currentTune.Components[oldIndex].Container:FadeOut(self.currentTune.Components[self.currentIndex].preLength);
 			
 			self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume) + 0.1;
@@ -600,7 +603,7 @@ function ArmageddonMusicScript:UpdateScript()
 									-- use heavy transition
 									loopTable = self.currentTune.typeTables[5].Loops;
 
-								else
+								elseif self.Intensity > 1 then
 									-- minus one: transition
 									loopTable = self.currentTune.typeTables[self.Intensity - 1].Loops;
 								end
@@ -623,6 +626,37 @@ function ArmageddonMusicScript:UpdateScript()
 
 						end			
 
+					end
+					
+					-- however, if our current loop tells us to returnToHeavy, disregard everything and do exactly that
+					if self.currentTune.Components[self.currentIndex].returnToHeavy == true then
+							
+							self.Intensity = 6;
+						
+							-- randomly either transition into heavy or just straight to main
+							if math.random(0, 100) < 50 then
+								loopTable = self.currentTune.typeTables[5].Loops;
+								if loopTable and #loopTable ~= 0 then
+									index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
+									self.MUSIC_STATE = "Transition";
+								else
+									-- if we lack a transition go right into the Main instead
+									self.MUSIC_STATE = "Main";
+									loopTable = self.currentTune.typeTables[self.Intensity].Loops;
+									index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
+								end
+
+							else
+
+								self.MUSIC_STATE = "Main";
+								loopTable = self.currentTune.typeTables[self.Intensity].Loops;
+								index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
+							end			
+
+							self.Intensity = 8; -- 1. go back to extreme unless we really stop doing much of anything
+												-- 2. make sure another ArmageddonEngageExtreme doesn't interrupt our government-mandated
+												-- break from mick gordon
+						
 					end
 						
 					
@@ -764,6 +798,8 @@ function ArmageddonMusicScript:UpdateScript()
 		print(intensityIncreaseFactor)
 		
 	end
+	
+	for actor in MovableMan.Actors do actor.HUDVisible = false end
 
 end
 

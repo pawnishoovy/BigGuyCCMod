@@ -32,7 +32,14 @@ function Update(self)
 				self.spinSound.Volume = math.max(0.3, math.min(math.abs(self.AngularVel/20), 1))
 				self.spinSound.Pitch = self.throwPitch * 1.5;
 				self.spinSound:Play(self.Pos);
+				
 			end
+			
+			local particle = CreateMOSParticle("Flame Smoke 2");
+			particle.Lifetime = math.random(250, 600);
+			particle.Vel = self.Vel + Vector(-4*self.FlipFactor, 0):RadRotate(self.RotAngle);
+			particle.Pos = self.Pos + Vector(-6*self.FlipFactor, -15):RadRotate(self.RotAngle);
+			MovableMan:AddParticle(particle);			
 		
 			local rayOrigin = self.Pos
 			local rayVec = Vector(self.Vel.X,self.Vel.Y):SetMagnitude(self.Vel.Magnitude * rte.PxTravelledPerFrame + self.IndividualRadius);

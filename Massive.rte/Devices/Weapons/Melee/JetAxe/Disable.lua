@@ -1,5 +1,7 @@
 function OnDetach(self)
 
+	self.jetFactor = 0;
+
 	self:RemoveNumberValue("AI Parry")
 	self:RemoveNumberValue("AI Parry Eligible")
 
