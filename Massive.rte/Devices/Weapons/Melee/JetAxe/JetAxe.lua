@@ -174,6 +174,8 @@ function Create(self)
 	--regularAttackSounds.hitDefaultSound
 	--regularAttackSounds.hitDefaultSoundVariations
 	
+	self.parrySound = CreateSoundContainer("Parry JetAxe Massive", "Massive.rte");
+	
 	regularAttackSounds.hitDeflectSound = CreateSoundContainer("Metal JetAxe Massive", "Massive.rte");
 	
 	regularAttackSounds.hitFleshSound = CreateSoundContainer("Flesh JetAxe Massive", "Massive.rte");
@@ -2162,7 +2164,7 @@ function Update(self)
 									actorHit:FlashWhite(50);
 								end
 							end
-						elseif woundName ~= nil then -- generic wound adding for non-actors
+						elseif woundName ~= nil and woundName ~= "" then -- generic wound adding for non-actors
 							for i = 1, woundsToAdd do
 								MO:AddWound(CreateAEmitter(woundName), woundOffset, true)
 							end

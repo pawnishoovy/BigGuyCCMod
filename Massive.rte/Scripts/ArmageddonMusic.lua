@@ -94,13 +94,20 @@ function ArmageddonMusicScript:StartScript()
 	self.totalLoopNumber = 0;
 	self.tuneMaxLoops = 48;
 	
+	-- unfortunately the real intensities we have to set are as follows
+	-- 1: ambient
+	-- 3: light
+	-- 6: heavy
+	-- 8: extreme
+	-- this is due to ease of selecting transitions and comedowns later in code
+	-- i should probably change these to an enum of some sort, but i dont know how
 	self.desiredIntensity = 1;
 	self.Intensity = 1;
-	self.lastIntensityIncreaseFactor = 0;
 	
 	-- checks amount of ACTION going on to decide appropriate intensity
 	self.intensityUpdateTimer = Timer();
 	self.intensityUpdateDelay = 3000;
+	self.lastIntensityIncreaseFactor = 0;
 	
 	self.timesNothingHasHappened = 0;
 	
@@ -121,6 +128,15 @@ function ArmageddonMusicScript:StartScript()
 	-- note that ambients can really be upgraded at any time not just according to totalPost
 	
 	self.Tunes.samuelsBase = {};
+	-- read: not recommended, enforced, tune will always change after this amount
+	self.Tunes.samuelsBase.recommendedLoops = 40;	
+	-- some pieces thrive at different intensity level, so bias them one way or another
+	-- by making it more or less difficult to climb in intensity
+	self.Tunes.samuelsBase.lightIntoHeavyDifficulty = 3.5;
+	-- note that lightintoextreme is 2x lightintoheavy
+	self.Tunes.samuelsBase.heavyIntoExtremeDifficulty = 3.5;
+	
+	
 	self.Tunes.samuelsBase.Components = {};
 	self.Tunes.samuelsBase.Components[1] = {};
 	self.Tunes.samuelsBase.Components[1].Container = CreateSoundContainer("SamuelsBase Ambient 1", "Massive.rte");
@@ -425,35 +441,7 @@ function ArmageddonMusicScript:UpdateScript()
 		ArmageddonEngageExtreme = true;
 	elseif UInputMan:KeyPressed(44) then
 		-- debug start new song
-		if self.currentTune.Components and self.currentTune.Components[self.currentIndex].Container:IsBeingPlayed() then
-			self.currentTune.Components[self.currentIndex].Container:Stop(-1);
-		end
-		self.Intensity = "Ambient";
-		self.desiredIntensity = "Ambient";
-		self.totalLoopNumber = 0;
-		self.endTune = false;
-		self.MUSIC_STATE = "Normal";
-		self.currentIndex = 1;
-		local tuneTable = {};
-		for k, v in pairs(self.Tunes) do
-			if v ~= self.currentTune then
-				table.insert(tuneTable, v);
-			end
-		end
-		self.currentTuneIndex = math.random(1, #tuneTable);
-		self.currentTune = tuneTable[self.currentTuneIndex];
-		
-		self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume) + 0.1;
-		
-		self.componentTimer:Reset();
-		self.interludePlayed = false;
-		if self.currentTune.Components then
-			self.dynamicMusic = true;
-			self.currentTune.Components[self.currentIndex].Container.Volume = self.dynamicVolume;
-			self.currentTune.Components[self.currentIndex].Container:Play();
-		end
-		
-		self.componentTimer:Reset();
+		self.totalLoopNumber = 1000;
 	end
 	
 	
@@ -531,6 +519,18 @@ function ArmageddonMusicScript:UpdateScript()
 				-- a third thru current loop, decide what to play next
 				if self.nextDecided ~= true then
 					self.nextDecided = true;	
+					
+					if self.totalLoopNumber > self.currentTune.recommendedLoops then
+						self.desiredIntensity = 1; -- will cause a comedown or an(other) ambient loop
+						self.endTune = true;
+						
+						if self.MUSIC_STATE == "Transition" then
+							-- count transition as main for ease of codeage, will cause comedown in most cases
+							-- (or another ambient loop)
+							self.MUSIC_STATE = "Main";
+						end
+						
+					end
 					
 					local index
 					local loopTable
@@ -680,6 +680,30 @@ function ArmageddonMusicScript:UpdateScript()
 					
 					self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume) + 0.1;
 					
+					if self.endTune == true then
+						-- no rest for the wicked, straight into next song!
+						self.endTune = false;
+						
+						self.MUSIC_STATE = "Main";
+						self.desiredIntensity = 1;
+						self.Intensity = 1;
+						self.totalLoopNumber = 0;
+						self.loopNumber = 0;
+						
+						self.currentIndex = 1;
+						local tuneTable = {};
+						for k, v in pairs(self.Tunes) do
+							table.insert(tuneTable, v);
+						end
+						self.currentTuneIndex = math.random(1, #tuneTable);
+						self.currentTune = tuneTable[self.currentTuneIndex];
+						if self.currentTune.Components then
+							self.dynamicMusic = true;
+							self.currentIndex = math.random(1, #self.currentTune.typeTables[1].Loops)
+						end			
+					
+					end
+					
 					self.currentTune.Components[self.currentIndex].Container.Volume = self.dynamicVolume;
 					self.currentTune.Components[self.currentIndex].Container:Play();
 					
@@ -778,13 +802,13 @@ function ArmageddonMusicScript:UpdateScript()
 					self.desiredIntensity = 3;
 				end
 			elseif self.Intensity == 3 then
-				if intensityIncreaseFactor > 6 then
+				if intensityIncreaseFactor > (self.currentTune.lightIntoHeavyDifficulty * 2) then
 					self.desiredIntensity = 8;
-				elseif intensityIncreaseFactor > 2 then
+				elseif intensityIncreaseFactor > self.currentTune.lightIntoHeavyDifficulty then
 					self.desiredIntensity = 6;
 				end
-			elseif self.Intensity == 3 then
-				if intensityIncreaseFactor > 4 then
+			elseif self.Intensity == 6 then
+				if intensityIncreaseFactor > self.currentTune.heavyIntoExtremeDifficulty then
 					self.desiredIntensity = 8;
 				end
 			end
@@ -799,7 +823,7 @@ function ArmageddonMusicScript:UpdateScript()
 		
 	end
 	
-	for actor in MovableMan.Actors do actor.HUDVisible = false end
+	--for actor in MovableMan.Actors do actor.HUDVisible = false end
 
 end
 

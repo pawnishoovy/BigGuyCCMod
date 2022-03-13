@@ -196,7 +196,7 @@ function Update(self)
 	
 	if self.ToDelete then
 		if self.Age < self.Lifetime then
-			if self.Pos.Y + self.Vel.Y < (150 + SceneMan.SceneHeight * -1) then --check pos and scene height with a 150 pixel grace distance... VERY IMPERFECT
+			if self.gunParent and self.WentToOrbit == true then
 				-- this is the equivalent of a hail mary to get around buggy Destroy spawning
 				self.soundFlyLoop:FadeOut(500);
 				self.soundLeaveMap:Play(self.Pos);
@@ -209,9 +209,11 @@ function Update(self)
 				if not self.artilleryPos then
 					self.artilleryPos = math.random(0, SceneMan.SceneWidth);
 				end
-				self.artilleryHandler.Pos = Vector(self.artilleryPos, (SceneMan.SceneHeight*-1) + 200);
+				self.artilleryHandler.Pos = Vector(self.artilleryPos, -300);
 				self.artilleryHandler.Mass = math.deg(self.lastRotAngle)
-				MovableMan:AddParticle(self.artilleryHandler);		
+				MovableMan:AddParticle(self.artilleryHandler);
+				self.exited = true;
+				print(self.artilleryHandler.Pos)
 			else
 				if self.gunParent then
 					self.gunParent:SetNumberValue("Shot Expired", 1);
@@ -227,6 +229,7 @@ function Update(self)
 			self.soundFlyLoop:Stop(-1);
 		end
 	end	
+	
 	
 end
 	
@@ -254,9 +257,33 @@ end
 
 function Destroy(self)
 
+	print(self.WentToOrbit)
+
 	self.soundFlyLoop:Stop(-1);
 	if self.gunParent then
-		self.gunParent:SetNumberValue("Shot Expired", 1);
+		if self.WentToOrbit == true then
+			if self.exited ~= true then
+				self.soundFlyLoop:FadeOut(500);
+				self.soundLeaveMap:Play(self.Pos);
+				self.soundOutOfMap:Play(self.Pos);
+				if self.gunParent then
+					self.gunParent:SetNumberValue("Shot Exited Map", 1);
+				end
+				
+				self.artilleryHandler = CreateMOPixel("Artillery Handler Duford155", "Massive.rte");
+				if not self.artilleryPos then
+					self.artilleryPos = math.random(0, SceneMan.SceneWidth);
+				end
+				self.artilleryHandler.Pos = Vector(self.artilleryPos, -300);
+				print("wtf")
+				print(self.gunParent)
+				print(self.WentToOrbit)
+				self.artilleryHandler.Mass = math.deg(self.lastRotAngle)
+				MovableMan:AddParticle(self.artilleryHandler);
+			end
+		else
+			self.gunParent:SetNumberValue("Shot Expired", 1);
+		end
 	end
 	
 end

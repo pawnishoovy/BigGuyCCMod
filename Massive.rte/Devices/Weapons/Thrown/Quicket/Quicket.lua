@@ -34,7 +34,7 @@ function Update(self)
 		self.activated = true;
 		
 		self.Missile = CreateAEmitter("Missile Quicket", "Massive.rte");
-		self.Missile.Pos = Vector(self.Pos.X, (SceneMan.SceneHeight*-1) + 400);
+		self.Missile.Pos = Vector(self.Pos.X, -300);
 		MovableMan:AddParticle(self.Missile);
 		self.Missile:SetNumberValue("Parent Grenade ID", self.UniqueID);
 		

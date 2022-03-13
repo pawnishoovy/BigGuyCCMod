@@ -22,6 +22,7 @@ local spacebar, insert, delete, pageup, pagedown;
 
 MassiveSettings.WarcryHotkey = X
 MassiveSettings.GunShoveHotkey = V
+MassiveSettings.WeaponAbilitySecondary = H -- for example: sniper laser
 
 
 MassiveSettings.GlobalShakeMultiplier = 1.0;

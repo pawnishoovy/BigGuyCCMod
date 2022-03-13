@@ -475,6 +475,11 @@ function Update(self)
 	if self.FiredFrame then
 		self.heatNum = self.heatNum + 10;
 	
+		if (self.Magazine and self.Magazine.RoundCount < 1) or not self.Magazine then
+			self.chamberOnReload = true;
+			self.Frame = 4;
+		end
+	
 		for i = 1, 5 do
 			local shot = CreateMOPixel("Bullet UltraMag", "Massive.rte");
 			shot.Pos = self.MuzzlePos + Vector(0.1*i*self.FlipFactor, 0):RadRotate(self.RotAngle);
