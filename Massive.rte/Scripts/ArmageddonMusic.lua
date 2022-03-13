@@ -24,8 +24,6 @@ end
 
 function ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable)
 
-	print("possiblebegin")
-
 	-- basically just avoids repeats and any loops the currentloop says to Never play
 
 	local resultIndex
@@ -58,10 +56,6 @@ function ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable)
 			resultIndex = prefersTable[math.random(1, #prefersTable)];
 		end
 	end
-	
-	print(resultIndex)
-	
-	print("possibleend")
 	
 	return resultIndex
 
@@ -277,12 +271,14 @@ function ArmageddonMusicScript:StartScript()
 	self.Tunes.samuelsBase.Components[23].preLength = 588;
 	self.Tunes.samuelsBase.Components[23].totalPost = 19248;
 	self.Tunes.samuelsBase.Components[23].Type = "Heavy Main";
+	self.Tunes.samuelsBase.Components[23].Prefers = {30};
 	
 	self.Tunes.samuelsBase.Components[24] = {};
 	self.Tunes.samuelsBase.Components[24].Container = CreateSoundContainer("SamuelsBase Heavy Main 5", "Massive.rte");
 	self.Tunes.samuelsBase.Components[24].preLength = 592;
 	self.Tunes.samuelsBase.Components[24].totalPost = 37886;
 	self.Tunes.samuelsBase.Components[24].Type = "Heavy Main";
+	self.Tunes.samuelsBase.Components[24].Prefers = {33};
 	
 	self.Tunes.samuelsBase.Components[25] = {};
 	self.Tunes.samuelsBase.Components[25].Container = CreateSoundContainer("SamuelsBase Heavy Main 6", "Massive.rte");
@@ -313,12 +309,11 @@ function ArmageddonMusicScript:StartScript()
 	
 	self.Tunes.samuelsBase.Components[29] = {};
 	self.Tunes.samuelsBase.Components[29].Container = CreateSoundContainer("SamuelsBase Extreme 1", "Massive.rte");
-	self.Tunes.samuelsBase.Components[29].preLength = 2299;
-	self.Tunes.samuelsBase.Components[29].totalPost = 58281;
+	self.Tunes.samuelsBase.Components[29].preLength = 296;
+	self.Tunes.samuelsBase.Components[29].totalPost = 37617;
 	self.Tunes.samuelsBase.Components[29].Type = "Extreme";
 	self.Tunes.samuelsBase.Components[29].Prefers = {30};
-	self.Tunes.samuelsBase.Components[29].Never = {29};
-	self.Tunes.samuelsBase.Components[29].returnToHeavy = true;
+	self.Tunes.samuelsBase.Components[29].returnToHeavy = false;
 	
 	self.Tunes.samuelsBase.Components[30] = {};
 	self.Tunes.samuelsBase.Components[30].Container = CreateSoundContainer("SamuelsBase Extreme 2", "Massive.rte");
@@ -326,7 +321,6 @@ function ArmageddonMusicScript:StartScript()
 	self.Tunes.samuelsBase.Components[30].totalPost = 18982;
 	self.Tunes.samuelsBase.Components[30].Type = "Extreme";
 	self.Tunes.samuelsBase.Components[30].Prefers = {31};
-	self.Tunes.samuelsBase.Components[30].Never = {29};
 	
 	self.Tunes.samuelsBase.Components[31] = {};
 	self.Tunes.samuelsBase.Components[31].Container = CreateSoundContainer("SamuelsBase Extreme 3", "Massive.rte");
@@ -334,14 +328,12 @@ function ArmageddonMusicScript:StartScript()
 	self.Tunes.samuelsBase.Components[31].totalPost = 18982;
 	self.Tunes.samuelsBase.Components[31].Type = "Extreme";
 	self.Tunes.samuelsBase.Components[31].Prefers = {33};
-	self.Tunes.samuelsBase.Components[31].Never = {29};
 	
 	self.Tunes.samuelsBase.Components[32] = {};
 	self.Tunes.samuelsBase.Components[32].Container = CreateSoundContainer("SamuelsBase Extreme 4", "Massive.rte");
 	self.Tunes.samuelsBase.Components[32].preLength = 290;
 	self.Tunes.samuelsBase.Components[32].totalPost = 18982;
 	self.Tunes.samuelsBase.Components[32].Type = "Extreme";
-	self.Tunes.samuelsBase.Components[32].Never = {29};
 	self.Tunes.samuelsBase.Components[32].returnToHeavy = true;
 	
 	self.Tunes.samuelsBase.Components[33] = {};
@@ -350,7 +342,13 @@ function ArmageddonMusicScript:StartScript()
 	self.Tunes.samuelsBase.Components[33].totalPost = 19258;
 	self.Tunes.samuelsBase.Components[33].Type = "Extreme";
 	self.Tunes.samuelsBase.Components[33].Prefers = {32};
-	self.Tunes.samuelsBase.Components[33].Never = {29};
+	
+	self.Tunes.samuelsBase.Components[34] = {}; -- I KNOW I KNOW but im NOT shifting all the other ones down!!
+	self.Tunes.samuelsBase.Components[34].Container = CreateSoundContainer("SamuelsBase Heavy Main 7", "Massive.rte");
+	self.Tunes.samuelsBase.Components[34].preLength = 2299;
+	self.Tunes.samuelsBase.Components[34].totalPost = 20960;
+	self.Tunes.samuelsBase.Components[34].Type = "Heavy Main";	
+	self.Tunes.samuelsBase.Components[34].Prefers = {29};
 	
 	-- ambient: 1
 	-- light transition: 2
@@ -378,13 +376,540 @@ function ArmageddonMusicScript:StartScript()
 	self.Tunes.samuelsBase.typeTables[5].Loops = {};
 	
 	self.Tunes.samuelsBase.typeTables[6] = {};
-	self.Tunes.samuelsBase.typeTables[6].Loops = {20, 21, 22, 23, 24, 25};
+	self.Tunes.samuelsBase.typeTables[6].Loops = {20, 21, 22, 23, 24, 25, 34};
 	
 	self.Tunes.samuelsBase.typeTables[7] = {};
 	self.Tunes.samuelsBase.typeTables[7].Loops = {26, 27, 28};
 	
 	self.Tunes.samuelsBase.typeTables[8] = {};
 	self.Tunes.samuelsBase.typeTables[8].Loops = {29, 30, 31, 32, 33};
+	
+	
+	self.Tunes.combatHell02 = {};
+	self.Tunes.combatHell02.recommendedLoops = 75;	
+
+	self.Tunes.combatHell02.lightIntoHeavyDifficulty = 4.0;
+	self.Tunes.combatHell02.heavyIntoExtremeDifficulty = 0.5; -- look, it's rip and tear. cmon.
+	
+	
+	self.Tunes.combatHell02.Components = {};
+	self.Tunes.combatHell02.Components[1] = {};
+	self.Tunes.combatHell02.Components[1].Container = CreateSoundContainer("CombatHell02 Ambient 1", "Massive.rte");
+	self.Tunes.combatHell02.Components[1].preLength = 0;
+	self.Tunes.combatHell02.Components[1].totalPost = 52470;
+	self.Tunes.combatHell02.Components[1].Type = "Ambient";
+	
+	self.Tunes.combatHell02.Components[2] = {};
+	self.Tunes.combatHell02.Components[2].Container = CreateSoundContainer("CombatHell02 Ambient 2", "Massive.rte");
+	self.Tunes.combatHell02.Components[2].preLength = 0;
+	self.Tunes.combatHell02.Components[2].totalPost = 80615;
+	self.Tunes.combatHell02.Components[2].Type = "Ambient";
+	
+	self.Tunes.combatHell02.Components[3] = {};
+	self.Tunes.combatHell02.Components[3].Container = CreateSoundContainer("CombatHell02 Ambient 3", "Massive.rte");
+	self.Tunes.combatHell02.Components[3].preLength = 0;
+	self.Tunes.combatHell02.Components[3].totalPost = 98875;
+	self.Tunes.combatHell02.Components[3].Type = "Ambient";
+	
+	self.Tunes.combatHell02.Components[4] = {};
+	self.Tunes.combatHell02.Components[4].Container = CreateSoundContainer("CombatHell02 Ambient 4", "Massive.rte");
+	self.Tunes.combatHell02.Components[4].preLength = 0;
+	self.Tunes.combatHell02.Components[4].totalPost = 139356;
+	self.Tunes.combatHell02.Components[4].Type = "Ambient";
+	
+	self.Tunes.combatHell02.Components[5] = {};
+	self.Tunes.combatHell02.Components[5].Container = CreateSoundContainer("CombatHell02 Ambient 5", "Massive.rte");
+	self.Tunes.combatHell02.Components[5].preLength = 3164;
+	self.Tunes.combatHell02.Components[5].totalPost = 85593;
+	self.Tunes.combatHell02.Components[5].Type = "Ambient";
+	
+	self.Tunes.combatHell02.Components[6] = {};
+	self.Tunes.combatHell02.Components[6].Container = CreateSoundContainer("CombatHell02 Light Main 1", "Massive.rte");
+	self.Tunes.combatHell02.Components[6].preLength = 538;
+	self.Tunes.combatHell02.Components[6].totalPost = 53816;
+	self.Tunes.combatHell02.Components[6].Type = "Light Main";
+	
+	self.Tunes.combatHell02.Components[7] = {};
+	self.Tunes.combatHell02.Components[7].Container = CreateSoundContainer("CombatHell02 Light Main 2", "Massive.rte");
+	self.Tunes.combatHell02.Components[7].preLength = 560;
+	self.Tunes.combatHell02.Components[7].totalPost = 60546;
+	self.Tunes.combatHell02.Components[7].Type = "Light Main";
+	
+	self.Tunes.combatHell02.Components[8] = {};
+	self.Tunes.combatHell02.Components[8].Container = CreateSoundContainer("CombatHell02 Light Main 3", "Massive.rte");
+	self.Tunes.combatHell02.Components[8].preLength = 1120;
+	self.Tunes.combatHell02.Components[8].totalPost = 61102;
+	self.Tunes.combatHell02.Components[8].Type = "Light Main";
+	
+	self.Tunes.combatHell02.Components[9] = {};
+	self.Tunes.combatHell02.Components[9].Container = CreateSoundContainer("CombatHell02 Light Main 4", "Massive.rte");
+	self.Tunes.combatHell02.Components[9].preLength = 552;
+	self.Tunes.combatHell02.Components[9].totalPost = 58343;
+	self.Tunes.combatHell02.Components[9].Type = "Light Main";
+	
+	self.Tunes.combatHell02.Components[10] = {};
+	self.Tunes.combatHell02.Components[10].Container = CreateSoundContainer("CombatHell02 Heavy Transition 1", "Massive.rte");
+	self.Tunes.combatHell02.Components[10].preLength = 292;
+	self.Tunes.combatHell02.Components[10].totalPost = 4731;
+	self.Tunes.combatHell02.Components[10].Type = "Heavy Transition";
+	
+	self.Tunes.combatHell02.Components[11] = {};
+	self.Tunes.combatHell02.Components[11].Container = CreateSoundContainer("CombatHell02 Heavy Transition 2", "Massive.rte");
+	self.Tunes.combatHell02.Components[11].preLength = 568;
+	self.Tunes.combatHell02.Components[11].totalPost = 5004;
+	self.Tunes.combatHell02.Components[11].Type = "Heavy Transition";
+	
+	self.Tunes.combatHell02.Components[12] = {};
+	self.Tunes.combatHell02.Components[12].Container = CreateSoundContainer("CombatHell02 Heavy Transition 3", "Massive.rte");
+	self.Tunes.combatHell02.Components[12].preLength = 568;
+	self.Tunes.combatHell02.Components[12].totalPost = 1654;
+	self.Tunes.combatHell02.Components[12].Type = "Heavy Transition";
+	
+	self.Tunes.combatHell02.Components[13] = {};
+	self.Tunes.combatHell02.Components[13].Container = CreateSoundContainer("CombatHell02 Heavy Transition 4", "Massive.rte");
+	self.Tunes.combatHell02.Components[13].preLength = 568;
+	self.Tunes.combatHell02.Components[13].totalPost = 1768;
+	self.Tunes.combatHell02.Components[13].Type = "Heavy Transition";
+	
+	self.Tunes.combatHell02.Components[14] = {};
+	self.Tunes.combatHell02.Components[14].Container = CreateSoundContainer("CombatHell02 Heavy Transition 5", "Massive.rte");
+	self.Tunes.combatHell02.Components[14].preLength = 568;
+	self.Tunes.combatHell02.Components[14].totalPost = 1768;
+	self.Tunes.combatHell02.Components[14].Type = "Heavy Transition";
+
+	self.Tunes.combatHell02.Components[15] = {};
+	self.Tunes.combatHell02.Components[15].Container = CreateSoundContainer("CombatHell02 Heavy Transition 6", "Massive.rte");
+	self.Tunes.combatHell02.Components[15].preLength = 282;
+	self.Tunes.combatHell02.Components[15].totalPost = 4729;
+	self.Tunes.combatHell02.Components[15].Type = "Heavy Transition";
+	
+	self.Tunes.combatHell02.Components[16] = {};
+	self.Tunes.combatHell02.Components[16].Container = CreateSoundContainer("CombatHell02 Heavy Transition 7", "Massive.rte");
+	self.Tunes.combatHell02.Components[16].preLength = 550;
+	self.Tunes.combatHell02.Components[16].totalPost = 5046;
+	self.Tunes.combatHell02.Components[16].Type = "Heavy Transition";
+	
+	self.Tunes.combatHell02.Components[17] = {};
+	self.Tunes.combatHell02.Components[17].Container = CreateSoundContainer("CombatHell02 Heavy Transition 8", "Massive.rte");
+	self.Tunes.combatHell02.Components[17].preLength = 282;
+	self.Tunes.combatHell02.Components[17].totalPost = 4727;
+	self.Tunes.combatHell02.Components[17].Type = "Heavy Transition";
+	
+	self.Tunes.combatHell02.Components[18] = {};
+	self.Tunes.combatHell02.Components[18].Container = CreateSoundContainer("CombatHell02 Heavy Transition 9", "Massive.rte");
+	self.Tunes.combatHell02.Components[18].preLength = 282;
+	self.Tunes.combatHell02.Components[18].totalPost = 4727;
+	self.Tunes.combatHell02.Components[18].Type = "Heavy Transition";
+
+	self.Tunes.combatHell02.Components[19] = {};
+	self.Tunes.combatHell02.Components[19].Container = CreateSoundContainer("CombatHell02 Heavy Transition 10", "Massive.rte");
+	self.Tunes.combatHell02.Components[19].preLength = 282;
+	self.Tunes.combatHell02.Components[19].totalPost = 6949;
+	self.Tunes.combatHell02.Components[19].Type = "Heavy Transition";
+	
+	self.Tunes.combatHell02.Components[20] = {};
+	self.Tunes.combatHell02.Components[20].Container = CreateSoundContainer("CombatHell02 Heavy Transition 11", "Massive.rte");
+	self.Tunes.combatHell02.Components[20].preLength = 554;
+	self.Tunes.combatHell02.Components[20].totalPost = 2780;
+	self.Tunes.combatHell02.Components[20].Type = "Heavy Transition";
+	
+	self.Tunes.combatHell02.Components[21] = {};
+	self.Tunes.combatHell02.Components[21].Container = CreateSoundContainer("CombatHell02 Heavy Transition 12", "Massive.rte");
+	self.Tunes.combatHell02.Components[21].preLength = 562;
+	self.Tunes.combatHell02.Components[21].totalPost = 2780;
+	self.Tunes.combatHell02.Components[21].Type = "Heavy Transition";
+	
+	self.Tunes.combatHell02.Components[22] = {};
+	self.Tunes.combatHell02.Components[22].Container = CreateSoundContainer("CombatHell02 Heavy Transition 13", "Massive.rte");
+	self.Tunes.combatHell02.Components[22].preLength = 703;
+	self.Tunes.combatHell02.Components[22].totalPost = 5293;
+	self.Tunes.combatHell02.Components[22].Type = "Heavy Transition";
+	
+	self.Tunes.combatHell02.Components[23] = {};
+	self.Tunes.combatHell02.Components[23].Container = CreateSoundContainer("CombatHell02 Heavy Main 1", "Massive.rte");
+	self.Tunes.combatHell02.Components[23].preLength = 562;
+	self.Tunes.combatHell02.Components[23].totalPost = 2819;
+	self.Tunes.combatHell02.Components[23].Type = "Heavy Main";
+	
+	self.Tunes.combatHell02.Components[24] = {};
+	self.Tunes.combatHell02.Components[24].Container = CreateSoundContainer("CombatHell02 Heavy Main 2", "Massive.rte");
+	self.Tunes.combatHell02.Components[24].preLength = 280;
+	self.Tunes.combatHell02.Components[24].totalPost = 6416;
+	self.Tunes.combatHell02.Components[24].Type = "Heavy Main";
+	
+	self.Tunes.combatHell02.Components[25] = {};
+	self.Tunes.combatHell02.Components[25].Container = CreateSoundContainer("CombatHell02 Heavy Main 3", "Massive.rte");
+	self.Tunes.combatHell02.Components[25].preLength = 262;
+	self.Tunes.combatHell02.Components[25].totalPost = 3628;
+	self.Tunes.combatHell02.Components[25].Type = "Heavy Main";
+	
+	self.Tunes.combatHell02.Components[26] = {};
+	self.Tunes.combatHell02.Components[26].Container = CreateSoundContainer("CombatHell02 Heavy Main 4", "Massive.rte");
+	self.Tunes.combatHell02.Components[26].preLength = 562;
+	self.Tunes.combatHell02.Components[26].totalPost = 3904;
+	self.Tunes.combatHell02.Components[26].Type = "Heavy Main";
+
+	self.Tunes.combatHell02.Components[27] = {};
+	self.Tunes.combatHell02.Components[27].Container = CreateSoundContainer("CombatHell02 Heavy Main 5", "Massive.rte");
+	self.Tunes.combatHell02.Components[27].preLength = 280;
+	self.Tunes.combatHell02.Components[27].totalPost = 3619;
+	self.Tunes.combatHell02.Components[27].Type = "Heavy Main";
+
+	self.Tunes.combatHell02.Components[28] = {};
+	self.Tunes.combatHell02.Components[28].Container = CreateSoundContainer("CombatHell02 Heavy Main 6", "Massive.rte");
+	self.Tunes.combatHell02.Components[28].preLength = 282;
+	self.Tunes.combatHell02.Components[28].totalPost = 2515;
+	self.Tunes.combatHell02.Components[28].Type = "Heavy Main";
+	
+	self.Tunes.combatHell02.Components[29] = {};
+	self.Tunes.combatHell02.Components[29].Container = CreateSoundContainer("CombatHell02 Heavy Main 7", "Massive.rte");
+	self.Tunes.combatHell02.Components[29].preLength = 282;
+	self.Tunes.combatHell02.Components[29].totalPost = 3634;
+	self.Tunes.combatHell02.Components[29].Type = "Heavy Main";
+	
+	self.Tunes.combatHell02.Components[30] = {};
+	self.Tunes.combatHell02.Components[30].Container = CreateSoundContainer("CombatHell02 Heavy Main 8", "Massive.rte");
+	self.Tunes.combatHell02.Components[30].preLength = 280;
+	self.Tunes.combatHell02.Components[30].totalPost = 2507;
+	self.Tunes.combatHell02.Components[30].Type = "Heavy Main";
+	
+	self.Tunes.combatHell02.Components[31] = {};
+	self.Tunes.combatHell02.Components[31].Container = CreateSoundContainer("CombatHell02 Heavy Comedown 1", "Massive.rte");
+	self.Tunes.combatHell02.Components[31].preLength = 259;
+	self.Tunes.combatHell02.Components[31].totalPost = 3885;
+	self.Tunes.combatHell02.Components[31].Type = "Heavy Comedown";
+	
+	self.Tunes.combatHell02.Components[32] = {};
+	self.Tunes.combatHell02.Components[32].Container = CreateSoundContainer("CombatHell02 Heavy Comedown 2", "Massive.rte");
+	self.Tunes.combatHell02.Components[32].preLength = 280;
+	self.Tunes.combatHell02.Components[32].totalPost = 3628;
+	self.Tunes.combatHell02.Components[32].Type = "Heavy Comedown";
+	
+	self.Tunes.combatHell02.Components[33] = {};
+	self.Tunes.combatHell02.Components[33].Container = CreateSoundContainer("CombatHell02 Heavy Comedown 3", "Massive.rte");
+	self.Tunes.combatHell02.Components[33].preLength = 562;
+	self.Tunes.combatHell02.Components[33].totalPost = 2785;
+	self.Tunes.combatHell02.Components[33].Type = "Heavy Comedown";
+	
+	self.Tunes.combatHell02.Components[34] = {};
+	self.Tunes.combatHell02.Components[34].Container = CreateSoundContainer("CombatHell02 Heavy Comedown 4", "Massive.rte");
+	self.Tunes.combatHell02.Components[34].preLength = 560;
+	self.Tunes.combatHell02.Components[34].totalPost = 3890;
+	self.Tunes.combatHell02.Components[34].Type = "Heavy Comedown";
+	
+	self.Tunes.combatHell02.Components[35] = {};
+	self.Tunes.combatHell02.Components[35].Container = CreateSoundContainer("CombatHell02 Heavy Comedown 5", "Massive.rte");
+	self.Tunes.combatHell02.Components[35].preLength = 290;
+	self.Tunes.combatHell02.Components[35].totalPost = 3637;
+	self.Tunes.combatHell02.Components[35].Type = "Heavy Comedown";
+	
+	-- okay, i'm kinda pissed. mid rapid-firing index numbers with some weirdo twisted claw grip on my keyboard,
+	-- moping about wishing i could automate this, i realize: i can. here's what it takes:
+	
+	local indexAutomator = 35;
+	indexAutomator = indexAutomator + 1;
+	
+	local soundContainerNumberAutomator = 0;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 555;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 10606;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	-- ffs man...	
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 424;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 11731;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 424;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 4111;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 543;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 5005;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 565;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 10619;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 282;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 4769;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 562;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 9475;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 562;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 5050;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 562;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 11711;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 290;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 6986;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 564;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 12840;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 562;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 5050;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 562;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 5074;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 556;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 9448;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 565;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 7191;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 559;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 11702;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 562;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 21174;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 562;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 9478;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 421;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 10559;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 570;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 5030;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 423;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 12692;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 571;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 10593;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 700;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 5175;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 562;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 6141;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 565;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 20867;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 562;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 7181;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 562;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 5043;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 562;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 10613;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	indexAutomator = indexAutomator + 1;
+	soundContainerNumberAutomator = soundContainerNumberAutomator + 1;
+	
+	self.Tunes.combatHell02.Components[indexAutomator] = {};
+	self.Tunes.combatHell02.Components[indexAutomator].Container = CreateSoundContainer("CombatHell02 Extreme " .. soundContainerNumberAutomator, "Massive.rte");
+	self.Tunes.combatHell02.Components[indexAutomator].preLength = 562;
+	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 6147;
+	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
+	
+	print("indexautomator")
+	print(indexAutomator)
+	
+	-- though, to be fair, much less readable.
+	
+	-- ambient: 1
+	-- light transition: 2
+	-- light main: 3
+	-- light comedown: 4
+	-- heavy transition: 5
+	-- heavy main: 6
+	-- heavy comedown: 7
+	-- extreme: 8
+	
+	self.Tunes.combatHell02.typeTables = {};
+	self.Tunes.combatHell02.typeTables[1] = {};
+	self.Tunes.combatHell02.typeTables[1].Loops = {1, 2, 3, 4, 5};
+	
+	self.Tunes.combatHell02.typeTables[2] = {};
+	self.Tunes.combatHell02.typeTables[2].Loops = {};
+	
+	self.Tunes.combatHell02.typeTables[3] = {};
+	self.Tunes.combatHell02.typeTables[3].Loops = {6, 7, 8, 9};
+	
+	self.Tunes.combatHell02.typeTables[4] = {};
+	self.Tunes.combatHell02.typeTables[4].Loops = {};
+	
+	self.Tunes.combatHell02.typeTables[5] = {};
+	self.Tunes.combatHell02.typeTables[5].Loops = {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22};
+	
+	self.Tunes.combatHell02.typeTables[6] = {};
+	self.Tunes.combatHell02.typeTables[6].Loops = {23, 24, 25, 26, 27, 28, 29, 30};
+	
+	self.Tunes.combatHell02.typeTables[7] = {};
+	self.Tunes.combatHell02.typeTables[7].Loops = {31, 32, 33, 34, 35};
+	
+	self.Tunes.combatHell02.typeTables[8] = {};
+	self.Tunes.combatHell02.typeTables[8].Loops = {36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65};
 
 	if self.activity.ActivityState == Activity.EDITING then
 	
@@ -442,6 +967,13 @@ function ArmageddonMusicScript:UpdateScript()
 	elseif UInputMan:KeyPressed(44) then
 		-- debug start new song
 		self.totalLoopNumber = 1000;
+	elseif UInputMan:KeyPressed(45) then
+		for actor in MovableMan.Actors do 
+			if not string.find(actor.PresetName, "Brain") and not actor:IsPlayerControlled() then
+				actor.Team = 3;
+			end
+		end
+	
 	end
 	
 	
@@ -520,6 +1052,11 @@ function ArmageddonMusicScript:UpdateScript()
 				if self.nextDecided ~= true then
 					self.nextDecided = true;	
 					
+					print("decidingintensity:")
+					print(self.Intensity)
+					print("desired:")
+					print(self.desiredIntensity)
+					
 					if self.totalLoopNumber > self.currentTune.recommendedLoops then
 						self.desiredIntensity = 1; -- will cause a comedown or an(other) ambient loop
 						self.endTune = true;
@@ -588,7 +1125,7 @@ function ArmageddonMusicScript:UpdateScript()
 									index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
 									self.MUSIC_STATE = "Comedown";
 								else
-									-- if we lack a comedown go right into the Main instead (should never happen?)
+									-- if we lack a comedown go right into the Main instead (should never happen?) (note: happens for rip and tear)
 									self.MUSIC_STATE = "Main";
 									loopTable = self.currentTune.typeTables[self.Intensity].Loops;
 									index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
@@ -693,7 +1230,9 @@ function ArmageddonMusicScript:UpdateScript()
 						self.currentIndex = 1;
 						local tuneTable = {};
 						for k, v in pairs(self.Tunes) do
-							table.insert(tuneTable, v);
+							if v ~= self.currentTune then
+								table.insert(tuneTable, v);
+							end
 						end
 						self.currentTuneIndex = math.random(1, #tuneTable);
 						self.currentTune = tuneTable[self.currentTuneIndex];
@@ -823,7 +1362,7 @@ function ArmageddonMusicScript:UpdateScript()
 		
 	end
 	
-	--for actor in MovableMan.Actors do actor.HUDVisible = false end
+	for actor in MovableMan.Actors do actor.HUDVisible = false end
 
 end
 
