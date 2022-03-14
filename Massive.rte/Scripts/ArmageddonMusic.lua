@@ -1362,7 +1362,7 @@ function ArmageddonMusicScript:UpdateScript()
 		
 	end
 	
-	for actor in MovableMan.Actors do actor.HUDVisible = false end
+	--for actor in MovableMan.Actors do actor.HUDVisible = false end
 
 end
 

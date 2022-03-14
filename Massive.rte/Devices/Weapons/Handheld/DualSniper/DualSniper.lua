@@ -6,6 +6,12 @@ function Create(self)
 		self.equippedByMassive = false;
 	end
 	
+	
+	self.chargeSound = CreateSoundContainer("Charge DualSniper", "Massive.rte");
+	self.chargedReflectionOutdoorsSound = CreateSoundContainer("Charged Reflection Outdoors DualSniper", "Massive.rte");
+	self.chargedBassPreSound = CreateSoundContainer("Charged BassPre DualSniper", "Massive.rte");
+	self.chargedAddSound = CreateSoundContainer("Charged Add DualSniper", "Massive.rte");
+	
 	self.laserOnSound = CreateSoundContainer("Laser On DualSniper", "Massive.rte");
 	self.laserOffSound = CreateSoundContainer("Laser Off DualSniper", "Massive.rte");
 	
@@ -51,8 +57,8 @@ function Create(self)
 	
 	self.ReloadTime = 5000;
 	
-	self.ammoCount = 2;
-	self.shellCount = 2;
+	self.ammoCount = 3;
+	self.shellCount = 3;
 
 	self.parentSet = false;
 	
@@ -76,6 +82,9 @@ function Create(self)
 	self.delayedFireTimer = Timer();
 	self.delayedFireTimeMS = 150;
 	self.delayedFireEnabled = true
+	
+	self.chargeHoldTime = 200;
+	self.chargeTimer = Timer();
 	
 	self.lastAge = self.Age + 0
 	
@@ -252,10 +261,10 @@ function Update(self)
 				
 				if self.ammoCountRaised ~= true then
 					self.ammoCountRaised = true;
-					if self.ammoCount < 2 then
+					if self.ammoCount < 3 then
 						self.ammoCount = self.ammoCount + 1;
 						self.shellCount = self.shellCount + 1;
-						if self.ammoCount == 2 then
+						if self.ammoCount == 3 then
 							self.phaseOnStop = 2;
 							self.reloadCycle = false;
 						end
@@ -360,6 +369,31 @@ function Update(self)
 			self:Deactivate()
 		end
 		
+		if not self.activated then
+			if fire and not self.Charged then
+				if self.Magazine and self.Magazine.RoundCount > 1 then
+					fire = false;
+					if not self.preActivated then
+						if not self.chargeSound:IsBeingPlayed() then
+							self.chargeSound:Play(self.Pos);
+						end
+						self.chargeTimer:Reset();
+						self.preActivated = true;
+						fire = false;
+					elseif self.chargeTimer:IsPastSimMS(self.chargeHoldTime) then
+						self.preActivated = false;
+						self.Charged = true;
+						fire = true;
+					end
+				end
+			elseif self.preActivated then
+				self.chargeSound:Stop();
+				self.Charged = false;
+				fire = true;
+				self.preActivated = false;
+			end
+		end
+		
 		if fire and not self:IsReloading() then
 			if not self.Magazine or self.Magazine.RoundCount < 1 then
 				--self:Reload()
@@ -369,6 +403,11 @@ function Update(self)
 				
 				self.bassPreSound:Play(self.Pos);
 				self.preSound:Play(self.Pos);
+				
+				if self.Charged == true then
+					self.chargedBassPreSound:Play(self.Pos);
+				end
+					
 				
 				self.fireDelayTimer:Reset()
 				
@@ -396,7 +435,54 @@ function Update(self)
 		self.Reloadable = false;
 		
 		self.ammoCount = self.ammoCount - 1;
+		
+		local smokeNum = 40;
+		if self.Charged then
+			if self.Magazine then
+				self.Magazine.RoundCount = 0;
+			end
+			smokeNum = 70;
+			self.powNum = 1.2
+			self.sharpLengthRegainTime = 2000;
+			self.chargedAddSound:Play(self.Pos);			
+			local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
+			shakenessParticle.Pos = self.MuzzlePos;
+			shakenessParticle.Mass = 60
+			shakenessParticle.Lifetime = 600;
+			MovableMan:AddParticle(shakenessParticle);		
+
+			self.angVel = self.angVel + RangeRand(0.7,1.1) * -10
+			
+			for i = 1, self.ammoCount - 1 do
+				local shot = CreateMOPixel("Pellet DualSniper Scripted", "Massive.rte");
+				shot.Pos = self.MuzzlePos;
+				shot.Vel = self.Vel + Vector(160 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+				shot.Lifetime = shot.Lifetime * math.random(0.8, 1.2);
+				shot.Team = self.Team;
+				shot.IgnoresTeamHits = true;
+				MovableMan:AddParticle(shot);	
+				for i = 1, 36 do
+					local shot = CreateMOPixel("Pellet DualSniper", "Massive.rte");
+					shot.Pos = self.MuzzlePos;
+					shot.Vel = self.Vel + (Vector(160*self.FlipFactor,0) + Vector(RangeRand(-1,1), RangeRand(-2,2))):RadRotate(self.RotAngle)
+					shot.Lifetime = shot.Lifetime * math.random(0.8, 1.2);
+					shot.Team = self.Team;
+					shot.IgnoresTeamHits = true;
+					MovableMan:AddParticle(shot);
+				end
+			end
+			self.ammoCount = 0;
+		else
 	
+			local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
+			shakenessParticle.Pos = self.MuzzlePos;
+			shakenessParticle.Mass = 60
+			shakenessParticle.Lifetime = 60;
+			MovableMan:AddParticle(shakenessParticle);
+			
+			self.angVel = self.angVel + RangeRand(0.7,1.1) * -5
+		end
+		
 		local shot = CreateMOPixel("Pellet DualSniper Scripted", "Massive.rte");
 		shot.Pos = self.MuzzlePos;
 		shot.Vel = self.Vel + Vector(160 * self.FlipFactor, 0):RadRotate(self.RotAngle);
@@ -406,14 +492,6 @@ function Update(self)
 		MovableMan:AddParticle(shot);	
 	
 		self.FireTimer:Reset();
-		
-		self.angVel = self.angVel + RangeRand(0.7,1.1) * -5
-		
-		local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
-		shakenessParticle.Pos = self.MuzzlePos;
-		shakenessParticle.Mass = 60
-		shakenessParticle.Lifetime = 60;
-		MovableMan:AddParticle(shakenessParticle);
 		
 		-- Ground Smoke
 		local maxi = 6
@@ -431,7 +509,7 @@ function Update(self)
 		
 		local smokeSatisfyingFactor = 1
 		
-		local smokeAmount = math.floor((40 + (math.floor(5 * smokeSatisfyingFactor))) * MassiveSettings.GunshotSmokeMultiplier);
+		local smokeAmount = math.floor((smokeNum + (math.floor(5 * smokeSatisfyingFactor))) * MassiveSettings.GunshotSmokeMultiplier);
 		local particleSpread = 5 + (math.floor(3 * smokeSatisfyingFactor))
 		
 		local smokeLingering = math.sqrt(smokeAmount / 8) * (1 + smokeSatisfyingFactor * 2)
@@ -553,10 +631,15 @@ function Update(self)
 		if outdoorRays >= self.rayThreshold then
 			self.reflectionOutdoorsSound:Play(self.Pos);
 			self.satisfyingReflectionOutdoorsSound:Play(self.Pos);
+			if self.Charged then
+				self.chargedReflectionOutdoorsSound:Play(self.Pos);
+			end
 		else
 			self.debrisIndoorsSound:Play(self.Pos);
 			self.noiseIndoorsSound:Play(self.Pos);
 		end		
+		
+		self.Charged = false;
 
 	end
 
