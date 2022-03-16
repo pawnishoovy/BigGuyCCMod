@@ -184,6 +184,12 @@ function Create(self)
 	
 	self.lastVel = Vector(0, 0)
 	
+	-- rock throw variables
+	-- could even say.. pebble yeet... or sediment hurl...
+	self.stoneTossCheckTime = 200;
+	self.stoneTossCheckTimer = Timer();
+	self.stoneTossCheckI = 0;
+	
 	-- End modded code
 end
 

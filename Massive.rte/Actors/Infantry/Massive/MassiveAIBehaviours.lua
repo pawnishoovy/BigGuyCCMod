@@ -353,8 +353,8 @@ function MassiveAIBehaviours.handleHealth(self)
 	if (healthTimerReady or wasLightlyInjured or wasInjured or wasHeavilyInjured) then
 	
 		if self:NumberValueExists("Death By Fire") then
-			self:RemoveNumberValue("Death By Fire");
 			MassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.Scream, 16, 5);
+			-- repeat, dont remove numbervalue
 		end
 	
 		self.oldHealth = self.Health;
@@ -669,7 +669,6 @@ end
 function MassiveAIBehaviours.handleVoicelines(self)
 
 	if self:NumberValueExists("Death By Fire") then
-		self:RemoveNumberValue("Death By Fire");
 		MassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.Scream, 16, 5);
 	end
 	

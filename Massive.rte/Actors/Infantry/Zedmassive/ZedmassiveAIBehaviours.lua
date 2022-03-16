@@ -614,6 +614,16 @@ function ZedmassiveAIBehaviours.handleVoicelines(self)
 		ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.Pain, 9, 5);
 	end
 	
+	if self:NumberValueExists("Massive Stone Throw") then
+		self:RemoveNumberValue("Massive Stone Throw");
+		ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.LashOut, 4, 4);
+	end	
+	
+	if self:NumberValueExists("Massive MASSIVE Stone Throw") then
+		self:RemoveNumberValue("Massive MASSIVE Stone Throw");
+		ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.BattleScream, 5, 4);
+	end	
+	
 	if self:NumberValueExists("Catapulted") then
 		self:RemoveNumberValue("Catapulted");
 		local chance = math.random(0, 100);
@@ -958,6 +968,7 @@ end
 
 function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 	local aimAngle = self:GetAimAngle(false);
+	local flippedAimAngle = self:GetAimAngle(true);
 	if self.Status == Actor.STABLE and self.lastHandPos then
 		--Flail around if aiming around too fast
 		local angleMovement = self.lastAngle - aimAngle;
@@ -991,12 +1002,13 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 					rotAng = legMain.RotAngle;
 				end
 				--Flail arms in tandem with leg movement or raise them them up for a push if aiming
-				if self.controller:IsState(Controller.AIM_SHARP) then
-					arm.IdleOffset = Vector(0, 1):RadRotate(aimAngle);
-				else
-					arm.IdleOffset = Vector(0, armLength * 0.7):RadRotate(rotAng * self.FlipFactor + 1.5 + (i * 0.2));
-				end
+				-- if self.controller:IsState(Controller.AIM_SHARP) then
+					-- arm.IdleOffset = Vector(0, 1):RadRotate(aimAngle);
+				-- else
+					-- arm.IdleOffset = Vector(0, armLength * 0.7):RadRotate(rotAng * self.FlipFactor + 1.5 + (i * 0.2));
+				-- end
 				if self.shoved or (self.EquippedItem and IsTDExplosive(self.EquippedItem) and self.controller:IsState(Controller.WEAPON_FIRE)) then
+					self.ArmSwingRate = 0;
 					arm.IdleOffset = Vector(armLength + (pushStrength * armLength), 0):RadRotate(aimAngle);
 					local handVector = SceneMan:ShortestDistance(self.lastHandPos[i], arm.HandPos, SceneMan.SceneWrapsX);
 					--Diminish hand relocation vector to prevent superhuman pushing powers
@@ -1006,6 +1018,9 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 					shove.Pos = shove.Pos and shove.Pos + SceneMan:ShortestDistance(shove.Pos, arm.HandPos, SceneMan.SceneWrapsX) * 0.5 or arm.HandPos;
 					shove.Power = shove.Power and shove.Power + armStrength or armStrength;
 					shove.Vector = shove.Vector and shove.Vector + handVector * 0.5 or handVector * 0.5;
+				else
+					self.ArmSwingRate = 1;
+					arm.IdleOffset = Vector(0, armLength * 0.7);
 				end
 				self.lastHandPos[i] = arm.HandPos;
 			end
@@ -1037,6 +1052,79 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 						mo.AngularVel = (aimAngle - self.lastAngle) * self.FlipFactor * math.pi;
 					else
 						mo:AddForce(shove.Vector * (self.Mass * 0.5) * shove.Power, Vector());
+					end
+				end
+			end
+			
+			local crouching = self.controller:IsState(Controller.BODY_CROUCH)
+			
+			if (not self.grabbingStone) and crouching and self.Vel.Magnitude < 2 then
+				if self.stoneTossCheckTimer:IsPastSimMS(self.stoneTossCheckTime) then
+					self.stoneTossCheckTimer:Reset();
+					
+					local concPixels = 0;
+					local dirtPixels = 0;
+					local sandPixels = 0;
+					local solidMetalPixels = 0;
+					
+					for i = 1, 14 do	
+						-- count how many of each material we find in a line perpendicular to the shove angleMovement
+						-- cool reusage of a mechanic, huh??? isnt it cool??? i couldve just put a new hotkey in you know
+						self.stoneTossCheckI = self.stoneTossCheckI % 13 + 1
+						
+						local checkOrigin = Vector(shove.Pos.X, shove.Pos.Y) + Vector(5 * self.FlipFactor, -10 + (self.stoneTossCheckI - 1) * 3):RadRotate(flippedAimAngle - (0.5 * self.FlipFactor))
+						local checkPix = SceneMan:GetTerrMatter(checkOrigin.X, checkOrigin.Y)
+						
+					--	PrimitiveMan:DrawLinePrimitive(checkOrigin, checkOrigin, 5);
+						
+						if checkPix == 12 or checkPix == 164 or checkPix == 177 then
+							concPixels = concPixels + 1;
+						elseif checkPix == 9 or checkPix == 10 or checkPix == 11 or checkPix == 128 then
+							dirtPixels = dirtPixels + 1;
+						elseif checkPix == 6 or checkPix == 8 then
+							sandPixels = sandPixels + 1;
+						elseif checkPix == 178 or checkPix == 179 or checkPix == 180 or checkPix == 181 or checkPix == 182 then
+							solidMetalPixels = solidMetalPixels + 1;
+						end
+						
+					end
+					
+					if concPixels + dirtPixels + sandPixels + solidMetalPixels > 13 then
+						if concPixels > 8 or ((concPixels + solidMetalPixels) > 9 and solidMetalPixels < 9) then -- concrete is often accompanied by metal so just account for that
+							self.stoneTossCheckTime = 200;
+							self.grabbingStone = true;
+							self.grabStoneType = "Concrete";
+							self.grabStonePhase = "Initial";
+						elseif solidMetalPixels > 8  then
+						elseif dirtPixels > 8 then
+						elseif sandPixels > 8 then
+						else
+						end
+					end
+
+				end	
+			elseif self.grabbingStone == true then
+				if not (crouching and self.Vel.Magnitude < 3) then
+					self.grabbingStone = false;
+					self.stoneTossCheckTime = 200;
+				elseif self.stoneTossCheckTimer:IsPastSimMS(self.stoneTossCheckTime) then
+					self.stoneTossCheckTime = self.stoneTossCheckTime + 1000;
+					self.stoneTossCheckTimer:Reset();
+					local soundContainer = CreateSoundContainer(self.grabStoneType .. " Pick Up " .. self.grabStonePhase .. " Rock StoneToss", "Massive.rte");
+					soundContainer:Play(self.Pos);
+					if self.grabStonePhase == "Initial" then
+						self.grabStonePhase = "Second";
+						self.AngularVel = self.AngularVel + RangeRand(2,6) * (math.random(0,1) * 2.0 - 1.0)
+					elseif self.grabStonePhase == "Second" then
+						self.grabStonePhase = "Final";
+						self.AngularVel = self.AngularVel + RangeRand(2,6) * (math.random(0,1) * 2.0 - 1.0)
+					else
+						self.stoneTossCheckTime = 200;
+						self.grabbingStone = false;
+						self:UnequipFGArm()
+						self:UnequipBGArm()
+						self:AddInventoryItem(CreateHeldDevice("Ripped-up " .. self.grabStoneType .. " Chunk", "Massive.rte"));
+						self.AngularVel = self.AngularVel + (12 * self.FlipFactor);
 					end
 				end
 			end
