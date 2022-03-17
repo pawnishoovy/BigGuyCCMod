@@ -186,12 +186,28 @@ function ZedmassiveAIBehaviours.handleMovement(self)
 		if (self:IsPlayerControlled() and self.feetContact[1] == true or self.feetContact[2] == true) or self.wasInAir == false then
 			local jumpVec = Vector(0, self.noSprint and self.jumpStrength * 0.01 or self.jumpStrength)
 			local jumpWalkX = 3
-			if self.controller:IsState(Controller.MOVE_LEFT) == true then
-				jumpVec.X = -jumpWalkX
-			elseif self.controller:IsState(Controller.MOVE_RIGHT) == true then
-				jumpVec.X = jumpWalkX
+			if moving then
+				if self.controller:IsState(Controller.MOVE_LEFT) == true then
+					jumpVec.X = -jumpWalkX
+				elseif self.controller:IsState(Controller.MOVE_RIGHT) == true then
+					jumpVec.X = jumpWalkX
+				end
+			end
+			if self.controller:IsState(Controller.WEAPON_FIRE) then
+				ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.Grunt, 4, 5);
+				jumpVec = Vector(0, self.noSprint and self.jumpStrength * 0.01 or self.jumpStrength * 1.3)
+				if self.isSprinting then
+					-- dive lmao
+					self.AngularVel = self.AngularVel + (-1 * self.FlipFactor)
+					self.Status = 1;
+					jumpVec = Vector(0, self.noSprint and self.jumpStrength * 0.01 or self.jumpStrength * 2)
+					jumpVec.X = 10 * self.FlipFactor
+				end
 			end
 			self.movementSounds.Jump:Play(self.Pos);
+			self.movementSounds.FoleySprint:Play(self.Pos);
+			self.movementSounds.SprintStepLeft:Play(self.Pos);
+			self.jumpBoostTimer:Reset();
 
 			local pos = Vector(0, 0);
 			SceneMan:CastObstacleRay(self.Pos, Vector(0, 45), pos, Vector(0, 0), self.ID, self.Team, 0, 10);				
@@ -207,6 +223,16 @@ function ZedmassiveAIBehaviours.handleMovement(self)
 			self.jumpStop:Reset()
 		end
 	elseif self.isJumping or self.wasInAir then
+		if self.isJumping and self.Status < 1 then
+			if self.controller:IsState(Controller.BODY_JUMP) == true and not self.jumpBoostTimer:IsPastSimMS(200) then
+				self.Vel = self.Vel - SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs * 2.8 -- Stop the gravity
+			end
+			if self.controller:IsState(Controller.MOVE_LEFT) == true and not self.jumpBoostTimer:IsPastSimMS(1000) and self.Vel.X > -5 then
+				self.Vel = self.Vel + Vector(-8, 0) * TimerMan.DeltaTimeSecs * 1.0
+			elseif self.controller:IsState(Controller.MOVE_RIGHT) == true and not self.jumpBoostTimer:IsPastSimMS(1000) and self.Vel.X < 5 then
+				self.Vel = self.Vel + Vector(8, 0) * TimerMan.DeltaTimeSecs * 1.0
+			end
+		end
 		if (self:IsPlayerControlled() and self.feetContact[1] == true or self.feetContact[2] == true) and self.jumpStop:IsPastSimMS(100) then
 			self.isJumping = false
 			self.wasInAir = false;
@@ -743,11 +769,11 @@ function ZedmassiveAIBehaviours.handleVoicelines(self)
 					self.movementSounds.AttackLight:Play(self.Pos);
 				elseif self:NumberValueExists("Light Attack") then
 					self:RemoveNumberValue("Light Attack");
-					ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.LashOut, 3, 3);
+					ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.Grunt, 3, 3);
 					self.movementSounds.AttackLight:Play(self.Pos);
 				elseif self:NumberValueExists("Medium Attack") then
 					self:RemoveNumberValue("Medium Attack");
-					ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.LashOut, 3, 3);
+					ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.Grunt, 3, 3);
 					self.movementSounds.AttackMedium:Play(self.Pos);
 				elseif self:NumberValueExists("Large Attack") then
 					self:RemoveNumberValue("Large Attack");
@@ -829,6 +855,7 @@ function ZedmassiveAIBehaviours.handleDying(self)
 	
 	if self.allowedToDie == false then
 		self.Health = 1;
+		self.Status = 0;
 		if self.deathCount > self.deathsMax and self.Reviving ~= true then
 			self.controller:SetState(Controller.BODY_JUMPSTART, false);
 			self.controller:SetState(Controller.BODY_JUMP, false);
@@ -841,6 +868,7 @@ function ZedmassiveAIBehaviours.handleDying(self)
 				self.deathFinal = true;
 				ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.DeathFinal, 15, 5);
 				self.allowedToDie = true;
+				print("allow")
 				self.Status = 3;
 				self.Vel = self.Vel + Vector(RangeRand(1, 2), -1) * self.FlipFactor
 				self.AngularVel = self.AngularVel + RangeRand(5,10) * self.FlipFactor * -1
@@ -974,14 +1002,17 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 		local angleMovement = self.lastAngle - aimAngle;
 		self.AngularVel = self.AngularVel - (2 * angleMovement * self.FlipFactor)/(math.abs(self.AngularVel) * 0.1 + 1);
 		--Shove when unarmed
-		if self.controller:IsState(Controller.WEAPON_FIRE) and (self.FGArm or self.BGArm) and not (self.EquippedItem or self.EquippedBGItem) then
-			self.AngularVel = self.AngularVel/(self.shoved and 1.3 or 3) + (aimAngle - self.RotAngle * self.FlipFactor - 1.57) * (self.shoved and 0.3 or 3) * self.FlipFactor/(1 + math.abs(self.RotAngle));
+		if self.controller:IsState(Controller.WEAPON_FIRE) and (self.FGArm or self.BGArm) and not (self.EquippedItem or self.EquippedBGItem) and self.shoveCooldownTimer:IsPastSimMS(self.shoveCooldownTime) then
+			self.AngularVel = self.AngularVel/(self.shoved and 2.4 or 3) + (aimAngle - self.RotAngle * self.FlipFactor - 1.57) * (self.shoved and 0.1 or 3) * self.FlipFactor/(1 + math.abs(self.RotAngle));
 			if not self.shoved then
-				ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.AttackGrunt, 3, 3);
+				ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.Grunt, 4, 5);
 				self.Vel = self.Vel + Vector(2/(1 + self.Vel.Magnitude), 0):RadRotate(self:GetAimAngle(true)) * math.abs(math.cos(self:GetAimAngle(true)));
 				self.shoved = true;
 			end
 		else
+			if self.shoved == true then
+				self.shoveCooldownTimer:Reset();
+			end
 			self.shoved = false;
 		end
 		local shove = {};
@@ -1026,34 +1057,99 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 			end
 		end
 		if shove.Pos then
+		
+			local shoveVector = SceneMan:ShortestDistance(self.Pos, shove.Pos, SceneMan.SceneWrapsX);
+			local angleFlip = self.HFlipped and -math.pi or 0
+			
 			--local moCheck = SceneMan:GetMOIDPixel(shove.Pos.X + self.FlipFactor, shove.Pos.Y - 1);
 			local moCheck = SceneMan:CastMORay(shove.Pos, shove.Vector, self.ID, self.Team, rte.airID, false, shove.Vector.Magnitude - 1);
 			if moCheck ~= rte.NoMOID then
-				local mo = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
-				if mo and mo.Team ~= self.Team and IsActor(mo) then
-					if self.shoveSoundsPlayed == false then
+				local MO = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).ID);
+				local rootMO = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
+				if rootMO and rootMO.Team ~= self.Team and IsActor(rootMO) then
+				
+					if IsAttachable(MO) and ToAttachable(MO):IsAttached() and (IsArm(MO) or IsLeg(MO) or (IsAHuman(actorHit) and ToAHuman(actorHit).Head and MO.UniqueID == ToAHuman(actorHit).Head.UniqueID)) then
+						-- two different ways to dismember: 1. if limb is close to being gibbed, dismember it instead 2. low hp and rng
+						local attachable = ToAttachable(MO);
+						if attachable.WoundCount + 5 >= attachable.GibWoundLimit then
+							attachable:RemoveFromParent(true, true);
+							self.stickMO = attachable;
+							self.stickMOAngle = attachable.RotAngle - shoveVector.AbsRadAngle;
+						elseif ToActor(rootMO).Health < 20 and math.random(0, 100) < 20 then
+							attachable:RemoveFromParent(true, true);
+							self.stickMO = attachable;
+							self.stickMOAngle = attachable.RotAngle - shoveVector.AbsRadAngle;
+						end
+					end					
+				
+					if self.shoveSoundsPlayed == false then -- ought to rename this..
+					
+						if self.Mass > rootMO.Mass then
+							ToActor(rootMO).Health = ToActor(rootMO).Health - (2 * self.Mass/rootMO.Mass)
+						end
+						
+						if IsAttachable(MO) and ToAttachable(MO):IsAttached() and (IsArm(MO) or IsLeg(MO) or (IsAHuman(rootMO) and ToAHuman(rootMO).Head and MO.UniqueID == ToAHuman(rootMO).Head.UniqueID)) then
+							-- two different ways to dismember: 1. if limb is close to being gibbed, dismember it instead 2. low hp and rng
+							local MO = ToAttachable(MO);
+							if MO.WoundCount + 5 >= MO.GibWoundLimit then
+								MO:RemoveFromParent(true, true);
+								self.stickMO = MO;
+								self.stickMOAngle = MO.RotAngle - (shoveVector.AbsRadAngle + angleFlip);
+								self.stickMOOrigHits = self.stickMO.HitsMOs;
+							elseif ToActor(rootMO).Health < 20 and math.random(0, 100) < 20 then
+								MO:RemoveFromParent(true, true);
+								self.stickMO = MO;
+								self.stickMOAngle = MO.RotAngle - (shoveVector.AbsRadAngle + angleFlip);
+								self.stickMOOrigHits = self.stickMO.HitsMOs;
+							end
+						end								
+						
 						self.shoveSoundsPlayed = true;
 						self.tackleImpactGenericSound:Play(self.Pos);
 						
-						local material = mo.Material.PresetName
+						local material = rootMO.Material.PresetName
 						if string.find(material,"Metal") or string.find(material,"Stuff") then
-							self.tackleImpactMetalActorSound:Play(mo.Pos);
+							self.tackleImpactMetalActorSound:Play(rootMO.Pos);
 						end
 					end
-					if self.Mass > mo.Mass then
-						ToActor(mo).Status = Actor.UNSTABLE;
+					if self.Mass > rootMO.Mass then
+						ToActor(rootMO).Status = Actor.UNSTABLE;
 						--Simulate target actor weight with an attachable
 						local weight = CreateAttachable("Null Attachable");
-						weight.Mass = mo.Mass;
+						weight.Mass = rootMO.Mass;
 						weight.Lifetime = 1;
 						self:AddAttachable(weight);
 						local shoveVel = shove.Vector/rte.PxTravelledPerFrame;
-						mo.Vel = mo.Vel * 0.5 + shoveVel:SetMagnitude(math.min(shoveVel.Magnitude, math.sqrt(self.IndividualDiameter))) - SceneMan.GlobalAcc * GetMPP() * rte.PxTravelledPerFrame;
-						mo.AngularVel = (aimAngle - self.lastAngle) * self.FlipFactor * math.pi;
+						rootMO.Vel = rootMO.Vel * 0.5 + shoveVel:SetMagnitude(math.min(shoveVel.Magnitude, math.sqrt(self.IndividualDiameter))) - SceneMan.GlobalAcc * GetMPP() * rte.PxTravelledPerFrame;
+						rootMO.AngularVel = (aimAngle - self.lastAngle) * self.FlipFactor * math.pi;
 					else
-						mo:AddForce(shove.Vector * (self.Mass * 0.5) * shove.Power, Vector());
+						rootMO:AddForce(shove.Vector * (self.Mass * 0.5) * shove.Power, Vector());
 					end
 				end
+			end
+			
+			if self.stickMO then
+			
+				local stickObstructionCheckRay = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + shoveVector, 4, 0);
+				if stickObstructionCheckRay > 100 then
+					self.stickMO = nil;
+				end
+				
+				if self.stickMO and MovableMan:ValidMO(self.stickMO) then				
+					self.stickMO.Vel = self.Vel
+					if self.stickMOLastPos then
+						self.stickMO.Vel = self.Vel + SceneMan:ShortestDistance(self.stickMOLastPos, shove.Pos, SceneMan.SceneWrapsX);
+						self.stickMO.Vel = self.stickMO.Vel * 2
+					end
+					self.stickMO.Pos = shove.Pos + Vector(self.stickMO.Radius * 0.6, 0):RadRotate(shoveVector.AbsRadAngle)
+					self.stickMO.RotAngle = (shoveVector.AbsRadAngle + angleFlip) + self.stickMOAngle;
+					self.stickMO.ToSettle = false;
+					self.stickMOLastPos = shove.Pos;
+					self.stickMO.HitsMOs = false;
+				else
+					self.stickMO = nil;
+				end
+				
 			end
 			
 			local crouching = self.controller:IsState(Controller.BODY_CROUCH)
@@ -1072,10 +1168,10 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 						-- cool reusage of a mechanic, huh??? isnt it cool??? i couldve just put a new hotkey in you know
 						self.stoneTossCheckI = self.stoneTossCheckI % 13 + 1
 						
-						local checkOrigin = Vector(shove.Pos.X, shove.Pos.Y) + Vector(5 * self.FlipFactor, -10 + (self.stoneTossCheckI - 1) * 3):RadRotate(flippedAimAngle - (0.5 * self.FlipFactor))
+						local checkOrigin = Vector(shove.Pos.X, shove.Pos.Y) + Vector(1, -10 + (self.stoneTossCheckI - 1) * 3):RadRotate(flippedAimAngle - (0.5 * self.FlipFactor))
 						local checkPix = SceneMan:GetTerrMatter(checkOrigin.X, checkOrigin.Y)
 						
-					--	PrimitiveMan:DrawLinePrimitive(checkOrigin, checkOrigin, 5);
+						--PrimitiveMan:DrawLinePrimitive(checkOrigin, checkOrigin, 5);
 						
 						if checkPix == 12 or checkPix == 164 or checkPix == 177 then
 							concPixels = concPixels + 1;
@@ -1095,7 +1191,13 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 							self.grabbingStone = true;
 							self.grabStoneType = "Concrete";
 							self.grabStonePhase = "Initial";
+							self.grabStoneAngle = aimAngle;
 						elseif solidMetalPixels > 8  then
+							self.stoneTossCheckTime = 200;
+							self.grabbingStone = true;
+							self.grabStoneType = "Metal";
+							self.grabStonePhase = "Initial";
+							self.grabStoneAngle = aimAngle;
 						elseif dirtPixels > 8 then
 						elseif sandPixels > 8 then
 						else
@@ -1104,7 +1206,7 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 
 				end	
 			elseif self.grabbingStone == true then
-				if not (crouching and self.Vel.Magnitude < 3) then
+				if not (crouching and self.Vel.Magnitude < 3) or (aimAngle < self.grabStoneAngle - 0.25 or aimAngle > self.grabStoneAngle + 0.25) then
 					self.grabbingStone = false;
 					self.stoneTossCheckTime = 200;
 				elseif self.stoneTossCheckTimer:IsPastSimMS(self.stoneTossCheckTime) then
@@ -1115,21 +1217,128 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 					if self.grabStonePhase == "Initial" then
 						self.grabStonePhase = "Second";
 						self.AngularVel = self.AngularVel + RangeRand(2,6) * (math.random(0,1) * 2.0 - 1.0)
+						local smokePos = Vector(0, 0)
+						SceneMan:CastObstacleRay(self.Pos, shoveVector, Vector(0, 0), smokePos, self.ID, 1, 128, 1);
+						
+						if self.grabStoneType == "Concrete" then
+							for i = 1, 20 do
+								local spread = (math.pi * 2) * RangeRand(-1, 1)
+								local velocity = 50 * RangeRand(0.1, 0.9) * 0.4;
+								
+								local particle = CreateMOSParticle(math.random(0, 100) < 70 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
+								particle.Pos = smokePos
+								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
+								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
+								particle.AirThreshold = particle.AirThreshold * 0.5
+								particle.GlobalAccScalar = 0
+								MovableMan:AddParticle(particle);
+							end
+						elseif self.grabStoneType == "Metal" then
+						
+							for i = 1, 7 do
+								local spread = (math.pi * 2) * RangeRand(-1, 1)
+								local velocity = 50 * RangeRand(0.1, 0.9) * 0.4;
+								
+								local particle = CreateMOPixel(math.random(0, 100) < 70 and "Spark Yellow 1" or "Spark Yellow 2");
+								particle.Pos = smokePos
+								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
+								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
+								MovableMan:AddParticle(particle);
+							end
+							
+						end
+						
 					elseif self.grabStonePhase == "Second" then
+						ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.Vocalize, 4, 2)
 						self.grabStonePhase = "Final";
 						self.AngularVel = self.AngularVel + RangeRand(2,6) * (math.random(0,1) * 2.0 - 1.0)
+						local smokePos = Vector(0, 0)
+						SceneMan:CastObstacleRay(self.Pos, shoveVector, Vector(0, 0), smokePos, self.ID, 1, 128, 1);
+						
+						if self.grabStoneType == "Concrete" then
+							for i = 1, 35 do
+								local spread = (math.pi * 2) * RangeRand(-1, 1)
+								local velocity = 50 * RangeRand(0.1, 0.9) * 0.4;
+								
+								local particle = CreateMOSParticle(math.random(0, 100) < 70 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
+								particle.Pos = smokePos
+								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
+								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 1.5
+								particle.AirThreshold = particle.AirThreshold * 0.5
+								particle.GlobalAccScalar = 0
+								MovableMan:AddParticle(particle);
+							end
+						elseif self.grabStoneType == "Metal" then
+							for i = 1, 4 do
+								local spread = (math.pi * 2) * RangeRand(-1, 1)
+								local velocity = 50 * RangeRand(0.1, 0.9) * 0.4;
+								
+								local particle = CreateMOPixel(math.random(0, 100) < 70 and "Spark Yellow 1" or "Spark Yellow 2");
+								particle.Pos = smokePos
+								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
+								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
+								MovableMan:AddParticle(particle);
+							end						
+						
+						end
+						
 					else
 						self.stoneTossCheckTime = 200;
 						self.grabbingStone = false;
 						self:UnequipFGArm()
 						self:UnequipBGArm()
-						self:AddInventoryItem(CreateHeldDevice("Ripped-up " .. self.grabStoneType .. " Chunk", "Massive.rte"));
 						self.AngularVel = self.AngularVel + (12 * self.FlipFactor);
+						local smokePos = Vector(0, 0)
+						SceneMan:CastObstacleRay(self.Pos, shoveVector, Vector(0, 0), smokePos, self.ID, 1, 128, 1);
+						
+						if self.grabStoneType == "Concrete" then
+						
+							self:AddInventoryItem(CreateHeldDevice("Ripped-up " .. self.grabStoneType .. " Chunk", "Massive.rte"));
+						
+							for i = 1, 70 do
+								local spread = (math.pi * 2) * RangeRand(-1, 1)
+								local velocity = 80 * RangeRand(0.1, 0.9) * 0.4;
+								
+								local particle = CreateMOSParticle(math.random(0, 100) < 70 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
+								particle.Pos = smokePos
+								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
+								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 2.0
+								particle.AirThreshold = particle.AirThreshold * 0.5
+								particle.GlobalAccScalar = 0
+								MovableMan:AddParticle(particle);
+							end
+						elseif self.grabStoneType == "Metal" then
+						
+							self:AddInventoryItem(CreateHeldDevice("Ripped-up " .. self.grabStoneType .. " Chunk", "Massive.rte"));
+						
+							for i = 1, 50 do
+								local spread = (math.pi * 2) * RangeRand(-1, 1)
+								local velocity = 50 * RangeRand(0.1, 0.9) * 0.4;
+								
+								local particle = CreateMOPixel(math.random(0, 100) < 70 and "Spark Yellow 1" or "Spark Yellow 2");
+								particle.Pos = smokePos
+								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
+								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
+								MovableMan:AddParticle(particle);
+							end
+						end
+						
+						local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+						shakenessParticle.Pos = self.Pos;
+						shakenessParticle.Mass = 25;
+						shakenessParticle.Lifetime = 500;
+						MovableMan:AddParticle(shakenessParticle);
 					end
 				end
 			end
 		else
+			if self.stickMO and MovableMan:ValidMO(self.stickMO) then
+				self.stickMO.HitsMOs = self.stickMOOrigHits;
+				self.stickMO = nil;
+			end
 			self.shoveSoundsPlayed = false;
+			self.grabbingStone = false;
+			self.stoneTossCheckTime = 200;
 		end
 		self.lastAngle = aimAngle;
 	else

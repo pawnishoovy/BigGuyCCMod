@@ -2,6 +2,10 @@
 -- uses heavily pared down melee system
 -- i mean, if it's also a full-fledged animating and cqc damage system... why not?
 
+
+-- metal note: i would've wanted to keep the one .lua and make it change all of its properties but that wouldve been way too messy
+-- so there's separate ones instead boohoo
+
 function playAttackAnimation(self, animation)
 	self.attackAnimationIsPlaying = true
 	self.currentAttackStart = false;
@@ -58,12 +62,10 @@ function Explode(self)
 		local spread = (math.pi * 2) * RangeRand(-1, 1)
 		local velocity = 30 * RangeRand(0.1, 0.9) * 0.4;
 		
-		local particle = CreateMOSParticle("Tiny Smoke Ball 1");
+		local particle = CreateMOPixel("Spark Yellow 1");
 		particle.Pos = self.Pos
 		particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(spread) * (50 * 0.2)
 		particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.9 * 25
-		particle.AirThreshold = particle.AirThreshold * 0.5
-		particle.GlobalAccScalar = -0.0001
 		MovableMan:AddParticle(particle);
 	end	
 	
@@ -111,7 +113,7 @@ function Create(self)
 	self.lastPos = Vector(self.Pos.X, self.Pos.Y)
 	self.launchVector = Vector()
 
-	self.explodeSound = CreateSoundContainer("Concrete Impact Rock StoneToss", "Massive.rte");
+	self.explodeSound = CreateSoundContainer("Metal Impact Rock StoneToss", "Massive.rte");
 	
 	self.flying = false
 	
@@ -139,7 +141,7 @@ function Create(self)
 	throwPhase[i] = {}
 	throwPhase[i].durationMS = 1200
 	throwPhase[i].angleStart = 0
-	throwPhase[i].angleEnd = 120
+	throwPhase[i].angleEnd = -15
 	throwPhase[i].offsetStart = Vector(0, 0)
 	throwPhase[i].offsetEnd = Vector(-15, -15)
 
@@ -149,8 +151,8 @@ function Create(self)
 	throwPhase[i] = {}
 	throwPhase[i].lastPrepare = true;
 	throwPhase[i].durationMS = 400
-	throwPhase[i].angleStart = 120
-	throwPhase[i].angleEnd = 120
+	throwPhase[i].angleStart = -15
+	throwPhase[i].angleEnd = 0
 	throwPhase[i].offsetStart = Vector(-15, -15)
 	throwPhase[i].offsetEnd = Vector(-15, -15)
 	throwPhase[i].soundStart = CreateSoundContainer("Throw Rock StoneToss", "Massive.rte");
@@ -161,8 +163,8 @@ function Create(self)
 	i = 3
 	throwPhase[i] = {}
 	throwPhase[i].durationMS = 230
-	throwPhase[i].angleStart = 120
-	throwPhase[i].angleEnd = -90
+	throwPhase[i].angleStart = 0
+	throwPhase[i].angleEnd = 0
 	throwPhase[i].offsetStart = Vector(-15, -15)
 	throwPhase[i].offsetEnd = Vector(15, -8)
 	
@@ -177,7 +179,7 @@ function Create(self)
 	smashPhase[i] = {}
 	smashPhase[i].durationMS = 1200
 	smashPhase[i].angleStart = 0
-	smashPhase[i].angleEnd = 120
+	smashPhase[i].angleEnd = 0
 	smashPhase[i].offsetStart = Vector(0, 0)
 	smashPhase[i].offsetEnd = Vector(-15, -15)
 
@@ -186,8 +188,8 @@ function Create(self)
 	i = 2
 	smashPhase[i] = {}
 	smashPhase[i].durationMS = 400
-	smashPhase[i].angleStart = 120
-	smashPhase[i].angleEnd = 120
+	smashPhase[i].angleStart = 0
+	smashPhase[i].angleEnd = 0
 	smashPhase[i].offsetStart = Vector(-15, -15)
 	smashPhase[i].offsetEnd = Vector(-15, -15)
 	
@@ -197,7 +199,7 @@ function Create(self)
 	smashPhase[i] = {}
 	smashPhase[i].attackPhase = true
 	smashPhase[i].durationMS = 250
-	smashPhase[i].angleStart = 120
+	smashPhase[i].angleStart = 0
 	smashPhase[i].angleEnd = -90
 	smashPhase[i].offsetStart = Vector(-10, -15)
 	smashPhase[i].offsetEnd = Vector(15, 25)
@@ -212,8 +214,8 @@ function Create(self)
 	i = 1
 	equipPhase[i] = {}
 	equipPhase[i].durationMS = 500
-	equipPhase[i].angleStart = 0
-	equipPhase[i].angleEnd = 0
+	equipPhase[i].angleStart = 90
+	equipPhase[i].angleEnd = 45
 	equipPhase[i].offsetStart = Vector(15, 0)
 	equipPhase[i].offsetEnd = Vector(0, -15)
 	
@@ -221,7 +223,7 @@ function Create(self)
 	i = 2
 	equipPhase[i] = {}
 	equipPhase[i].durationMS = 450
-	equipPhase[i].angleStart = 0
+	equipPhase[i].angleStart = 45
 	equipPhase[i].angleEnd = 15
 	equipPhase[i].offsetStart = Vector(0, -15)
 	equipPhase[i].offsetEnd = Vector(-2, -17)

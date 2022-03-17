@@ -76,8 +76,7 @@ function ArmageddonMusicScript:StartScript()
 	-- our dynamic music is just normal sound, so get the current ratio between sound and music volume
 	-- to set the container volumes
 	
-	self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume) + 0.1;
-	-- and then add some... what do you think you're listening to?
+	self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume);
 	
 	self.MUSIC_STATE = "Main";
 	
@@ -1036,7 +1035,7 @@ function ArmageddonMusicScript:UpdateScript()
 			-- note: it was a bit messy and i just did the second thing
 			-- self.currentTune.Components[oldIndex].Container:FadeOut(self.currentTune.Components[self.currentIndex].preLength);
 			
-			self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume) + 0.1;
+			self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume);
 			
 			self.currentTune.Components[self.currentIndex].Container.Volume = self.dynamicVolume;
 			self.currentTune.Components[self.currentIndex].Container:Play();
@@ -1215,7 +1214,7 @@ function ArmageddonMusicScript:UpdateScript()
 					
 					self.currentIndex = self.indexToPlay;
 					
-					self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume) + 0.1;
+					self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume);
 					
 					if self.endTune == true then
 						-- no rest for the wicked, straight into next song!
@@ -1362,7 +1361,7 @@ function ArmageddonMusicScript:UpdateScript()
 		
 	end
 	
-	--for actor in MovableMan.Actors do actor.HUDVisible = false end
+	for actor in MovableMan.Actors do actor.HUDVisible = false end
 
 end
 

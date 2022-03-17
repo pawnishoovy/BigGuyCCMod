@@ -31,6 +31,7 @@ function Create(self)
 	DeathFirst = CreateSoundContainer("VO " .. self.IdentityPrimary .. " DeathFirst", "Massive.rte"),
 	FakeDeath = CreateSoundContainer("VO " .. self.IdentityPrimary .. " FakeDeath", "Massive.rte"),
 	LashOut = CreateSoundContainer("VO " .. self.IdentityPrimary .. " LashOut", "Massive.rte"),
+	Grunt = CreateSoundContainer("VO " .. self.IdentityPrimary .. " Grunt", "Massive.rte"),
 	Pain = CreateSoundContainer("VO " .. self.IdentityPrimary .. " Pain", "Massive.rte"),
 	Revived = CreateSoundContainer("VO " .. self.IdentityPrimary .. " Revived", "Massive.rte"),
 	Reviving = CreateSoundContainer("VO " .. self.IdentityPrimary .. " Reviving", "Massive.rte"),
@@ -160,6 +161,7 @@ function Create(self)
 	self.jumpTimer = Timer();
 	self.jumpDelay = 500;
 	self.jumpStop = Timer();
+	self.jumpBoostTimer = Timer();
 	
 	-- Sprint
 
@@ -189,6 +191,10 @@ function Create(self)
 	self.stoneTossCheckTime = 200;
 	self.stoneTossCheckTimer = Timer();
 	self.stoneTossCheckI = 0;
+	
+	
+	self.shoveCooldownTimer = Timer();
+	self.shoveCooldownTime = 500;
 	
 	-- End modded code
 end
@@ -465,16 +471,6 @@ function Update(self)
 						--	woundName = woundNameExit
 						--end
 						
-						if IsAttachable(MO) and ToAttachable(MO):IsAttached() then
-							if MO:IsDevice() and math.random(1,3) >= 2 then
-								ToAttachable(MO):RemoveFromParent(true, true);
-							end
-							
-							if MO:IsInGroup("Shields") then
-								ToAttachable(MO):RemoveFromParent(true, true);
-							end
-						end
-						
 						local damage = 4 + (math.max(1, (self.Mass-130) / 100)); -- for every 100 mass above 130, add one damage
 						
 						local addWounds = true;
@@ -484,6 +480,8 @@ function Update(self)
 						-- Hurt the actor, add extra damage
 						local actorHit = MovableMan:GetMOFromID(MO.RootID)
 						if (actorHit and IsActor(actorHit)) then-- and (MO.RootID == moCheck or (not IsAttachable(MO) or string.find(MO.PresetName,"Arm") or string.find(MO,"Leg") or string.find(MO,"Head"))) then -- Apply addational damage
+						
+
 
 							ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.AttackGrunt, 3, 3);
 							
@@ -519,6 +517,34 @@ function Update(self)
 									addSingleWound = true;
 									ToActor(MO).Health = 0;
 								end
+							elseif IsAttachable(MO) and ToAttachable(MO):IsAttached() then
+								if MO:IsDevice() and math.random(1,3) >= 2 then
+									ToAttachable(MO):RemoveFromParent(true, true);
+								end
+								
+								if MO:IsInGroup("Shields") then
+									ToAttachable(MO):RemoveFromParent(true, true);
+								end
+								
+								if self.shoved and (IsArm(MO) or IsLeg(MO) or (IsAHuman(actorHit) and ToAHuman(actorHit).Head and MO.UniqueID == ToAHuman(actorHit).Head.UniqueID)) then
+									-- two different ways to dismember: 1. if limb is close to being gibbed, dismember it instead 2. low hp and rng
+									local attachable = ToAttachable(MO);
+									if attachable.WoundCount + woundsToAdd >= attachable.GibWoundLimit then
+										attachable:RemoveFromParent(true, true);
+										self.stickMO = attachable;
+										self.stickMOAngle = attachable.RotAngle;
+										self.stickMOOrigHits = self.stickMO.HitsMOs;
+										addWounds = false;
+									elseif ToActor(actorHit).Health < 20 and math.random(0, 100) < 20 then
+										attachable:RemoveFromParent(true, true);
+										self.stickMO = attachable;
+										self.stickMOAngle = attachable.RotAngle;
+										self.stickMOOrigHits = self.stickMO.HitsMOs;
+										addWounds = false;
+									end
+								end
+									
+								
 							end
 							
 							if addWounds == true and woundName and woundName ~= "" then
