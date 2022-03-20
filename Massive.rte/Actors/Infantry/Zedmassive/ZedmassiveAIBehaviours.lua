@@ -1161,6 +1161,7 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 					local concPixels = 0;
 					local dirtPixels = 0;
 					local sandPixels = 0;
+					local snowPixels = 0;
 					local solidMetalPixels = 0;
 					
 					for i = 1, 14 do	
@@ -1177,15 +1178,17 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 							concPixels = concPixels + 1;
 						elseif checkPix == 9 or checkPix == 10 or checkPix == 11 or checkPix == 128 then
 							dirtPixels = dirtPixels + 1;
-						elseif checkPix == 6 or checkPix == 8 then
+						elseif checkPix == 8 then
 							sandPixels = sandPixels + 1;
+						elseif checkPix == 6 then
+							snowPixels = snowPixels + 1;
 						elseif checkPix == 178 or checkPix == 179 or checkPix == 180 or checkPix == 181 or checkPix == 182 then
 							solidMetalPixels = solidMetalPixels + 1;
 						end
 						
 					end
 					
-					if concPixels + dirtPixels + sandPixels + solidMetalPixels > 13 then
+					if concPixels + dirtPixels + sandPixels + snowPixels + solidMetalPixels > 13 then
 						if concPixels > 8 or ((concPixels + solidMetalPixels) > 9 and solidMetalPixels < 9) then -- concrete is often accompanied by metal so just account for that
 							self.stoneTossCheckTime = 200;
 							self.grabbingStone = true;
@@ -1199,10 +1202,27 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 							self.grabStonePhase = "Initial";
 							self.grabStoneAngle = aimAngle;
 						elseif dirtPixels > 8 then
+							self.stoneTossCheckTime = 200;
+							self.grabbingStone = true;
+							self.grabStoneType = "	Dirt";
+							self.grabStonePhase = "Initial";
+							self.grabStoneAngle = aimAngle;
+						elseif snowPixels > 4 then
+							self.stoneTossCheckTime = 200;
+							self.grabbingStone = true;
+							self.grabStoneType = "Snow";
+							self.grabStonePhase = "Initial";
+							self.grabStoneAngle = aimAngle;
 						elseif sandPixels > 8 then
-						else
+							self.stoneTossCheckTime = 200;
+							self.grabbingStone = true;
+							self.grabStoneType = "Sand";
+							self.grabStonePhase = "Initial";
+							self.grabStoneAngle = aimAngle;
 						end
 					end
+					
+					print(snowPixels)
 
 				end	
 			elseif self.grabbingStone == true then
@@ -1219,6 +1239,8 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 						self.AngularVel = self.AngularVel + RangeRand(2,6) * (math.random(0,1) * 2.0 - 1.0)
 						local smokePos = Vector(0, 0)
 						SceneMan:CastObstacleRay(self.Pos, shoveVector, Vector(0, 0), smokePos, self.ID, 1, 128, 1);
+						
+						-- EXTREME BLARGH CODE!!! WARNING!!!!!!
 						
 						if self.grabStoneType == "Concrete" then
 							for i = 1, 20 do
@@ -1243,6 +1265,59 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 								particle.Pos = smokePos
 								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
 								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
+								MovableMan:AddParticle(particle);
+							end
+							
+						elseif self.grabStoneType == "Dirt" then
+						
+							for i = 1, 10 do
+								local spread = (math.pi * 2) * RangeRand(-1, 1)
+								local velocity = 50 * RangeRand(0.1, 0.9) * 0.4;
+								
+								local particle = CreateMOSParticle(math.random(0, 100) < 70 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
+								particle.Pos = smokePos
+								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
+								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
+								particle.AirThreshold = particle.AirThreshold * 0.5
+								particle.GlobalAccScalar = 0
+								MovableMan:AddParticle(particle);
+							end
+							
+						elseif self.grabStoneType == "Snow" then
+						
+							print("hi")
+						
+							self.grabbingStone = false;
+							self.stoneTossCheckTime = 200;
+							self:AddInventoryItem(CreateThrownDevice("Extra-Compacted Snowball", "Massive.rte"));
+						
+							for i = 1, 3 do
+								local spread = (math.pi * 2) * RangeRand(-1, 1)
+								local velocity = 50 * RangeRand(0.1, 0.9) * 0.4;
+								
+								local particle = CreateMOSParticle(math.random(0, 100) < 70 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
+								particle.Pos = smokePos
+								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
+								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
+								particle.AirThreshold = particle.AirThreshold * 0.5
+								particle.GlobalAccScalar = 0
+								MovableMan:AddParticle(particle);
+							end
+							
+						elseif self.grabStoneType == "Sand" then
+						
+							ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.LashOut, 4, 2)
+						
+							for i = 1, 6 do
+								local spread = (math.pi * 2) * RangeRand(-1, 1)
+								local velocity = 50 * RangeRand(0.1, 0.9) * 0.4;
+								
+								local particle = CreateMOSParticle(math.random(0, 100) < 70 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
+								particle.Pos = smokePos
+								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
+								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
+								particle.AirThreshold = particle.AirThreshold * 0.5
+								particle.GlobalAccScalar = 0
 								MovableMan:AddParticle(particle);
 							end
 							
@@ -1278,8 +1353,41 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
 								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
 								MovableMan:AddParticle(particle);
-							end						
+							end	
+							
+						elseif self.grabStoneType == "Dirt" then
 						
+							for i = 1, 15 do
+								local spread = (math.pi * 2) * RangeRand(-1, 1)
+								local velocity = 50 * RangeRand(0.1, 0.9) * 0.4;
+								
+								local particle = CreateMOSParticle(math.random(0, 100) < 70 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
+								particle.Pos = smokePos
+								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
+								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
+								particle.AirThreshold = particle.AirThreshold * 0.5
+								particle.GlobalAccScalar = 0
+								MovableMan:AddParticle(particle);
+							end	
+							
+						elseif self.grabStoneType == "Sand" then
+						
+							self.grabbingStone = false;
+							self.stoneTossCheckTime = 200;
+						
+							for i = 1, 6 do
+								local spread = (math.pi * 2) * RangeRand(-1, 1)
+								local velocity = 50 * RangeRand(0.1, 0.9) * 0.4;
+								
+								local particle = CreateMOSParticle(math.random(0, 100) < 70 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
+								particle.Pos = smokePos
+								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
+								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
+								particle.AirThreshold = particle.AirThreshold * 0.5
+								particle.GlobalAccScalar = 0
+								MovableMan:AddParticle(particle);
+							end							
+							
 						end
 						
 					else
@@ -1321,6 +1429,24 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
 								MovableMan:AddParticle(particle);
 							end
+							
+						elseif self.grabStoneType == "Dirt" then
+						
+							self:AddInventoryItem(CreateHeldDevice("Ripped-up " .. self.grabStoneType .. " Chunk", "Massive.rte"));
+						
+							for i = 1, 45 do
+								local spread = (math.pi * 2) * RangeRand(-1, 1)
+								local velocity = 50 * RangeRand(0.1, 0.9) * 0.4;
+								
+								local particle = CreateMOSParticle(math.random(0, 100) < 70 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
+								particle.Pos = smokePos
+								particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread)
+								particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6)
+								particle.AirThreshold = particle.AirThreshold * 0.5
+								particle.GlobalAccScalar = 0
+								MovableMan:AddParticle(particle);
+							end								
+							
 						end
 						
 						local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
