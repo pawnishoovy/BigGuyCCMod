@@ -140,24 +140,24 @@ function Update(self)
 		self.parentSet = true;
 	end
 	
-    -- -- Smoothing
-    -- local min_value = -math.pi;
-    -- local max_value = math.pi;
-    -- local value = (self.RotAngle) - self.lastRotAngle
-    -- local result;
-    -- local ret = 0
+    -- Smoothing
+    local min_value = -math.pi;
+    local max_value = math.pi;
+    local value = (self.RotAngle) - self.lastRotAngle
+    local result;
+    local ret = 0
     
-    -- local range = max_value - min_value;
-    -- if range <= 0 then
-        -- result = min_value;
-    -- else
-        -- ret = (value - min_value) % range;
-        -- if ret < 0 then ret = ret + range end
-        -- result = ret + min_value;
-    -- end
+    local range = max_value - min_value;
+    if range <= 0 then
+        result = min_value;
+    else
+        ret = (value - min_value) % range;
+        if ret < 0 then ret = ret + range end
+        result = ret + min_value;
+    end
     
-    -- self.lastRotAngle = (self.RotAngle)
-    -- self.angVel = (result / TimerMan.DeltaTimeSecs * 0.5) * self.FlipFactor
+    self.lastRotAngle = (self.RotAngle)
+    self.angVel = (result / TimerMan.DeltaTimeSecs * 0.6) * self.FlipFactor
     
     if self.lastHFlipped ~= nil then
         if self.lastHFlipped ~= self.HFlipped then
@@ -884,7 +884,7 @@ function Update(self)
 		self.rotationTarget = self.rotationTarget - (self.angVel * 9)
 		
 		self.rotation = (self.rotation + self.rotationTarget * TimerMan.DeltaTimeSecs * self.rotationSpeed) / (1 + TimerMan.DeltaTimeSecs * self.rotationSpeed)
-		local total = math.rad(self.rotation) * self.FlipFactor
+		local total = math.rad(self.rotation)
 		
 		self.InheritedRotAngleOffset = total;
 		-- self.RotAngle = self.RotAngle + total;

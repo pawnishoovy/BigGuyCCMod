@@ -781,7 +781,7 @@ function ZedmassiveAIBehaviours.handleVoicelines(self)
 					self.movementSounds.AttackLarge:Play(self.Pos);
 				elseif self:NumberValueExists("Extreme Attack") then
 					self:RemoveNumberValue("Extreme Attack");
-					ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.LashOut, 3, 3);
+					ZedmassiveAIBehaviours.createVoiceSoundEffect(self, self.voiceSounds.BattleScream, 3, 3);
 					self.movementSounds.AttackExtreme:Play(self.Pos);
 					
 				elseif self:NumberValueExists("Attack Success") then
@@ -1401,8 +1401,16 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 						
 						if self.grabStoneType == "Concrete" then
 						
-							self:AddInventoryItem(CreateHeldDevice("Ripped-up " .. self.grabStoneType .. " Chunk", "Massive.rte"));
-						
+							
+							if math.random(0, 100) < 20 then
+								self:AddInventoryItem(CreateHeldDevice("Ripped-up " .. self.grabStoneType .. " Chunk", "Massive.rte"));
+							else
+								self:AddInventoryItem(CreateHDFirearm("Ripped-up Rebar", "Massive.rte"));
+								local soundContainer = CreateSoundContainer("Pick Up Add RebarWeapon Massive", "Massive.rte");
+								soundContainer:Play(self.Pos);
+							end
+							
+							
 							for i = 1, 70 do
 								local spread = (math.pi * 2) * RangeRand(-1, 1)
 								local velocity = 80 * RangeRand(0.1, 0.9) * 0.4;

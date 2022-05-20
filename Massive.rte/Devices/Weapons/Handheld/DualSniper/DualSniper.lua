@@ -88,7 +88,6 @@ function Create(self)
 	
 	self.lastAge = self.Age + 0
 	
-	self.FireTimer = Timer();
 	self.fireDelayTimer = Timer()
 	
 	self.activated = false
