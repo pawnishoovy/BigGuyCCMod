@@ -190,7 +190,7 @@ function Update(self)
 			self.prepareSoundLength = nil
 			self.afterSound = self.reloadAfterSounds.chamberOpen;
 			
-			self.rotationTarget = 5
+			self.rotationTarget = 30
 		elseif self.reloadPhase == 1 then
 			self.reloadDelay = self.reloadPrepareDelay.canisterOut;
 			self.afterDelay = self.reloadAfterDelay.canisterOut;		
@@ -199,7 +199,7 @@ function Update(self)
 			self.prepareSoundLength = nil
 			self.afterSound = self.reloadAfterSounds.canisterOut;
 			
-			self.rotationTarget = 5;
+			self.rotationTarget = 50;
 			
 		elseif self.reloadPhase == 2 then
 			self.reloadDelay = self.reloadPrepareDelay.canisterIn;
@@ -209,7 +209,7 @@ function Update(self)
 			self.prepareSoundLength = self.reloadPrepareLengths.canisterIn;
 			self.afterSound = self.reloadAfterSounds.canisterIn;
 			
-			self.rotationTarget = 3;
+			self.rotationTarget = 30;
 			
 		elseif self.reloadPhase == 3 then
 			self.reloadDelay = self.reloadPrepareDelay.chamberClose;
@@ -219,7 +219,7 @@ function Update(self)
 			self.prepareSoundLength = self.reloadPrepareLengths.chamberClose;
 			self.afterSound = self.reloadAfterSounds.chamberClose;
 			
-			self.rotationTarget = 0;
+			self.rotationTarget = 10;
 			
 		end
 		
@@ -516,8 +516,8 @@ function Update(self)
 	
 	if self.FiredFrame then
 	
-		self.heatNum = self.heatNum + 1;
-		
+		self.heatNum = math.min(self.heatNum + 1, 200);
+		self.GFXTimer:Reset()
 		self.FireTimer:Reset();
 		
 		-- -- Ground Smoke
@@ -537,136 +537,148 @@ function Update(self)
 		local smokeAmount = math.floor((1 + (math.floor(5 * self.satisfyingVolume))) * MassiveSettings.GunshotSmokeMultiplier);
 		local particleSpread = 10 + (math.floor(7 * self.satisfyingVolume))
 		
-		local smokeLingering = math.sqrt(smokeAmount / 8) * (1 + self.satisfyingVolume * 2)
-		local smokeVelocity = (1 + math.sqrt(smokeAmount / 8) ) * 0.5
+		local smokeLingering = math.sqrt(smokeAmount / 8) * (1 + self.satisfyingVolume * 2) * 3
+		local smokeVelocity = (1 + math.sqrt(smokeAmount / 8) )
 		
 		-- Muzzle main smoke
-		for i = 1, math.ceil(smokeAmount / (math.random(2,4))) do
-			local spread = math.pi * RangeRand(-1, 1) * 0.05
-			local velocity = 110 * RangeRand(0.1, 0.9) * 0.4;
-			
-			local particle = CreateMOSParticle((math.random() * particleSpread) < 6.5 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
-			particle.Pos = self.MuzzlePos
-			particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
-			particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
-			particle.AirThreshold = particle.AirThreshold * 0.5
-			particle.GlobalAccScalar = 0
-			MovableMan:AddParticle(particle);
-		end
-		
-		-- Muzzle lingering smoke
-		for i = 1, math.ceil(smokeAmount / (math.random(2,4))) do
-			local spread = math.pi * RangeRand(-1, 1) * 0.05
-			local velocity = 110 * RangeRand(0.1, 0.9) * 0.4;
-			
-			local particle = CreateMOSParticle((math.random() * particleSpread) < 10 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
-			particle.Pos = self.MuzzlePos
-			particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
-			particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering * 3
-			particle.AirThreshold = particle.AirThreshold * 0.5
-			particle.GlobalAccScalar = 0.01
-			MovableMan:AddParticle(particle);
-		end
-		
-		-- Muzzle side smoke
-		for i = 1, math.ceil(smokeAmount / (math.random(4,6))) do
-			local vel = Vector(110 * self.FlipFactor,0):RadRotate(self.RotAngle)
-			
-			local xSpreadVec = Vector(xSpread * self.FlipFactor * math.random() * -1, 0):RadRotate(self.RotAngle)
-			
-			local particle = CreateMOSParticle("Tiny Smoke Ball 1");
-			particle.Pos = self.MuzzlePos + xSpreadVec
-			-- oh LORD
-			particle.Vel = self.Vel + ((Vector(vel.X, vel.Y):RadRotate(math.pi * (math.random(0,1) * 2.0 - 1.0) * 0.5 + math.pi * RangeRand(-1, 1) * 0.15) * RangeRand(0.1, 0.9) * 0.3 + Vector(vel.X, vel.Y):RadRotate(math.pi * RangeRand(-1, 1) * 0.15) * RangeRand(0.1, 0.9) * 0.2) * 0.5) * smokeVelocity;
-			-- have mercy
-			particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
-			particle.AirThreshold = particle.AirThreshold * 0.5
-			particle.GlobalAccScalar = 0
-			MovableMan:AddParticle(particle);
-		end
-		
-		-- Muzzle scary smoke
-		for i = 1, math.ceil(smokeAmount / (math.random(8,12))) do
-			local spread = math.pi * RangeRand(-1, 1) * 0.05
-			local velocity = 110 * RangeRand(0.1, 0.9) * 0.4;
-			
-			local particle = CreateMOSParticle("Side Thruster Blast Ball 1", "Base.rte");
-			particle.Pos = self.MuzzlePos
-			particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
-			particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
-			particle.AirThreshold = particle.AirThreshold * 0.5
-			particle.GlobalAccScalar = 0
-			MovableMan:AddParticle(particle);
-		end
-		
-		-- Muzzle flash-smoke
-		for i = 1, math.ceil(smokeAmount / (math.random(5,10) * 0.5)) do
-			local spread = RangeRand(-math.rad(particleSpread), math.rad(particleSpread)) * (1 + math.random(0,3) * 0.3)
-			local velocity = 110 * 0.6 * RangeRand(0.9,1.1)
-			
-			local xSpreadVec = Vector(xSpread * self.FlipFactor * math.random() * -1, 0):RadRotate(self.RotAngle)
-			
-			local particle = CreateMOSParticle("Flame Smoke 1 Micro")
-			particle.Pos = self.MuzzlePos + xSpreadVec
-			particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
-			particle.Team = self.Team
-			particle.Lifetime = particle.Lifetime * RangeRand(0.9,1.2) * 0.75 * smokeLingering
-			particle.AirResistance = particle.AirResistance * 2.5 * RangeRand(0.9,1.1)
-			particle.IgnoresTeamHits = true
-			particle.AirThreshold = particle.AirThreshold * 0.5
-			MovableMan:AddParticle(particle);
-		end
-		--
-		
-		local outdoorRays = 0;
-
-		if self.parent and self.parent:IsPlayerControlled() then
-			self.rayThreshold = 2; -- this is the first ray check to decide whether we play outdoors
-			local Vector2 = Vector(0,-700); -- straight up
-			local Vector2Left = Vector(0,-700):RadRotate(45*(math.pi/180));
-			local Vector2Right = Vector(0,-700):RadRotate(-45*(math.pi/180));			
-			local Vector2SlightLeft = Vector(0,-700):RadRotate(22.5*(math.pi/180));
-			local Vector2SlightRight = Vector(0,-700):RadRotate(-22.5*(math.pi/180));		
-			local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
-			local Vector4 = Vector(0,0); -- dont need this but is needed as an arg
-
-			self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
-			self.rayRight = SceneMan:CastObstacleRay(self.Pos, Vector2Right, Vector3, Vector4, self.RootID, self.Team, 128, 7);
-			self.rayLeft = SceneMan:CastObstacleRay(self.Pos, Vector2Left, Vector3, Vector4, self.RootID, self.Team, 128, 7);			
-			self.raySlightRight = SceneMan:CastObstacleRay(self.Pos, Vector2SlightRight, Vector3, Vector4, self.RootID, self.Team, 128, 7);
-			self.raySlightLeft = SceneMan:CastObstacleRay(self.Pos, Vector2SlightLeft, Vector3, Vector4, self.RootID, self.Team, 128, 7);
-			
-			self.rayTable = {self.ray, self.rayRight, self.rayLeft, self.raySlightRight, self.raySlightLeft};
-		else
-			self.rayThreshold = 1; -- has to be different for AI
-			local Vector2 = Vector(0,-700); -- straight up
-			local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
-			local Vector4 = Vector(0,0); -- dont need this but is needed as an arg		
-			self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
-			
-			self.rayTable = {self.ray};
-		end
-		
-		for _, rayLength in ipairs(self.rayTable) do
-			if rayLength < 0 then
-				outdoorRays = outdoorRays + 1;
+		if math.random(0,3) < 1 then
+			for i = 1, math.ceil(smokeAmount / (math.random(2,4))) do
+				local spread = math.pi * RangeRand(-1, 1) * 0.05
+				local velocity = 110 * RangeRand(0.1, 0.9) * 0.4;
+				
+				local particle = CreateMOSParticle((math.random() * particleSpread) < 6.5 and "Flame Smoke 2" or "Smoke Ball 1");
+				particle.Pos = self.MuzzlePos
+				particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
+				particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
+				particle.AirThreshold = particle.AirThreshold * 0.5
+				particle.GlobalAccScalar = 0
+				MovableMan:AddParticle(particle);
 			end
 		end
 		
-		if outdoorRays >= self.rayThreshold then
-			-- local sound = self.noiseOutdoorsSound;
-			-- sound:Play(self.Pos);
-			-- self.oldNoise = sound;
+		-- Muzzle lingering smoke
+		if math.random(0,3) < 1 then
+			for i = 1, math.ceil(smokeAmount / (math.random(2,4))) do
+				local spread = math.pi * RangeRand(-1, 1) * 0.05
+				local velocity = 110 * RangeRand(0.1, 0.9) * 0.4;
+				
+				local particle = CreateMOSParticle((math.random() * particleSpread) < 10 and "Flame Smoke 2" or "Smoke Ball 1");
+				particle.Pos = self.MuzzlePos
+				particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
+				particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
+				particle.AirThreshold = particle.AirThreshold * 0.5
+				particle.GlobalAccScalar = 0.01
+				MovableMan:AddParticle(particle);
+			end
+		end
+		
+		-- Muzzle side smoke
+		if math.random(0,3) < 1 then
+			for i = 1, math.ceil(smokeAmount / (math.random(4,6))) do
+				local vel = Vector(110 * self.FlipFactor,0):RadRotate(self.RotAngle)
+				
+				local xSpreadVec = Vector(xSpread * self.FlipFactor * math.random() * -1, 0):RadRotate(self.RotAngle)
+				
+				local particle = CreateMOSParticle("Flame Smoke 2");
+				particle.Pos = self.MuzzlePos + xSpreadVec
+				-- oh LORD
+				particle.Vel = self.Vel + ((Vector(vel.X, vel.Y):RadRotate(math.pi * (math.random(0,1) * 2.0 - 1.0) * 0.5 + math.pi * RangeRand(-1, 1) * 0.15) * RangeRand(0.1, 0.9) * 0.3 + Vector(vel.X, vel.Y):RadRotate(math.pi * RangeRand(-1, 1) * 0.15) * RangeRand(0.1, 0.9) * 0.2) * 0.5) * smokeVelocity;
+				-- have mercy
+				particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
+				particle.AirThreshold = particle.AirThreshold * 0.5
+				particle.GlobalAccScalar = 0
+				MovableMan:AddParticle(particle);
+			end
+		end
+		
+		-- Muzzle scary smoke
+		if math.random(0,3) < 1 then
+			for i = 1, math.ceil(smokeAmount / (math.random(8,12))) do
+				local spread = math.pi * RangeRand(-1, 1) * 0.05
+				local velocity = 110 * RangeRand(0.1, 0.9) * 0.4;
+				
+				local particle = CreateMOSParticle("Flame Smoke 2", "Base.rte");
+				particle.Pos = self.MuzzlePos
+				particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
+				particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
+				particle.AirThreshold = particle.AirThreshold * 0.5
+				particle.GlobalAccScalar = 0
+				particle.AirResistance = particle.AirResistance * 3.0
+				MovableMan:AddParticle(particle);
+			end
+		end
+		
+		-- Muzzle flash-smoke
+		if math.random(0,3) < 1 then
+			for i = 1, math.ceil(smokeAmount / (math.random(5,10) * 0.5)) do
+				local spread = RangeRand(-math.rad(particleSpread), math.rad(particleSpread)) * (1 + math.random(0,3) * 0.3)
+				local velocity = 110 * 0.6 * RangeRand(0.9,1.1)
+				
+				local xSpreadVec = Vector(xSpread * self.FlipFactor * math.random() * -1, 0):RadRotate(self.RotAngle)
+				
+				local particle = CreateMOSParticle("Flame Smoke 1 Micro")
+				particle.Pos = self.MuzzlePos + xSpreadVec
+				particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
+				particle.Team = self.Team
+				particle.Lifetime = particle.Lifetime * RangeRand(0.9,1.2) * 0.75 * smokeLingering
+				particle.AirResistance = particle.AirResistance * 2.5 * RangeRand(0.9,1.1)
+				particle.IgnoresTeamHits = true
+				particle.AirThreshold = particle.AirThreshold * 0.5
+				particle.AirResistance = particle.AirResistance * 3.0
+				MovableMan:AddParticle(particle);
+			end
+		end
+		--
+		
+		-- local outdoorRays = 0;
+
+		-- if self.parent and self.parent:IsPlayerControlled() then
+			-- self.rayThreshold = 2; -- this is the first ray check to decide whether we play outdoors
+			-- local Vector2 = Vector(0,-700); -- straight up
+			-- local Vector2Left = Vector(0,-700):RadRotate(45*(math.pi/180));
+			-- local Vector2Right = Vector(0,-700):RadRotate(-45*(math.pi/180));			
+			-- local Vector2SlightLeft = Vector(0,-700):RadRotate(22.5*(math.pi/180));
+			-- local Vector2SlightRight = Vector(0,-700):RadRotate(-22.5*(math.pi/180));		
+			-- local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
+			-- local Vector4 = Vector(0,0); -- dont need this but is needed as an arg
+
+			-- self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			-- self.rayRight = SceneMan:CastObstacleRay(self.Pos, Vector2Right, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			-- self.rayLeft = SceneMan:CastObstacleRay(self.Pos, Vector2Left, Vector3, Vector4, self.RootID, self.Team, 128, 7);			
+			-- self.raySlightRight = SceneMan:CastObstacleRay(self.Pos, Vector2SlightRight, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			-- self.raySlightLeft = SceneMan:CastObstacleRay(self.Pos, Vector2SlightLeft, Vector3, Vector4, self.RootID, self.Team, 128, 7);
 			
-			-- self.satisfyingReflectionOutdoorsSound.Volume = self.satisfyingVolume;
-			-- self.satisfyingReflectionOutdoorsSound:Play(self.Pos);
-		else
-			-- local sound = self.noiseIndoorsSound;
-			-- sound:Play(self.Pos);
-			-- self.oldNoise = sound;
+			-- self.rayTable = {self.ray, self.rayRight, self.rayLeft, self.raySlightRight, self.raySlightLeft};
+		-- else
+			-- self.rayThreshold = 1; -- has to be different for AI
+			-- local Vector2 = Vector(0,-700); -- straight up
+			-- local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
+			-- local Vector4 = Vector(0,0); -- dont need this but is needed as an arg		
+			-- self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
 			
-			-- self.reflectionIndoorsSound:Play(self.Pos);
-		end		
+			-- self.rayTable = {self.ray};
+		-- end
+		
+		-- for _, rayLength in ipairs(self.rayTable) do
+			-- if rayLength < 0 then
+				-- outdoorRays = outdoorRays + 1;
+			-- end
+		-- end
+		
+		-- if outdoorRays >= self.rayThreshold then
+			-- -- local sound = self.noiseOutdoorsSound;
+			-- -- sound:Play(self.Pos);
+			-- -- self.oldNoise = sound;
+			
+			-- -- self.satisfyingReflectionOutdoorsSound.Volume = self.satisfyingVolume;
+			-- -- self.satisfyingReflectionOutdoorsSound:Play(self.Pos);
+		-- else
+			-- -- local sound = self.noiseIndoorsSound;
+			-- -- sound:Play(self.Pos);
+			-- -- self.oldNoise = sound;
+			
+			-- -- self.reflectionIndoorsSound:Play(self.Pos);
+		-- end	
 
 	end
 	
@@ -923,13 +935,15 @@ function Update(self)
 				particle.Pos = self.MuzzlePos;
 				MovableMan:AddParticle(particle);
 			end
-				
+			
+			self.heatNum = math.max(self.heatNum - 2, 0)
 		end
 		
 		self.GFXTimer:Reset()
 		self.GFXDelay = math.max(50, math.random(self.GFXDelayMin, self.GFXDelayMax) - self.heatNum) 
 	end
-
+	
+	self.Frame = math.floor(7 * math.pow(math.min(self.heatNum / 100, 1), 2) + 0.5) 
 end
 
 function OnDetach(self)

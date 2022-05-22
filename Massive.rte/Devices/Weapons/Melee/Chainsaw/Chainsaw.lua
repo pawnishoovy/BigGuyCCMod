@@ -72,7 +72,9 @@ function Create(self)
 
 end
 function Update(self)
-
+	
+	self.Frame = 1;
+	
 	self.rotationTarget = 0;
 	self.angVel = 0;
 
@@ -484,6 +486,7 @@ function Update(self)
 		local total = math.rad(self.rotation) * self.FlipFactor
 		
 		self.InheritedRotAngleOffset = total -(-0.8 + math.sin(self.rotFactor) * 0.4);
+		
 		-- self.RotAngle = self.RotAngle + total;
 		--self:SetNumberValue("MagRotation", total);
 		
