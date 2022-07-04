@@ -948,6 +948,79 @@ end
 
 function OnDetach(self)
 
+	if self.shakenessParticle then
+		self.shakenessParticle.ToDelete = true;
+		self.shakenessParticle.Lifetime = 10;
+		self.shakenessParticle = nil;
+	end
+	self.delayedFirstShot = true;
+	if self.Firing == true then
+		self.Firing = false;
+		self.nozzleLoopSound:FadeOut(30);
+		self.nozzleIndoorsLoopSound:FadeOut(30);
+		self.nozzleLoopIntenseSound:FadeOut(30);
+		self.flowLoopSound:FadeOut(30)
+		self.plumeLoopSound:FadeOut(30);
+		
+		self.flowEndSound.Volume = self.flowLoopSound.Volume;
+		self.flowEndSound:Play(self.Pos);
+		
+		self.plumeEndSound:Play(self.Pos);
+		
+		self.nozzleEndIntenseSound.Volume = self.satisfyingVolume;
+		self.nozzleEndIntenseSound:Play(self.Pos);
+		
+		self.tailSound.Volume = math.min(1.0, self.satisfyingVolume);
+		self.tailSound.Pitch = 1.0 - (0.1*(self.satisfyingVolume));
+		self.tailSound:Play(self.Pos);
+		
+		local outdoorRays = 0;
+
+		if self.parent and self.parent:IsPlayerControlled() then
+			self.rayThreshold = 2; -- this is the first ray check to decide whether we play outdoors
+			local Vector2 = Vector(0,-700); -- straight up
+			local Vector2Left = Vector(0,-700):RadRotate(45*(math.pi/180));
+			local Vector2Right = Vector(0,-700):RadRotate(-45*(math.pi/180));			
+			local Vector2SlightLeft = Vector(0,-700):RadRotate(22.5*(math.pi/180));
+			local Vector2SlightRight = Vector(0,-700):RadRotate(-22.5*(math.pi/180));		
+			local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
+			local Vector4 = Vector(0,0); -- dont need this but is needed as an arg
+
+			self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			self.rayRight = SceneMan:CastObstacleRay(self.Pos, Vector2Right, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			self.rayLeft = SceneMan:CastObstacleRay(self.Pos, Vector2Left, Vector3, Vector4, self.RootID, self.Team, 128, 7);			
+			self.raySlightRight = SceneMan:CastObstacleRay(self.Pos, Vector2SlightRight, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			self.raySlightLeft = SceneMan:CastObstacleRay(self.Pos, Vector2SlightLeft, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			
+			self.rayTable = {self.ray, self.rayRight, self.rayLeft, self.raySlightRight, self.raySlightLeft};
+		else
+			self.rayThreshold = 1; -- has to be different for AI
+			local Vector2 = Vector(0,-700); -- straight up
+			local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
+			local Vector4 = Vector(0,0); -- dont need this but is needed as an arg		
+			self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			
+			self.rayTable = {self.ray};
+		end
+		
+		for _, rayLength in ipairs(self.rayTable) do
+			if rayLength < 0 then
+				outdoorRays = outdoorRays + 1;
+			end
+		end
+		
+		if outdoorRays >= self.rayThreshold then
+			self.nozzleEndSound:Play(self.Pos);
+		else
+			self.nozzleIndoorsEndSound:Play(self.Pos);
+		end
+		if self.satisfyingVolume == 1 then
+			self.overheatSound:Play(self.Pos);
+		end
+		
+		self.satisfyingVolume = 0;
+	end
+
 	self.heatNum = 0;
 
 	self.shoveStart = false;
@@ -956,4 +1029,82 @@ function OnDetach(self)
 	self.delayedFirstShot = true;
 	self:DisableScript("Massive.rte/Devices/Weapons/Handheld/Flamethrower/Flamethrower.lua");
 
+end
+
+function OnDestroy(self)
+
+	if ValidMO(self.shakenessParticle) then
+		self.shakenessParticle.ToDelete = true;
+		self.shakenessParticle.Lifetime = 10;
+		self.shakenessParticle = nil;
+	end
+	self.delayedFirstShot = true;
+	if self.Firing == true then
+		self.Firing = false;
+		self.nozzleLoopSound:FadeOut(30);
+		self.nozzleIndoorsLoopSound:FadeOut(30);
+		self.nozzleLoopIntenseSound:FadeOut(30);
+		self.flowLoopSound:FadeOut(30)
+		self.plumeLoopSound:FadeOut(30);
+		
+		self.flowEndSound.Volume = self.flowLoopSound.Volume;
+		self.flowEndSound:Play(self.Pos);
+		
+		self.plumeEndSound:Play(self.Pos);
+		
+		self.nozzleEndIntenseSound.Volume = self.satisfyingVolume;
+		self.nozzleEndIntenseSound:Play(self.Pos);
+		
+		self.tailSound.Volume = math.min(1.0, self.satisfyingVolume);
+		self.tailSound.Pitch = 1.0 - (0.1*(self.satisfyingVolume));
+		self.tailSound:Play(self.Pos);
+		
+		local outdoorRays = 0;
+
+		if self.parent and self.parent:IsPlayerControlled() then
+			self.rayThreshold = 2; -- this is the first ray check to decide whether we play outdoors
+			local Vector2 = Vector(0,-700); -- straight up
+			local Vector2Left = Vector(0,-700):RadRotate(45*(math.pi/180));
+			local Vector2Right = Vector(0,-700):RadRotate(-45*(math.pi/180));			
+			local Vector2SlightLeft = Vector(0,-700):RadRotate(22.5*(math.pi/180));
+			local Vector2SlightRight = Vector(0,-700):RadRotate(-22.5*(math.pi/180));		
+			local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
+			local Vector4 = Vector(0,0); -- dont need this but is needed as an arg
+
+			self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			self.rayRight = SceneMan:CastObstacleRay(self.Pos, Vector2Right, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			self.rayLeft = SceneMan:CastObstacleRay(self.Pos, Vector2Left, Vector3, Vector4, self.RootID, self.Team, 128, 7);			
+			self.raySlightRight = SceneMan:CastObstacleRay(self.Pos, Vector2SlightRight, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			self.raySlightLeft = SceneMan:CastObstacleRay(self.Pos, Vector2SlightLeft, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			
+			self.rayTable = {self.ray, self.rayRight, self.rayLeft, self.raySlightRight, self.raySlightLeft};
+		else
+			self.rayThreshold = 1; -- has to be different for AI
+			local Vector2 = Vector(0,-700); -- straight up
+			local Vector3 = Vector(0,0); -- dont need this but is needed as an arg
+			local Vector4 = Vector(0,0); -- dont need this but is needed as an arg		
+			self.ray = SceneMan:CastObstacleRay(self.Pos, Vector2, Vector3, Vector4, self.RootID, self.Team, 128, 7);
+			
+			self.rayTable = {self.ray};
+		end
+		
+		for _, rayLength in ipairs(self.rayTable) do
+			if rayLength < 0 then
+				outdoorRays = outdoorRays + 1;
+			end
+		end
+		
+		if outdoorRays >= self.rayThreshold then
+			self.nozzleEndSound:Play(self.Pos);
+		else
+			self.nozzleIndoorsEndSound:Play(self.Pos);
+		end
+		if self.satisfyingVolume == 1 then
+			self.overheatSound:Play(self.Pos);
+		end
+		
+		self.satisfyingVolume = 0;
+	end
+		
+		
 end

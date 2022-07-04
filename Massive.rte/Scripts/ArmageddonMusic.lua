@@ -14,7 +14,7 @@ function ArmageddonMusicFunctions.checkForPreferencePossibility(self, prefersTab
 		end
 	end
 	if foundAny then
-		print("foundpreferredtoo")
+		--print("foundpreferredtoo")
 		return resultsTable;
 	else
 		return false;
@@ -64,6 +64,14 @@ end
 function ArmageddonMusicScript:StartScript()
 	self.activity = ActivityMan:GetActivity();
 	
+	if SceneMan.Scene.Location == Vector(0, -2200) then
+		ArmageddonMusicVWMode = true;
+		self.reportedDeathsCounter = 0
+		self.VWMusicType = 0
+	else
+		ArmageddonMusicVWMode = false;
+	end
+	
 	AudioMan:ClearMusicQueue();
 	AudioMan:StopMusic();
 	
@@ -85,7 +93,7 @@ function ArmageddonMusicScript:StartScript()
 	
 	self.loopNumber = 0;
 	self.totalLoopNumber = 0;
-	self.tuneMaxLoops = 48;
+	self.tuneMaxLoops = 9999;
 	
 	-- unfortunately the real intensities we have to set are as follows
 	-- 1: ambient
@@ -122,7 +130,7 @@ function ArmageddonMusicScript:StartScript()
 	
 	self.Tunes.samuelsBase = {};
 	-- read: not recommended, enforced, tune will always change after this amount
-	self.Tunes.samuelsBase.recommendedLoops = 40;	
+	self.Tunes.samuelsBase.recommendedLoops = 9999;	
 	-- some pieces thrive at different intensity level, so bias them one way or another
 	-- by making it more or less difficult to climb in intensity
 	self.Tunes.samuelsBase.lightIntoHeavyDifficulty = 3.5;
@@ -871,8 +879,8 @@ function ArmageddonMusicScript:StartScript()
 	self.Tunes.combatHell02.Components[indexAutomator].totalPost = 6147;
 	self.Tunes.combatHell02.Components[indexAutomator].Type = "Extreme";
 	
-	print("indexautomator")
-	print(indexAutomator)
+	--print("indexautomator")
+	--print(indexAutomator)
 	
 	-- though, to be fair, much less readable.
 	
@@ -942,7 +950,7 @@ function ArmageddonMusicScript:StartScript()
 			self.currentIndex = math.random(1, #self.currentTune.typeTables[1].Loops)
 			self.currentTune.Components[self.currentIndex].Container.Volume = self.dynamicVolume;
 			self.currentTune.Components[self.currentIndex].Container:Play();
-			print(self.currentTune.Components[self.currentIndex].Container)
+			--print(self.currentTune.Components[self.currentIndex].Container)
 		end
 		
 	end
@@ -955,8 +963,12 @@ function ArmageddonMusicScript:UpdateScript()
 	if UInputMan:KeyPressed(39) then
 		-- numpad 2 and up
 		self.desiredIntensity = 1;
+		TimerMan.TimeScale = TimerMan.TimeScale / 2
+		TimerMan.DeltaTimeSecs = TimerMan.DeltaTimeSecs / 2
 	elseif UInputMan:KeyPressed(40) then
 		self.desiredIntensity = 3;
+		TimerMan.TimeScale = TimerMan.TimeScale * 2
+		TimerMan.DeltaTimeSecs = TimerMan.DeltaTimeSecs * 2
 	elseif UInputMan:KeyPressed(41) then
 		self.desiredIntensity = 6;
 	elseif UInputMan:KeyPressed(42) then
@@ -977,13 +989,17 @@ function ArmageddonMusicScript:UpdateScript()
 	
 	
 	if self.dynamicMusic == true then
+	
+		--print("stillrunning")
 		
 		AudioMan:ClearMusicQueue();
 		AudioMan:StopMusic();		
 	
 		if (self.Intensity == 1 and self.desiredIntensity ~= 1)
 		or (self.MUSIC_STATE == "Comedown" and self.desiredIntensity > self.Intensity)
-		or (self.Intensity ~= 8 and ArmageddonEngageExtreme == true) then
+		or (self.Intensity ~= 8 and ArmageddonEngageExtreme == true)
+		or (self.VWManualIntensity ~= nil)
+		or (ArmageddonMusicVWMode and self.desiredIntensity > self.Intensity) then
 		
 			if ArmageddonEngageExtreme == true then
 				ArmageddonEngageExtreme = false;
@@ -991,31 +1007,69 @@ function ArmageddonMusicScript:UpdateScript()
 			end
 		
 			-- if we're in ambience or comedown and anything, at all, is going on, immediately upgrade
-			-- OR, also, if we've just had an extreme trigger
-			
-			self.Intensity = self.desiredIntensity;
+			-- OR, also, if we've just had an extreme trigger, or custom Void Wanderers trigger
 			
 			local loopTable
 			local index
 			
-			if self.Intensity == 8 then
-				-- use heavy transition
-				loopTable = self.currentTune.typeTables[5].Loops;
-			elseif self.Intensity > 1 then
-				-- minus one: transition
-				loopTable = self.currentTune.typeTables[self.Intensity - 1].Loops;
+			if self.VWManualIntensity then
+				self.desiredIntensity = self.VWManualIntensity
+				self.VWManualIntensity = nil;
+				if self.desiredIntensity == self.VWManualIntensity then return end
+			end
+				
+			
+			if self.Intensity > self.desiredIntensity then
+			
+				-- if we're going lower, do a comedown in this intensity first
+				
+				if self.Intensity == 8 then
+					-- use heavy comedown
+					loopTable = self.currentTune.typeTables[7].Loops;
+				else
+					-- plus one: comedown
+					loopTable = self.currentTune.typeTables[self.Intensity + 1].Loops;
+				end
+				
+				if #loopTable ~= 0 then
+					index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
+					self.MUSIC_STATE = "Comedown";
+				else
+					-- if we lack a comedown go right into the Main instead (should never happen?) (note: happens for rip and tear)
+					self.MUSIC_STATE = "Main";
+					loopTable = self.currentTune.typeTables[self.Intensity].Loops;
+					index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
+				end			
+				
+			else
+			
+				-- set intensity early here, we wanna use transitions of the resulting higher intensity
+				self.Intensity = self.desiredIntensity
+			
+				if self.Intensity == 8 then
+					-- use heavy transition
+					loopTable = self.currentTune.typeTables[5].Loops;
+
+				elseif self.Intensity > 1 then
+					-- minus one: transition
+					loopTable = self.currentTune.typeTables[self.Intensity - 1].Loops;
+				end
+				
+				if #loopTable ~= 0 then
+					index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
+					self.MUSIC_STATE = "Transition";
+				else
+					-- if we lack a transition go right into the Main instead
+					self.MUSIC_STATE = "Main";
+					loopTable = self.currentTune.typeTables[self.Intensity].Loops;
+					index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
+				end
+				
 			end
 			
-			if #loopTable ~= 0 then
-				index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
-				self.MUSIC_STATE = "Transition";
-			else
-				-- if we lack a transition go right into the Main instead
-				self.MUSIC_STATE = "Main";
-				loopTable = self.currentTune.typeTables[self.Intensity].Loops;
-				index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
-			end
-									
+			-- finally set our real intensity for real
+			
+			self.Intensity = self.desiredIntensity			
 			
 			self.nextDecided = false;
 		
@@ -1040,9 +1094,11 @@ function ArmageddonMusicScript:UpdateScript()
 			self.currentTune.Components[self.currentIndex].Container.Volume = self.dynamicVolume;
 			self.currentTune.Components[self.currentIndex].Container:Play();
 			
-			print(self.currentTune.Components[self.currentIndex].Container)
+			--print(self.currentTune.Components[self.currentIndex].Container)
 			
 			self.componentTimer:Reset();
+			
+			self.VWManualIntensity = nil;
 			
 		else
 	
@@ -1051,10 +1107,10 @@ function ArmageddonMusicScript:UpdateScript()
 				if self.nextDecided ~= true then
 					self.nextDecided = true;	
 					
-					print("decidingintensity:")
-					print(self.Intensity)
-					print("desired:")
-					print(self.desiredIntensity)
+					--print("decidingintensity:")
+					--print(self.Intensity)
+					--print("desired:")
+					--print(self.desiredIntensity)
 					
 					if self.totalLoopNumber > self.currentTune.recommendedLoops then
 						self.desiredIntensity = 1; -- will cause a comedown or an(other) ambient loop
@@ -1096,6 +1152,8 @@ function ArmageddonMusicScript:UpdateScript()
 						else
 							-- if we lack a transition go right into the Main instead
 							self.MUSIC_STATE = "Main";
+							print("nil bs intensity following")
+							print(self.Intensity)
 							loopTable = self.currentTune.typeTables[self.Intensity].Loops;
 							index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
 						end
@@ -1272,96 +1330,172 @@ function ArmageddonMusicScript:UpdateScript()
 	ArmageddonEngageExtreme = false; -- you only got one chance to Engage The Extreme
 									 -- if you miss it, that's it!
 	
+	if ArmageddonMusicVWMode and CF_Global_ReportDeath and CF_Global_ReportDeath > 0 then
+		self.reportedDeathsCounter = self.reportedDeathsCounter + CF_Global_ReportDeath
+	end
+	
 	if self.intensityUpdateTimer:IsPastSimMS(self.intensityUpdateDelay) then
-
-		if self.firstUpdate ~= false then
-			self.actorTable = {};
-			-- game sometimes wigs out and reports a bunch of addedactors that don't exist and then
-			-- causes us to have too many dead
-			-- i'm looking at you dummyassault
-			for actor in MovableMan.Actors do
-				if IsAHuman(actor) or IsACrab(actor) then
-					self.actorTable[actor.UniqueID] = actor.Team;
+	
+		if ArmageddonMusicVWMode then
+			
+			self.intensityUpdateTimer:Reset();
+			local eventlessUpdate = true;
+			local intensityIncreaseFactor = self.reportedDeathsCounter			
+			if intensityIncreaseFactor > 0 then eventlessUpdate = false end
+			
+			if self.VWMusicType > 0 then
+			
+				print("active")
+			
+				if eventlessUpdate == true then
+					self.timesNothingHasHappened = self.timesNothingHasHappened + 1;
+					if self.Intensity == 8 and self.timesNothingHasHappened > 3 then
+						self.desiredIntensity = 6;
+					elseif self.Intensity == 6 and self.timesNothingHasHappened > 8 then
+						self.desiredIntensity = 3;
+					elseif self.Intensity == 3 and self.timesNothingHasHappened > 15 then
+						self.desiredIntensity = 3; -- peace? on the battlefield?
+					end
+				else
+					print(intensityIncreaseFactor)
+					-- note the easier lightintoheavy etc etc
+					if intensityIncreaseFactor > 3 then
+						ArmageddonEngageExtreme = true; -- DEATH AND DESTRUCTION!!
+					end
+					if self.Intensity == 3 then
+						if intensityIncreaseFactor >= (self.currentTune.lightIntoHeavyDifficulty) then
+							self.desiredIntensity = 8;
+							self.reportedDeathsCounter = 0;
+							print("3 into 8")
+						elseif intensityIncreaseFactor >= self.currentTune.lightIntoHeavyDifficulty / 2 then
+							self.desiredIntensity = 6;
+							self.reportedDeathsCounter = 0;
+							print("3 into 6")
+						end
+					elseif self.Intensity == 6 then
+						if intensityIncreaseFactor >= self.currentTune.heavyIntoExtremeDifficulty / 2 then
+							self.desiredIntensity = 8;
+							self.reportedDeathsCounter = 0;
+							print("extremeshouldbe")
+						end
+					end
+					self.timesNothingHasHappened = 0;
 				end
 			end
-		end		
 		
-		self.firstUpdate = false;	
-	
-		self.intensityUpdateTimer:Reset();
-		
-		local eventlessUpdate = true;
-		local intensityIncreaseFactor = 0;
-		intensityIncreaseFactor = self.lastIntensityIncreaseFactor / 2;
-		
-		for uniqueID, team in pairs(self.actorTable) do
-			local actor = MovableMan:FindObjectByUniqueID(uniqueID);
-			local playerTeamDead = false;
-			
-			if not actor or ToActor(actor):IsDead() then
-				for i = -1, 4 do
-					if self.activity:TeamActive(i) and self.activity:IsHumanTeam(i) then
-						if team == i then
-							eventlessUpdate = false;
-							intensityIncreaseFactor = intensityIncreaseFactor + 1.5;
-							playerTeamDead = true;
-							break;
+			if CF_Global_MusicType then
+				if self.VWMusicType ~= CF_Global_MusicType then
+					self.VWMusicType = CF_Global_MusicType
+					if true then
+						
+						if self.VWMusicType == 0 then -- ship calm
+							self.VWManualIntensity = 1;
+						elseif self.VWMusicType == 1 then -- ship intense
+							self.VWManualIntensity = math.max(self.Intensity, 6);
+						elseif self.VWMusicType == 2 then -- mission calm
+							self.VWManualIntensity = 3;
+						elseif self.VWMusicType == 3 then -- mission intense
+							self.VWManualIntensity = math.max(self.Intensity, 6);		
+						elseif self.VWMusicType == 4 then -- victory
+							self.VWManualIntensity = 8;		
+						elseif self.VWMusicType == 5 then -- defeat
+							self.VWManualIntensity = 8;		
 						end
 					end
 				end
-				if playerTeamDead == false then
-					eventlessUpdate = false;
-					intensityIncreaseFactor = intensityIncreaseFactor + 1.0;
-				end
-				self.actorTable[uniqueID] = nil;
 			end
-		end
-		
-		-- delicious pasta
-		
-		if eventlessUpdate == true then
-			self.timesNothingHasHappened = self.timesNothingHasHappened + 1;
-			if self.Intensity == 8 and self.timesNothingHasHappened > 3 then
-				self.desiredIntensity = 6;
-			elseif self.Intensity == 6 and self.timesNothingHasHappened > 8 then
-				self.desiredIntensity = 3;
-			elseif self.Intensity == 3 and self.timesNothingHasHappened > 15 then
-				self.desiredIntensity = 1; -- peace? on the battlefield?
-			end
-		else
-			if intensityIncreaseFactor > 8 then
-				ArmageddonEngageExtreme = true; -- DEATH AND DESTRUCTION!!
-			end
-			self.desiredIntensity = self.Intensity;
-			if self.Intensity == 1 then
-				if intensityIncreaseFactor > 5 then
-					self.desiredIntensity = 6;
-				elseif intensityIncreaseFactor > 1 then
-					self.desiredIntensity = 3;
-				end
-			elseif self.Intensity == 3 then
-				if intensityIncreaseFactor > (self.currentTune.lightIntoHeavyDifficulty * 2) then
-					self.desiredIntensity = 8;
-				elseif intensityIncreaseFactor > self.currentTune.lightIntoHeavyDifficulty then
-					self.desiredIntensity = 6;
-				end
-			elseif self.Intensity == 6 then
-				if intensityIncreaseFactor > self.currentTune.heavyIntoExtremeDifficulty then
-					self.desiredIntensity = 8;
-				end
-			end
-			self.timesNothingHasHappened = 0;
-		end
-		
-		self.lastIntensityIncreaseFactor = intensityIncreaseFactor;
-		if self.lastIntensityIncreaseFactor < 1 then
-			self.lastIntensityIncreaseFactor = 0;
-		end
-		print(intensityIncreaseFactor)
-		
-	end
 	
-	--for actor in MovableMan.Actors do actor.HUDVisible = false end
+		else
+
+			if self.firstUpdate ~= false then
+				self.actorTable = {};
+				-- game sometimes wigs out and reports a bunch of addedactors that don't exist and then
+				-- causes us to have too many dead
+				-- i'm looking at you dummyassault
+				for actor in MovableMan.Actors do
+					if IsAHuman(actor) or IsACrab(actor) then
+						self.actorTable[actor.UniqueID] = actor.Team;
+					end
+				end
+			end		
+			
+			self.firstUpdate = false;	
+		
+			self.intensityUpdateTimer:Reset();
+			
+			local eventlessUpdate = true;
+			local intensityIncreaseFactor = 0;
+			intensityIncreaseFactor = self.lastIntensityIncreaseFactor / 2;
+			
+			for uniqueID, team in pairs(self.actorTable) do
+				local actor = MovableMan:FindObjectByUniqueID(uniqueID);
+				local playerTeamDead = false;
+				
+				if not actor or ToActor(actor):IsDead() then
+					for i = -1, 4 do
+						if self.activity:TeamActive(i) and self.activity:IsHumanTeam(i) then
+							if team == i then
+								eventlessUpdate = false;
+								intensityIncreaseFactor = intensityIncreaseFactor + 1.5;
+								playerTeamDead = true;
+								break;
+							end
+						end
+					end
+					if playerTeamDead == false then
+						eventlessUpdate = false;
+						intensityIncreaseFactor = intensityIncreaseFactor + 1.0;
+					end
+					self.actorTable[uniqueID] = nil;
+				end
+			end
+			
+			-- delicious pasta
+			
+			if eventlessUpdate == true then
+				self.timesNothingHasHappened = self.timesNothingHasHappened + 1;
+				if self.Intensity == 8 and self.timesNothingHasHappened > 3 then
+					self.desiredIntensity = 6;
+				elseif self.Intensity == 6 and self.timesNothingHasHappened > 8 then
+					self.desiredIntensity = 3;
+				elseif self.Intensity == 3 and self.timesNothingHasHappened > 15 then
+					self.desiredIntensity = 1; -- peace? on the battlefield?
+				end
+			else
+				if intensityIncreaseFactor > 8 then
+					ArmageddonEngageExtreme = true; -- DEATH AND DESTRUCTION!!
+				end
+				self.desiredIntensity = self.Intensity;
+				if self.Intensity == 1 then
+					if intensityIncreaseFactor > 5 then
+						self.desiredIntensity = 6;
+					elseif intensityIncreaseFactor > 1 then
+						self.desiredIntensity = 3;
+					end
+				elseif self.Intensity == 3 then
+					if intensityIncreaseFactor > (self.currentTune.lightIntoHeavyDifficulty * 2) then
+						self.desiredIntensity = 8;
+					elseif intensityIncreaseFactor > self.currentTune.lightIntoHeavyDifficulty then
+						self.desiredIntensity = 6;
+					end
+				elseif self.Intensity == 6 then
+					if intensityIncreaseFactor > self.currentTune.heavyIntoExtremeDifficulty then
+						self.desiredIntensity = 8;
+					end
+				end
+				self.timesNothingHasHappened = 0;
+			end
+			
+			self.lastIntensityIncreaseFactor = intensityIncreaseFactor;
+			if self.lastIntensityIncreaseFactor < 1 then
+				self.lastIntensityIncreaseFactor = 0;
+			end
+			--print(intensityIncreaseFactor)
+			
+		end
+		
+		--for actor in MovableMan.Actors do actor.HUDVisible = false end
+	end
 
 end
 

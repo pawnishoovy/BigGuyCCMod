@@ -1402,7 +1402,7 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 						if self.grabStoneType == "Concrete" then
 						
 							
-							if math.random(0, 100) < 20 then
+							if math.random(0, 100) < 90 then
 								self:AddInventoryItem(CreateHeldDevice("Ripped-up " .. self.grabStoneType .. " Chunk", "Massive.rte"));
 							else
 								self:AddInventoryItem(CreateHDFirearm("Ripped-up Rebar", "Massive.rte"));

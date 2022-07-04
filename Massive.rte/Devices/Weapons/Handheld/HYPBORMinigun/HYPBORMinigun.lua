@@ -115,6 +115,10 @@ end
 
 function Update(self)
 
+	if UInputMan:KeyPressed(9) then
+		self:GibThis();
+	end
+
 	self.rotationTarget = 0 -- ZERO IT FIRST AAAA!!!!!
 
 	self.spinUpSound.Pos = self.Pos;
