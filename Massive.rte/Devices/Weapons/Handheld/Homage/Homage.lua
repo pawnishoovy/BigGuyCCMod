@@ -68,7 +68,8 @@ function Create(self)
 	
 	self.shoveTimer = Timer();
 	self.shoveCooldown = 750;
-
+	
+	self.Frame = 1
 end
 
 function Update(self)
@@ -176,11 +177,14 @@ function Update(self)
 			if self.reloadPhase == 0 then
 			
 				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.3)) then
-					self.Frame = 3;
+					self:SetNumberValue("BarrelRotation", 1)
+					--self.Frame = 3;
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.1)) then
-					self.Frame = 2;
+					self:SetNumberValue("BarrelRotation", 0.5)
+					--self.Frame = 2;
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.8)) then
-					self.Frame = 1;	
+					self:SetNumberValue("BarrelRotation", 0.25)
+					--self.Frame = 1;	
 				end
 			
 			elseif self.reloadPhase == 1 then
@@ -189,11 +193,14 @@ function Update(self)
 			elseif self.reloadPhase == 2 then
 			
 				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.3)) then
-					self.Frame = 0;
+					self:SetNumberValue("BarrelRotation", 0)
+					--self.Frame = 0;
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.1)) then
-					self.Frame = 1;
+					self:SetNumberValue("BarrelRotation", 0.25)
+					--self.Frame = 1;
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.8)) then
-					self.Frame = 2;	
+					self:SetNumberValue("BarrelRotation", 0.5)
+					--self.Frame = 2;	
 				end
 
 			end
@@ -203,9 +210,9 @@ function Update(self)
 				if self.reloadPhase == 0 then
 				
 					 for i = 1, 2 do
-						 local fake
+						 local shell
 						 shell = CreateAEmitter("Shell Homage", "Massive.rte");
-						 shell.Pos = self.Pos + Vector(-2 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+						 shell.Pos = self.Pos + Vector(-4 * self.FlipFactor, -1):RadRotate(self.RotAngle);
 						 shell.Vel = self.Vel + Vector(-1.5*self.FlipFactor, -6):RadRotate(self.RotAngle + math.rad(5) * RangeRand(-1, 1)) * RangeRand(0.8,1.2);
 						 shell.RotAngle = self.RotAngle;
 						 shell.AngularVel = self.AngularVel + (-1*self.FlipFactor);
@@ -278,7 +285,7 @@ function Update(self)
 	
 		if self.Magazine then self.Magazine.RoundCount = 0 end
 	
-		local shot = CreateMOPixel("Pellet Homage Scripted", "Massive.rte");
+		local shot = CreateMOPixel("Pellet Homage Extra", "Massive.rte");
 		shot.Pos = self.MuzzlePos;
 		shot.Vel = self.Vel + Vector(160 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 		shot.Lifetime = shot.Lifetime * math.random(0.8, 1.2);
@@ -607,16 +614,17 @@ function Update(self)
 		
 		self.rotation = (self.rotation + self.rotationTarget * TimerMan.DeltaTimeSecs * self.rotationSpeed) / (1 + TimerMan.DeltaTimeSecs * self.rotationSpeed)
 		local total = math.rad(self.rotation) * self.FlipFactor
+
+		self.InheritedRotAngleOffset = total;
 		
-		self.RotAngle = self.RotAngle + total;
 		-- self.RotAngle = self.RotAngle + total;
 		-- self:SetNumberValue("MagRotation", total);
 		
-		local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
-		local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
-		self.Pos = self.Pos + offsetTotal;
-		self:SetNumberValue("MagOffsetX", offsetTotal.X);
-		self:SetNumberValue("MagOffsetY", offsetTotal.Y);
+		-- local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
+		-- local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
+		-- self.Pos = self.Pos + offsetTotal;
+		-- self:SetNumberValue("MagOffsetX", offsetTotal.X);
+		-- self:SetNumberValue("MagOffsetY", offsetTotal.Y);
 		
 		if self.reloadingVector then
 			self.StanceOffset = self.reloadingVector + stance
@@ -647,7 +655,8 @@ function Update(self)
 				local particle = CreateMOSParticle(particles[math.random(1,#particles)]);
 				particle.Lifetime = math.random(250, 600);
 				particle.Vel = self.Vel + Vector(0, -0.1);
-				particle.Pos = self.Frame ~= 0 and self.MuzzlePos + Vector(0.6 * self.Frame * self.FlipFactor, 3 * self.Frame):RadRotate(self.RotAngle) or self.MuzzlePos;
+				particle.Pos = self:GetNumberValue("BarrelRotation") and self.MuzzlePos + Vector(math.rad(70) * self:GetNumberValue("BarrelRotation") * self.FlipFactor, 3 * self.Frame):RadRotate(self.RotAngle) or self.MuzzlePos;
+				--particle.Pos = self.Frame ~= 0 and self.MuzzlePos + Vector(0.6 * self.Frame * self.FlipFactor, 3 * self.Frame):RadRotate(self.RotAngle) or self.MuzzlePos;
 				MovableMan:AddParticle(particle);
 			end
 				

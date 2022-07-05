@@ -1,5 +1,10 @@
 function Create(self)
 	self.heatMax = 25
+	
+	if self.PresetName == "Jetpack Massive Flame Ball Burn" then
+		self.heatMax = math.random(2,3)
+	end
+	
 	self.heat = self.heatMax
 end
 

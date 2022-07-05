@@ -902,9 +902,9 @@ function Update(self)
 		-- self.RotAngle = self.RotAngle + total;
 		self:SetNumberValue("MagRotation", total);
 		
-		local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
-		local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
-		self.Pos = self.Pos + offsetTotal;
+		-- local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
+		-- local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
+		-- self.Pos = self.Pos + offsetTotal;
 		if self.fakeMag and not self:NumberValueExists("LostFakeMag") then
 			self.fakeMag.RotAngle = self.RotAngle;
 			self.fakeMag.Pos = self.fakeMag.Pos + offsetTotal;

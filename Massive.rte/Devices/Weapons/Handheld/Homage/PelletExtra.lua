@@ -1,10 +1,24 @@
 function Create(self)
 	self.Vel = Vector(self.Vel.X, self.Vel.Y) * RangeRand(0.85, 1.15)
 	
-	self.murder = 2
-	
 	self.spewBlood = true
 	
+	self.terrainSounds = {
+	Impact = {[12] = CreateSoundContainer("Shotgun Bullet Impact Concrete Massive", "Massive.rte"),
+			[164] = CreateSoundContainer("Shotgun Bullet Impact Concrete Massive", "Massive.rte"),
+			[177] = CreateSoundContainer("Shotgun Bullet Impact Concrete Massive", "Massive.rte"),
+			[9] = CreateSoundContainer("Shotgun Bullet Impact Dirt Massive", "Massive.rte"),
+			[10] = CreateSoundContainer("Shotgun Bullet Impact Dirt Massive", "Massive.rte"),
+			[11] = CreateSoundContainer("Shotgun Bullet Impact Dirt Massive", "Massive.rte"),
+			[128] = CreateSoundContainer("Shotgun Bullet Impact Dirt Massive", "Massive.rte"),
+			[6] = CreateSoundContainer("Shotgun Bullet Impact Sand Massive", "Massive.rte"),
+			[8] = CreateSoundContainer("Shotgun Bullet Impact Sand Massive", "Massive.rte"),
+			[178] = CreateSoundContainer("Shotgun Bullet Impact SolidMetal Massive", "Massive.rte"),
+			[179] = CreateSoundContainer("Shotgun Bullet Impact SolidMetal Massive", "Massive.rte"),
+			[180] = CreateSoundContainer("Shotgun Bullet Impact SolidMetal Massive", "Massive.rte"),
+			[181] = CreateSoundContainer("Shotgun Bullet Impact SolidMetal Massive", "Massive.rte"),
+			[182] = CreateSoundContainer("Shotgun Bullet Impact SolidMetal Massive", "Massive.rte")}}
+			
 	self.terrainGFX = {
 	Impact = {[12] = CreateMOSRotating("GFX Heavy Bullet Impact Concrete Massive", "Massive.rte"),
 			[164] = CreateMOSRotating("GFX Heavy Bullet Impact Concrete Massive", "Massive.rte"),
@@ -44,7 +58,10 @@ function OnCollideWithTerrain(self, terrPixel)
 	if self.impactDone ~= true then
 	
 		self.impactDone = true;
-		if terrPixel ~= 0 and math.random(0, 100) < 20 then -- 0 = air
+		if terrPixel ~= 0 then -- 0 = air
+			if self.terrainSounds.Impact[terrPixel] ~= nil then
+				self.terrainSounds.Impact[terrPixel]:Play(self.Pos);
+			end
 			if self.terrainGFX.Impact[terrPixel] ~= nil then
 				local GFX = self.terrainGFX.Impact[terrPixel]:Clone()
 				GFX.Pos = self.Pos
@@ -70,37 +87,28 @@ end
 
 function OnCollideWithMO(self, MO, rootMO)
 	
-	local timeFactor = (1 + math.pow(self.Age * 0.07, 2))
-	
-	-- The murder:
-	if (self.murder > 0 and self.Age < 200) or math.random() < 1 / timeFactor then
-		self.murder = self.murder - 1
-		self.ToDelete = false
-	end
-	
 	if self.spewBlood then
 		self.spewBlood = false
 		local material = MO.Material.PresetName;
 		
 		-- Add extra effects based on the material
-		if math.random() < 0.1 and string.find(material,"Flesh") then
-			local fuck = CreatePEmitter("Fucking Blood Spray Massive", "Massive.rte");
+		if string.find(material,"Flesh") then
+			local fuck = CreateMOSParticle("Blood Blast Particle", "Base.rte");
 			fuck.Pos = self.Pos;
-			fuck.Vel = (self.Vel.Normalized + Vector(RangeRand(-0.3, 0.3), -1) * RangeRand(0.2, 1)) * 0.1 * self.Vel.Magnitude;
-			fuck.Lifetime = fuck.Lifetime * RangeRand(0.2, 1.2) * 3;
+			fuck.Vel = (self.Vel.Normalized + Vector(RangeRand(-0.3, 0.3), -1)) * 0.01 * self.Vel.Magnitude;
+			fuck.Lifetime = fuck.Lifetime * RangeRand(0.8, 1.2) * 0.5;
 			MovableMan:AddParticle(fuck);
 		end
 	end
 	
-	--if math.random() < 1 / timeFactor then
+	if self.Age <= TimerMan.DeltaTimeSecs * 1000 then
 		MO.Vel = rootMO.Vel
-		local timeFactor2 = math.sqrt(1 + self.Age * 0.07)
 		if IsAHuman(rootMO) then
 			ToAHuman(rootMO).Status = 1;
-			rootMO.Vel = (rootMO.Vel / 2) + (self.Vel / rootMO.Mass / timeFactor2 * 10);
+			rootMO.Vel = (rootMO.Vel/2) + (self.Vel/15);
 		else
-			rootMO.Vel = (rootMO.Vel / 2) + (self.Vel / rootMO.Mass / timeFactor2 * 10);
+			rootMO.Vel = (rootMO.Vel/2) + (self.Vel/30);
 		end
-	--end
+	end
 	
 end
