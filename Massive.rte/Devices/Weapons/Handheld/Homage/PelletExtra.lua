@@ -92,7 +92,7 @@ function OnCollideWithMO(self, MO, rootMO)
 		local material = MO.Material.PresetName;
 		
 		-- Add extra effects based on the material
-		if string.find(material,"Flesh") then
+		if (not IsActor(rootMO) or ToActor(rootMO).Health < 101) and string.find(material,"Flesh") then
 			local fuck = CreateMOSParticle("Blood Blast Particle", "Base.rte");
 			fuck.Pos = self.Pos;
 			fuck.Vel = (self.Vel.Normalized + Vector(RangeRand(-0.3, 0.3), -1)) * 0.01 * self.Vel.Magnitude;

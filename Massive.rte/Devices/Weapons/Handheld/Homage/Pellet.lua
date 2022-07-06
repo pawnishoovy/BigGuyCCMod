@@ -83,7 +83,7 @@ function OnCollideWithMO(self, MO, rootMO)
 		local material = MO.Material.PresetName;
 		
 		-- Add extra effects based on the material
-		if math.random() < 0.1 and string.find(material,"Flesh") then
+		if (not IsActor(rootMO) or ToActor(rootMO).Health < 101) and math.random() < 0.1 and string.find(material,"Flesh") then
 			local fuck = CreatePEmitter("Fucking Blood Spray Massive", "Massive.rte");
 			fuck.Pos = self.Pos;
 			fuck.Vel = (self.Vel.Normalized + Vector(RangeRand(-0.3, 0.3), -1) * RangeRand(0.2, 1)) * 0.1 * self.Vel.Magnitude;
