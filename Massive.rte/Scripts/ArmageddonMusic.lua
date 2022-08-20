@@ -1080,7 +1080,7 @@ function ArmageddonMusicScript:UpdateScript()
 			self.intensityLowerPreLength = nil;
 			
 			local oldIndex = self.currentIndex + 0;
-			self.instantUpgradeOldContainer = self.currentTune.Components[oldIndex].Container
+			self.oldSoundContainer = self.currentTune.Components[oldIndex].Container
 			
 			self.currentIndex = index
 			
@@ -1101,7 +1101,6 @@ function ArmageddonMusicScript:UpdateScript()
 			self.VWManualIntensity = nil;
 			
 		else
-	
 			if self.componentTimer:IsPastRealMS(self.currentTune.Components[self.currentIndex].totalPost/3) then
 				-- a third thru current loop, decide what to play next
 				if self.nextDecided ~= true then
@@ -1270,6 +1269,9 @@ function ArmageddonMusicScript:UpdateScript()
 					
 					self.intensityLowerPreLength = nil;
 					
+					--local oldIndex = self.currentIndex + 0
+					--self.oldSoundContainer = self.currentTune.Components[oldIndex].Container;
+					
 					self.currentIndex = self.indexToPlay;
 					
 					self.dynamicVolume = (AudioMan.MusicVolume / AudioMan.SoundsVolume);
@@ -1310,10 +1312,9 @@ function ArmageddonMusicScript:UpdateScript()
 				end					
 
 			elseif self.componentTimer:IsPastRealMS(self.currentTune.Components[self.currentIndex].preLength) then
-				if self.instantUpgradeOldContainer then
-					self.instantUpgradeOldContainer:FadeOut(50); -- better fading it out on true newcontainer begin rather
-																 -- than back at selection
-					self.instantUpgradeOldContainer = nil;
+				if self.oldSoundContainer then
+					self.oldSoundContainer:FadeOut(50);
+					self.oldSoundContainer = nil;
 				end
 			end
 			
@@ -1548,6 +1549,14 @@ function ArmageddonMusicScript:EndScript()
 end
 
 function ArmageddonMusicScript:PauseScript()
+	if not self.paused then
+		self.paused = true;
+		self.pauseTime = self.componentTimer.ElapsedRealTimeMS
+	else
+		self.paused = false;
+		self.componentTimer.ElapsedRealTimeMS = self.componentTimer.ElapsedRealTimeMS + (self.pauseTime - self.componentTimer.ElapsedRealTimeMS)
+	end
+	--print("paused?")
 end
 
 function ArmageddonMusicScript:CraftEnteredOrbit()
