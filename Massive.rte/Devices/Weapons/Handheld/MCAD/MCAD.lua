@@ -1,101 +1,92 @@
 function Create(self)
 
-	self.parentSet = false;
+	if self:GetRootParent() and self:GetRootParent().PresetName == "Massive" or self:GetRootParent().PresetName == "Zedmassive" then
+		self.equippedByMassive = true;
+	else
+		self.equippedByMassive = false;
+	end
+	
+	self.Frame = 0;
 
-	-- Sounds --
-	
-	self.preSound = CreateSoundContainer("Pre RPG", "SandstormInsurgency.rte");
-	
-	self.addSounds = {["Start"] = nil, ["Loop"] = nil};
-	self.addSounds.Loop = CreateSoundContainer("Add RPG", "SandstormInsurgency.rte");
-	
-	self.bassSounds = {["Start"] = nil, ["Loop"] = nil};
-	self.bassSounds.Loop = CreateSoundContainer("Bass RPG", "SandstormInsurgency.rte");
-	
-	self.noiseSounds = {["Outdoors"] = {["Loop"] = nil, ["End"] = nil},
-	["Indoors"] = {["Loop"] = nil, ["End"] = nil},
-	["bigIndoors"] = {["Loop"] = nil, ["End"] = nil}};
-	self.noiseSounds.Outdoors.End = CreateSoundContainer("NoiseOutdoorsEnd RPG", "SandstormInsurgency.rte");
-	self.noiseSounds.Outdoors.End.Pitch = 1.0;
-	self.noiseSounds.Indoors.End = CreateSoundContainer("NoiseIndoorsEnd RPG", "SandstormInsurgency.rte");
-	self.noiseSounds.Indoors.End.Pitch = 1.0;
-	self.noiseSounds.bigIndoors.End = CreateSoundContainer("NoiseBigIndoorsEnd RPG", "SandstormInsurgency.rte");
-	self.noiseSounds.bigIndoors.End.Pitch = 1.0;
-	
-	self.reflectionSounds = {["Outdoors"] = nil};
-	self.reflectionSounds.Outdoors = CreateSoundContainer("Noise ReflectionOutdoors", "Sandstorm.rte");
-	self.reflectionSounds.Outdoors.Pitch = 0.6;
-	self.reflectionSounds.Outdoors.Volume = 1.1;
+	self.preSound = CreateSoundContainer("Pre Massive MCAD", "Massive.rte");
+	self.fireOutdoorsSound = CreateSoundContainer("Fire Outdoors Massive MCAD", "Massive.rte");
+	self.fireIndoorsSound = CreateSoundContainer("Fire Indoors Massive MCAD", "Massive.rte");
 	
 	self.reloadPrepareSounds = {}
-	self.reloadPrepareSounds.Raise = CreateSoundContainer("RaisePrepare RPG", "SandstormInsurgency.rte");
-	self.reloadPrepareSounds.Shoulder = CreateSoundContainer("ShoulderPrepare RPG", "SandstormInsurgency.rte");
+	self.reloadPrepareSounds.Raise = nil
+	self.reloadPrepareSounds.RocketIn = CreateSoundContainer("Rocket In Prepare Massive MCAD", "Massive.rte");
+	self.reloadPrepareSounds.RocketLock = nil
+	self.reloadPrepareSounds.Cock = nil
+	self.reloadPrepareSounds.Lower = CreateSoundContainer("Lower Prepare Massive MCAD", "Massive.rte");
 	
 	self.reloadPrepareLengths = {}
-	self.reloadPrepareLengths.Raise = 750;
-	self.reloadPrepareLengths.Shoulder = 900;
+	self.reloadPrepareLengths.Raise = 0
+	self.reloadPrepareLengths.RocketIn = 565
+	self.reloadPrepareLengths.RocketLock = 0
+	self.reloadPrepareLengths.Cock = 0
+	self.reloadPrepareLengths.Lower = 620
+	
+	self.reloadPrepareDelay = {}
+	self.reloadPrepareDelay.Raise = 345
+	self.reloadPrepareDelay.RocketIn = 450
+	self.reloadPrepareDelay.RocketLock = 230
+	self.reloadPrepareDelay.Cock = 800
+	self.reloadPrepareDelay.Lower = 700
 	
 	self.reloadAfterSounds = {}
-	self.reloadAfterSounds.Raise = CreateSoundContainer("Raise RPG", "SandstormInsurgency.rte");
-	self.reloadAfterSounds.InsertRound = CreateSoundContainer("InsertRound RPG", "SandstormInsurgency.rte");
-	self.reloadAfterSounds.LockRound = CreateSoundContainer("LockRound RPG", "SandstormInsurgency.rte");
-	self.reloadAfterSounds.CockLever = CreateSoundContainer("CockLever RPG", "SandstormInsurgency.rte");
-	self.reloadAfterSounds.Shoulder = CreateSoundContainer("Shoulder RPG", "SandstormInsurgency.rte");
+	self.reloadAfterSounds.Raise = CreateSoundContainer("Raise Massive MCAD", "Massive.rte");
+	self.reloadAfterSounds.RocketIn = CreateSoundContainer("Rocket In Massive MCAD", "Massive.rte");
+	self.reloadAfterSounds.RocketLock = CreateSoundContainer("Rocket Lock Massive MCAD", "Massive.rte");
+	self.reloadAfterSounds.Cock = CreateSoundContainer("Cock Massive MCAD", "Massive.rte");
+	self.reloadAfterSounds.Lower = CreateSoundContainer("Lower Massive MCAD", "Massive.rte");
 	
-	self:SetNumberValue("DelayedFireTimeMS", 35);
+	self.reloadAfterDelay = {}
+	self.reloadAfterDelay.Raise = 1000
+	self.reloadAfterDelay.RocketIn = 600
+	self.reloadAfterDelay.RocketLock = 350
+	self.reloadAfterDelay.Cock = 450
+	self.reloadAfterDelay.Lower = 500
 	
-	self.FireTimer = Timer();
+	self.reloadTimer = Timer();
 	
-	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
-	self.originalSharpStanceOffset = Vector(math.abs(self.SharpStanceOffset.X), self.SharpStanceOffset.Y)
+	self.reloadPhase = 0;
+	
+	self.ReloadTime = 12000;
+
+	self.parentSet = false;
 	
 	self.rotation = 0
 	self.rotationTarget = 0
-	self.rotationSpeed = 5
+	self.rotationSpeed = 4
 	
 	self.horizontalAnim = 0
 	self.verticalAnim = 0
 	
 	self.angVel = 0
-	self.lastRotAngle = self.RotAngle
+	self.lastRotAngle = (self.RotAngle + self.InheritedRotAngleOffset)
 	
-	self.smokeTimer = Timer();
-	self.smokeDelayTimer = Timer();
-	self.canSmoke = false
+	self.originalSharpLength = self.SharpLength
+	
+	self.originalJointOffset = Vector(self.JointOffset.X, self.JointOffset.Y)
+	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
+	self.originalSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y)
+	
+	self.delayedFire = false
+	self.delayedFireTimer = Timer();
+	self.delayedFireTimeMS = 70;
+	self.delayedFireEnabled = true
 	
 	self.searchRange = 650 + FrameMan.PlayerScreenWidth * 0.3;
 	
-	self.reloadTimer = Timer();
+	self.lastAge = self.Age + 0
 	
-	self.roundLocked = true;
-	self.leverCocked = true;
+	self.FireTimer = Timer();
+	self.fireDelayTimer = Timer()
 	
-	self.raisePrepareDelay = 750;
-	self.raiseAfterDelay = 800;
-	self.insertRoundPrepareDelay = 1050;
-	self.insertRoundAfterDelay = 250;
-	self.lockRoundPrepareDelay = 600;
-	self.lockRoundAfterDelay = 730;
-	self.cockLeverPrepareDelay = 1000;
-	self.cockLeverAfterDelay = 700;
-	self.shoulderPrepareDelay = 900;
-	self.shoulderAfterDelay = 400;
+	self.activated = false
 	
-	-- phases:
-	-- 0 raise
-	-- 1 insertround
-	-- 2 lockround
-	-- 3 cocklever
-	-- 4 shoulder
-	
-	self.reloadPhase = 0;
-	
-	self.ReloadTime = 19999;
-
-	local actor = MovableMan:GetMOFromID(self.RootID);
-	if actor and IsAHuman(actor) then
-		self.parent = ToAHuman(actor);
-	end
+	self.shoveTimer = Timer();
+	self.shoveCooldown = 1300;
 	
 end
 
@@ -108,21 +99,18 @@ function Update(self)
 
 	self.rotationTarget = 0 -- ZERO IT FIRST AAAA!!!!!
 
-	if self.ID == self.RootID then
+	if self:GetRootParent().UniqueID == self.UniqueID then
 		self.parent = nil;
 		self.parentSet = false;
 	elseif self.parentSet == false then
-		local actor = MovableMan:GetMOFromID(self.RootID);
-		if actor and IsAHuman(actor) then
-			self.parent = ToAHuman(actor);
-			self.parentSet = true;
-		end
+		self.parent = ToActor(self:GetRootParent());
+		self.parentSet = true;
 	end
 	
     -- Smoothing
     local min_value = -math.pi;
     local max_value = math.pi;
-    local value = self.RotAngle - self.lastRotAngle
+    local value = (self.RotAngle) - self.lastRotAngle
     local result;
     local ret = 0
     
@@ -135,8 +123,8 @@ function Update(self)
         result = ret + min_value;
     end
     
-    self.lastRotAngle = self.RotAngle
-    self.angVel = (result / TimerMan.DeltaTimeSecs) * self.FlipFactor
+    self.lastRotAngle = (self.RotAngle)
+    self.angVel = (result / TimerMan.DeltaTimeSecs * 1.4) * self.FlipFactor
     
     if self.lastHFlipped ~= nil then
         if self.lastHFlipped ~= self.HFlipped then
@@ -146,69 +134,75 @@ function Update(self)
     else
         self.lastHFlipped = self.HFlipped
     end
-	--PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(-20, 20), "Angular Velocity = "..self.angVel, true, 0);
-	--PrimitiveMan:DrawLinePrimitive(self.Pos, self.Pos + Vector(15 * self.FlipFactor,0):RadRotate(self.RotAngle),  13);
-	--PrimitiveMan:DrawLinePrimitive(self.Pos, self.Pos + Vector(15 * self.FlipFactor,0):RadRotate(self.RotAngle + (self.angVel * 0.05)),  5);
+
+	-- Check if switched weapons/hide in the inventory, etc.
+	if self.Age > (self.lastAge + TimerMan.DeltaTimeSecs * 2000) then
+		if self.delayedFire then
+			self.delayedFire = false
+		end
+		self.fireDelayTimer:Reset()
+	end
+	self.lastAge = self.Age + 0
 	
 	if self:IsReloading() then
-		if self.parent and self.reloadPhase > 0 and  self.reloadPhase < 4 then
+		if self.parent and self.reloadPhase > 1 and  self.reloadPhase < 4 then
 			self.parent:GetController():SetState(Controller.AIM_SHARP,false);
 		end
 		
-		if not self:NumberValueExists("MagRemoved") and self.parent:IsPlayerControlled() then
-			local color = (self.reloadPhase < 2 and 105 or 120)
-			local position = self.parent.AboveHUDPos + Vector(0, 36)
-			PrimitiveMan:DrawCirclePrimitive(position + Vector(0,-3), 2, color);
-			PrimitiveMan:DrawLinePrimitive(position + Vector(2,-2), position + Vector(2,4), color);
-			PrimitiveMan:DrawLinePrimitive(position + Vector(-2,-2), position + Vector(-2,4), color);
-			PrimitiveMan:DrawLinePrimitive(position + Vector(2,4), position + Vector(-2,4), color);
-		end
+		-- if not self:NumberValueExists("MagRemoved") and self.parent:IsPlayerControlled() then
+			-- local color = (self.reloadPhase < 2 and 105 or 120)
+			-- local position = self.parent.AboveHUDPos + Vector(0, 36)
+			-- PrimitiveMan:DrawCirclePrimitive(position + Vector(0,-3), 2, color);
+			-- PrimitiveMan:DrawLinePrimitive(position + Vector(2,-2), position + Vector(2,4), color);
+			-- PrimitiveMan:DrawLinePrimitive(position + Vector(-2,-2), position + Vector(-2,4), color);
+			-- PrimitiveMan:DrawLinePrimitive(position + Vector(2,4), position + Vector(-2,4), color);
+		-- end
 
 		if self.reloadPhase == 0 then
-			self.reloadDelay = self.raisePrepareDelay;
-			self.afterDelay = self.raiseAfterDelay;			
-
+			self.reloadDelay = self.reloadPrepareDelay.Raise;
+			self.afterDelay = self.reloadAfterDelay.Raise;		
+			
 			self.prepareSound = self.reloadPrepareSounds.Raise;
 			self.prepareSoundLength = self.reloadPrepareLengths.Raise;
 			self.afterSound = self.reloadAfterSounds.Raise;
 			
 		elseif self.reloadPhase == 1 then
-			self.reloadDelay = self.insertRoundPrepareDelay;
-			self.afterDelay = self.insertRoundAfterDelay;
-
-			self.prepareSound = nil
-			self.prepareSoundLength = 0
-			self.afterSound = self.reloadAfterSounds.InsertRound;
+			self.reloadDelay = self.reloadPrepareDelay.RocketIn;
+			self.afterDelay = self.reloadAfterDelay.RocketIn;		
+			
+			self.prepareSound = self.reloadPrepareSounds.RocketIn;
+			self.prepareSoundLength = self.reloadPrepareLengths.RocketIn;
+			self.afterSound = self.reloadAfterSounds.RocketIn;
 			
 			self.rotationTarget = 45;
 			
 		elseif self.reloadPhase == 2 then
-			self.reloadDelay = self.lockRoundPrepareDelay;
-			self.afterDelay = self.lockRoundAfterDelay;
-
-			self.prepareSound = nil
-			self.prepareSoundLength = 0
-			self.afterSound = self.reloadAfterSounds.LockRound;
+			self.reloadDelay = self.reloadPrepareDelay.RocketLock;
+			self.afterDelay = self.reloadAfterDelay.RocketLock;		
+			
+			self.prepareSound = self.reloadPrepareSounds.RocketLock;
+			self.prepareSoundLength = self.reloadPrepareLengths.RocketLock;
+			self.afterSound = self.reloadAfterSounds.RocketLock;
 			
 			self.rotationTarget = 45;
 			
 		elseif self.reloadPhase == 3 then
-			self.reloadDelay = self.cockLeverPrepareDelay;
-			self.afterDelay = self.cockLeverAfterDelay;
-
-			self.prepareSound = nil
-			self.prepareSoundLength = 0
-			self.afterSound = self.reloadAfterSounds.CockLever;
+			self.reloadDelay = self.reloadPrepareDelay.Cock;
+			self.afterDelay = self.reloadAfterDelay.Cock;		
+			
+			self.prepareSound = self.reloadPrepareSounds.Cock;
+			self.prepareSoundLength = self.reloadPrepareLengths.Cock;
+			self.afterSound = self.reloadAfterSounds.Cock;
 			
 			self.rotationTarget = 25;
 			
 		elseif self.reloadPhase == 4 then
-			self.reloadDelay = self.shoulderPrepareDelay;
-			self.afterDelay = self.shoulderAfterDelay;
-
-			self.prepareSound = self.reloadPrepareSounds.Shoulder;
-			self.prepareSoundLength = self.reloadPrepareLengths.Shoulder;
-			self.afterSound = self.reloadAfterSounds.Shoulder;
+			self.reloadDelay = self.reloadPrepareDelay.Lower;
+			self.afterDelay = self.reloadAfterDelay.Lower;		
+			
+			self.prepareSound = self.reloadPrepareSounds.Lower;
+			self.prepareSoundLength = self.reloadPrepareLengths.Lower;
+			self.afterSound = self.reloadAfterSounds.Lower;
 
 			self.rotationTarget = 25;
 		end
@@ -320,6 +314,41 @@ function Update(self)
 		self.ReloadTime = 9999;
 	end
 	
+	local fire = self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self:IsActivated() and self.RoundInMagCount > 0;
+
+	if self.parent and self.delayedFirstShot == true then
+		if self.RoundInMagCount > 0 then
+			self:Deactivate()
+		end
+		
+		if fire and not self:IsReloading() then
+			if not self.Magazine or self.Magazine.RoundCount < 1 then
+				--self:Reload()
+				self:Activate()
+			elseif not self.activated and not self.delayedFire and self.fireDelayTimer:IsPastSimMS(1 / (self.RateOfFire / 60) * 1000) then
+				self.activated = true
+				
+				self.preSound:Play(self.Pos);
+				
+				self.fireDelayTimer:Reset()
+				
+				self.delayedFire = true
+				self.delayedFireTimer:Reset()
+			end
+		else
+			if self.activated then
+				self.activated = false
+			end
+		end
+	elseif fire == false then
+		self.delayedFirstShot = true;
+	end
+	
+	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 1500, 1), 2.0) * 0.5) * math.pi) * -1
+	
+	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (300 * 4), 1), 2.0)
+	self.rotationTarget = self.rotationTarget + math.sin(recoilFactor * math.pi) * 13
+	
 	if self.FiredFrame then	
 
 		local searchPos = self.Pos + Vector(self.searchRange * 0.75 * self.FlipFactor, 0):RadRotate(self.RotAngle);
@@ -338,7 +367,6 @@ function Update(self)
 		end
 	
 		self.canSmoke = true
-		self.smokeTimer:Reset()
 		
 		self.horizontalAnim = self.horizontalAnim + 0.2
 		self.angVel = self.angVel - RangeRand(0,1) * 6
@@ -346,6 +374,12 @@ function Update(self)
 		self.Frame = 3;
 		self.roundLocked = false;
 		self.leverCocked = false;
+		
+		local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
+		shakenessParticle.Pos = self.MuzzlePos;
+		shakenessParticle.Mass = 60;
+		shakenessParticle.Lifetime = 1000;
+		MovableMan:AddParticle(shakenessParticle);
 		
 		-- Back Blast
 		local effectNames = {"Small Smoke Ball 1", "Tiny Smoke Ball 1", "Blast Ball Small 1", "Tracer Smoke Ball 1"}
@@ -363,7 +397,7 @@ function Update(self)
 		local maxi = 70
 		for i = 1, maxi do
 			
-			local effect = CreateMOSRotating("Ground Smoke Particle 1", "Sandstorm.rte")
+			local effect = CreateMOSRotating("Ground Smoke Particle Small Massive", "Massive.rte")
 			effect.Pos = self.Pos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
 			effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / maxi * i + RangeRand(-2,2) / maxi)
 			effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)
@@ -414,85 +448,181 @@ function Update(self)
 			end
 		end
 		
-		self.bassSounds.Loop:Play(self.Pos);
-		
 		if outdoorRays >= self.rayThreshold then
-			self.noiseSounds.Outdoors.End:Play(self.Pos);
-			self.reflectionSounds.Outdoors:Play(self.Pos);
-		elseif math.max(outdoorRays, bigIndoorRays, indoorRays) == indoorRays then
-			self.noiseSounds.Indoors.End:Play(self.Pos);
+			self.fireOutdoorsSound:Play(self.Pos);
 		else -- bigIndoor
-			self.noiseSounds.bigIndoors.End:Play(self.Pos);
+			self.fireIndoorsSound:Play(self.Pos);
 		end
-		
-		self.addSounds.Loop:Play(self.Pos);
 
 	end
 	
-	if not self:IsActivated() then
-		self.firstShot = true;
-	end	
-	
+	if self.delayedFire and self.delayedFireTimer:IsPastSimMS(self.delayedFireTimeMS) then
+		self:Activate()	
+		self.delayedFire = false
+		self.delayedFirstShot = false;
+	end
+
 	-- Animation
 	if self.parent then
-		self.horizontalAnim = math.floor(self.horizontalAnim / (1 + TimerMan.DeltaTimeSecs * 12.0) * 1000) / 1000
-		self.verticalAnim = math.floor(self.verticalAnim / (1 + TimerMan.DeltaTimeSecs * 8.0) * 1000) / 1000
+	
+		if self.shoveStart then
+			self.horizontalAnim = 4;
+			self.rotationTarget = self.rotationTarget - 10;
+			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 2) then
+				self.shoveStart = false;
+				self.parent:SetNumberValue("Gun Shove Massive", 1);
+			end
+		elseif self.shoving then
+			self.horizontalAnim = -5;
+			self.rotationTarget = self.rotationTarget + self.shoveRot;
+			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 1.3) then
+				self.shoving = false;
+			end
+			
+			local rayVec = Vector(self.MuzzleOffset.X * self.FlipFactor + 12 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+			local rayOrigin = self.Pos + Vector(0, 0);
+			
+			--PrimitiveMan:DrawLinePrimitive(rayOrigin, rayOrigin + rayVec,  5);
+			--PrimitiveMan:DrawCirclePrimitive(self.Pos, 3, 5);
+			
+			local moCheck = SceneMan:CastMORay(rayOrigin, rayVec, self.IDToIgnore or self.ID, self.Team, 0, false, 2); -- Raycast		
+			
+			if moCheck and moCheck ~= rte.NoMOID then
+				local rayHitPos = SceneMan:GetLastRayHitPos()
+				local rayHitPos = Vector(rayHitPos.X, rayHitPos.Y);
+				local MO = MovableMan:GetMOFromID(moCheck)
+				
+				local dist = SceneMan:ShortestDistance(self.Pos, rayHitPos, SceneMan.SceneWrapsX)
+							
+				if IsMOSRotating(MO) then
+					--print("HIT BEGIN")
+					if self.shoveDamage == true then
+						self.shoveDamage = false;
+						MO = ToMOSRotating(MO)
+						--print("HIT THE FOLLOWING")
+						--print(MO)
+						--print(MO.UniqueID)
+						--print(MO:GetRootParent())
+						--print(MO:GetRootParent().UniqueID)
+						--print("TABLE NOW CONTAINS")
+						local woundName = MO:GetEntryWoundPresetName()
+						local woundNameExit = MO:GetExitWoundPresetName()
+						local woundOffset = (rayHitPos - MO.Pos):RadRotate(MO.RotAngle * -1.0)
+						
+						local material = MO.Material.PresetName
+						--if crit then
+						--	woundName = woundNameExit
+						--end
+						
+						if self.equippedByMassive then
+							if IsAttachable(MO) and ToAttachable(MO):IsAttached() then
+								if MO:IsDevice() and math.random(0, 100) >= 90 then
+									ToAttachable(MO):RemoveFromParent(true, true);
+								end
+								
+								if MO:IsInGroup("Shields") and math.random(0, 100) >= 95 then
+									ToAttachable(MO):RemoveFromParent(true, true);
+								end
+							end
+						end
+						
+						local damage = self.equippedByMassive and 2 or 1;
+						
+						local addWounds = true;
+						
+						local woundsToAdd = damage;
+						
+						-- Hurt the actor, add extra damage
+						local actorHit = MovableMan:GetMOFromID(MO.RootID)
+						if (actorHit and IsActor(actorHit)) then-- and (MO.RootID == moCheck or (not IsAttachable(MO) or string.find(MO.PresetName,"Arm") or string.find(MO,"Leg") or string.find(MO,"Head"))) then -- Apply addational damage			
+						
+							actorHit = ToActor(actorHit)
+							
+							if actorHit.BodyHitSound then
+								actorHit.BodyHitSound:Play(actorHit.Pos)
+							end
+							
+							if self.equippedByMassive then
+								if math.random(0, 100) >= 75 then
+									actorHit.Status = 1;
+								end
+								actorHit.Vel = actorHit.Vel + Vector(5, 0):RadRotate(self.RotAngle);
+							end
+							
+							if (actorHit.Health - (damage * 10)) < 0 then -- bad estimation, but...
+								if math.random(0, 100) < 15 then
+									self.parent:SetNumberValue("Attack Killed", 1); -- celebration!!
+								end
+							elseif math.random(0, 100) < 30 then
+								self.parent:SetNumberValue("Attack Success", 1); -- celebration!!
+							end
+							
+							if IsActor(MO) then -- if we hit torso
+								if MO.WoundCount + woundsToAdd >= MO.GibWoundLimit and math.random(0, 100) < 95 then
+									addWounds = false;
+									addSingleWound = true;
+									ToActor(MO).Health = 0;
+								end
+							end
+							
+							if addWounds == true and woundName and woundName ~= "" then
+								for i = 1, woundsToAdd do
+									MO:AddWound(CreateAEmitter(woundName), woundOffset, true)
+								end
+							elseif addSingleWound == true and woundName and woundName ~= "" then
+								MO:AddWound(CreateAEmitter(woundName), woundOffset, true)
+							end
+
+						elseif woundName and woundName ~= "" then -- generic wound adding for non-actors
+							for i = 1, woundsToAdd do
+								MO:AddWound(CreateAEmitter(woundName), woundOffset, true)
+							end
+						end
+					end
+				end	
+			end
+			
+		end
+	
+		if not self:IsReloading() and self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(MassiveSettings.GunShoveHotkey) then
+			self.shoveRot = 10 * (math.random(80, 120) / 100);
+			self.shoveTimer:Reset();
+			self.parent:SetNumberValue("Gun Shove Start Massive", 1);
+			self.shoving = true;
+			self.shoveStart = true;
+			self.shoveDamage = true;
+		end
+	
+		self.horizontalAnim = math.floor(self.horizontalAnim / (1 + TimerMan.DeltaTimeSecs * 24.0) * 1000) / 1000
+		self.verticalAnim = math.floor(self.verticalAnim / (1 + TimerMan.DeltaTimeSecs * 15.0) * 1000) / 1000
 		
 		local stance = Vector()
-		stance = stance + Vector(-5,0) * self.horizontalAnim -- Horizontal animation
-		stance = stance + Vector(0,6) * self.verticalAnim -- Vertical animation
+		stance = stance + Vector(-1,0) * self.horizontalAnim -- Horizontal animation
+		stance = stance + Vector(0,5) * self.verticalAnim -- Vertical animation
 		
-		self.rotationTarget = self.rotationTarget - (self.angVel * 4)
+		self.rotationTarget = self.rotationTarget - (self.angVel * 9)
+		
 		self.rotation = (self.rotation + self.rotationTarget * TimerMan.DeltaTimeSecs * self.rotationSpeed) / (1 + TimerMan.DeltaTimeSecs * self.rotationSpeed)
 		local total = math.rad(self.rotation) * self.FlipFactor
 		
 		self.RotAngle = self.RotAngle + total;
-		self:SetNumberValue("MagRotation", total);
+		-- self.RotAngle = self.RotAngle + total;
+		-- self:SetNumberValue("MagRotation", total);
 		
 		local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
 		local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
 		self.Pos = self.Pos + offsetTotal;
-		self:SetNumberValue("MagOffsetX", offsetTotal.X);
-		self:SetNumberValue("MagOffsetY", offsetTotal.Y);
+		-- self:SetNumberValue("MagOffsetX", offsetTotal.X);
+		-- self:SetNumberValue("MagOffsetY", offsetTotal.Y);
 		
 		if self.reloadingVector then
-			self.StanceOffset = self.reloadingVector + stance
-			self.SharpStanceOffset = self.reloadingVector + stance
+			self.StanceOffset = Vector(self.originalStanceOffset.X, self.originalStanceOffset.Y) + self.reloadingVector + stance
+			self.SharpStanceOffset = Vector(self.originalSharpStanceOffset.X, self.originalSharpStanceOffset.Y) + self.reloadingVector + stance
 		else
 			self.StanceOffset = Vector(self.originalStanceOffset.X, self.originalStanceOffset.Y) + stance
 			self.SharpStanceOffset = Vector(self.originalSharpStanceOffset.X, self.originalSharpStanceOffset.Y) + stance
 		end
+		
 	end
-	
-	if self.canSmoke and not self.smokeTimer:IsPastSimMS(3000) then
-		--[[
-		local poof = CreateMOPixel("Real Bullet Micro Smoke Ball "..math.random(1,4), "Sandstorm.rte");
-		poof.Pos = self.Pos + Vector(self.MuzzleOffset.X * self.FlipFactor, self.MuzzleOffset.Y):RadRotate(self.RotAngle) + Vector(RangeRand(-1,1), RangeRand(-1,1));
-		poof.Lifetime = poof.Lifetime * RangeRand(0.2, 1.3) * 0.9;
-		poof.Vel = self.Vel * 0.1
-		poof.GlobalAccScalar = RangeRand(0.9, 1.0) * -0.4; -- Go up and down
-		MovableMan:AddParticle(poof);
-		]]
-		if self.smokeDelayTimer:IsPastSimMS(80) then
-			
-			local poof = math.random(1,2) < 2 and CreateMOSParticle("Tiny Smoke Ball 1") or CreateMOPixel("Real Bullet Micro Smoke Ball "..math.random(1,4), "Sandstorm.rte");
-			poof.Pos = self.Pos + Vector(self.MuzzleOffset.X * self.FlipFactor, self.MuzzleOffset.Y):RadRotate(self.RotAngle);
-			poof.Lifetime = poof.Lifetime * RangeRand(0.3, 1.3) * 0.9;
-			poof.Vel = self.Vel * 0.1
-			poof.GlobalAccScalar = RangeRand(0.9, 1.0) * -0.4; -- Go up and down
-			MovableMan:AddParticle(poof);
-			self.smokeDelayTimer:Reset()
-			
-			--[[
-			for i = 0, 2 do
-				local poof = i == 0 and CreateMOSParticle("Tiny Smoke Ball 1") or CreateMOPixel("Real Bullet Micro Smoke Ball "..math.random(1,4), "Sandstorm.rte");
-				poof.Pos = self.Pos + Vector(self.MuzzleOffset.X * self.FlipFactor, self.MuzzleOffset.Y):RadRotate(self.RotAngle) + Vector(RangeRand(-1,1), RangeRand(-1,1));
-				poof.Lifetime = poof.Lifetime * RangeRand(0.7, 1.7) * 0.9;
-				--poof.Vel = Vector(RangeRand(-1,1), RangeRand(-1,1)) * 0.5
-				poof.GlobalAccScalar = RangeRand(0.9, 1.0) * -0.4; -- Go up and down
-				MovableMan:AddParticle(poof);
-				self.smokeDelayTimer:Reset()
-			end]]
-		end
-	end
+
 end

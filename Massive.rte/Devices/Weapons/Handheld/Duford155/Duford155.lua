@@ -623,8 +623,8 @@ function Update(self)
 		
 		local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
 		shakenessParticle.Pos = self.MuzzlePos;
-		shakenessParticle.Mass = 60;
-		shakenessParticle.Lifetime = 1000;
+		shakenessParticle.Mass = 30;
+		shakenessParticle.Lifetime = 300;
 		MovableMan:AddParticle(shakenessParticle);
 		
 		local outdoorRays = 0;
