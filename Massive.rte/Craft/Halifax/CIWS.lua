@@ -83,7 +83,7 @@ function Update(self)
 			for p in MovableMan.Particles do
 				if p.ClassName == "MOSRotating" or p.ClassName == "AEmitter" then
 
-					if p.HitsMOs and p.Team ~= self.Team and p.Team ~= -1 and p.Vel.Magnitude > 10 then
+					if p.HitsMOs and p.Team == self.Team and p.Team ~= -1 and p.Vel.Magnitude > 10 then
 					
 						local dist = SceneMan:ShortestDistance(self.Pos , p.Pos,true).Magnitude;
 						if dist < 1000 then
