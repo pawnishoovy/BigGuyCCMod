@@ -3,7 +3,9 @@ function Create(self)
 	self.parentSet = false;
 
 	self.keyPressTimer = Timer();
-	self.sustainDelay = 125;
+	self.sustainDelay = 5000;
+	self.sustainOffDelay = 250
+	self.sustainTimer = Timer();
 	
 	self.cSharpMuted = CreateSoundContainer("C Sharp Muted Shredder", "Massive.rte");
 	self.dMuted = CreateSoundContainer("D Muted Shredder", "Massive.rte");
@@ -16,6 +18,7 @@ function Create(self)
 	self.fSustain = CreateSoundContainer("F Sustain Shredder", "Massive.rte");
 	
 	self.release = CreateSoundContainer("Release Shredder", "Massive.rte");
+	self.release.Volume = 0.2
 	self.fx = CreateSoundContainer("FX Shredder", "Massive.rte");
 
 end
@@ -249,9 +252,126 @@ function Update(self)
 
 		end
 		
+		-- V B M N 
+		
+		if UInputMan:KeyPressed(22) then
+			
+			local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+			shakenessParticle.Pos = self.MuzzlePos;
+			shakenessParticle.Mass = 30;
+			shakenessParticle.Lifetime = 200;
+			MovableMan:AddParticle(shakenessParticle);					
+			
+			self.sustain = true;
+			
+			self.SupportOffset = Vector(7, -14);
+			
+			self.release:Stop(-1);
+			
+			self.dMuted:FadeOut(15);
+			self.eMuted:FadeOut(15);
+			self.fMuted:FadeOut(15);
+			
+			self.dSustain:FadeOut(15);
+			self.eSustain:FadeOut(15);
+			self.fSustain:FadeOut(15);
+			
+			self.cSharpSustain:Stop(-1);
+			self.cSharpMuted:Stop(-1);
+			
+			self.cSharpSustain:Play(self.Pos);
+			
+		end
+		
+		if UInputMan:KeyPressed(2) then
+		
+			local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+			shakenessParticle.Pos = self.MuzzlePos;
+			shakenessParticle.Mass = 30;
+			shakenessParticle.Lifetime = 200;
+			MovableMan:AddParticle(shakenessParticle);		
+		
+			self.sustain = true;
+			
+			self.SupportOffset = Vector(6, -12);
+			
+			self.release:Stop(-1);
+			
+			self.cSharpMuted:FadeOut(15);
+			self.eMuted:FadeOut(15);
+			self.fMuted:FadeOut(15);
+			
+			self.cSharpSustain:FadeOut(15);
+			self.eSustain:FadeOut(15);
+			self.fSustain:FadeOut(15);
+			
+			self.dSustain:Stop(-1);
+			self.dMuted:Stop(-1);
+			self.dSustain:Play(self.Pos);
+			
+		end
+		
+		if UInputMan:KeyPressed(14) then
+		
+			local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+			shakenessParticle.Pos = self.MuzzlePos;
+			shakenessParticle.Mass = 30;
+			shakenessParticle.Lifetime = 200;
+			MovableMan:AddParticle(shakenessParticle);		
+		
+			self.sustain = true;
+			
+			self.SupportOffset = Vector(5, -10);
+			
+			self.release:Stop(-1);
+		
+			self.cSharpMuted:FadeOut(15);
+			self.dMuted:FadeOut(15);
+			self.fMuted:FadeOut(15);
+			
+			self.cSharpSustain:FadeOut(15);
+			self.dSustain:FadeOut(15);
+			self.fSustain:FadeOut(15);			
+			
+			self.eSustain:Stop(-1);
+			self.eMuted:Stop(-1);
+			self.eSustain:Play(self.Pos);
+			
+		end
+		
+		if UInputMan:KeyPressed(13) then
+		
+			local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+			shakenessParticle.Pos = self.MuzzlePos;
+			shakenessParticle.Mass = 30;
+			shakenessParticle.Lifetime = 200;
+			MovableMan:AddParticle(shakenessParticle);		
+		
+			self.sustain = true;
+			
+			self.SupportOffset = Vector(4, -8);
+			
+			self.release:Stop(-1);
+			
+			self.cSharpMuted:FadeOut(15);
+			self.dMuted:FadeOut(15);
+			self.eMuted:FadeOut(15);
+			
+			self.cSharpSustain:FadeOut(15);
+			self.dSustain:FadeOut(15);
+			self.eSustain:FadeOut(15);
+			
+			self.fSustain:Stop(-1);
+			self.fMuted:Stop(-1);
+			self.fSustain:Play(self.Pos);
+			
+		end	
+		
 	end
 	
-	if self.sustain == true and not (UInputMan:KeyHeld(8) or UInputMan:KeyHeld(10) or UInputMan:KeyHeld(11) or UInputMan:KeyHeld(12)) then
+	if self.sustain == true and self.sustainTimer:IsPastSimMS(self.sustainOffDelay) and
+	not (UInputMan:KeyHeld(8) or UInputMan:KeyHeld(10) or UInputMan:KeyHeld(11) or UInputMan:KeyHeld(12)) and
+	not (UInputMan:KeyHeld(22) or UInputMan:KeyHeld(2) or UInputMan:KeyHeld(14) or UInputMan:KeyHeld(13)) then
 	
 		self.cSharpSustain:FadeOut(15);
 		self.dSustain:FadeOut(15);
@@ -260,6 +380,9 @@ function Update(self)
 	
 		self.sustain = false;
 		self.release:Play(self.Pos);
+	elseif (UInputMan:KeyHeld(8) or UInputMan:KeyHeld(10) or UInputMan:KeyHeld(11) or UInputMan:KeyHeld(12)) or
+	(UInputMan:KeyHeld(22) or UInputMan:KeyHeld(2) or UInputMan:KeyHeld(14) or UInputMan:KeyHeld(13)) then
+		self.sustainTimer:Reset();
 	end
 	
 	if self:IsActivated() then
