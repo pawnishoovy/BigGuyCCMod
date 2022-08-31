@@ -1,3 +1,11 @@
+function OnReload(self)
+
+	if not self.roundLocked then
+		self:RemoveNumberValue("Switched")
+	end
+	
+end
+
 function Create(self)
 
 	if self:GetRootParent() and self:GetRootParent().PresetName == "Massive" or self:GetRootParent().PresetName == "Zedmassive" then
@@ -7,6 +15,8 @@ function Create(self)
 	end
 	
 	self.Frame = 0;
+
+	self.rocketRemoveSound = CreateSoundContainer("Rocket Remove Massive MCAD", "Massive.rte");
 
 	self.preSound = CreateSoundContainer("Pre Massive MCAD", "Massive.rte");
 	self.fireOutdoorsSound = CreateSoundContainer("Fire Outdoors Massive MCAD", "Massive.rte");
@@ -144,10 +154,43 @@ function Update(self)
 	end
 	self.lastAge = self.Age + 0
 	
+	self.extraFrameNum = self.switchedDUAP and 4 or 0;
+	
 	if self:IsReloading() then
 		if self.parent and self.reloadPhase > 1 and  self.reloadPhase < 4 then
 			self.parent:GetController():SetState(Controller.AIM_SHARP,false);
 		end
+		
+		if self.roundLocked then
+			if self:NumberValueExists("Switched") then
+				self.reloadTimer:Reset();
+				self.afterSoundPlayed = false;
+				self.prepareSoundPlayed = false;
+				self.Frame = 3 + self.extraFrameNum;
+				self.rocketRemoveSound:Play(self.Pos);
+				self.reloadPhase = math.min(self.reloadPhase, 1);
+				if self:NumberValueExists("DUAP Round") then
+					local shell = CreateMOSRotating("Massive MCAD Inert HE");
+					shell.Pos = self.Pos + Vector(16, -1):RadRotate(self.RotAngle);
+					shell.Vel = Vector(2*self.FlipFactor, 0):RadRotate(self.RotAngle);
+					shell.HFlipped = self.HFlipped;
+					MovableMan:AddParticle(shell);
+					self.switchedDUAP = true;
+				else
+					local shell = CreateMOSRotating("Massive MCAD Inert DUAP");
+					shell.Pos = self.Pos + Vector(16, -1):RadRotate(self.RotAngle);
+					shell.Vel = Vector(2*self.FlipFactor, 0):RadRotate(self.RotAngle);
+					shell.HFlipped = self.HFlipped;
+					MovableMan:AddParticle(shell);		
+					self.switchedDUAP = false;					
+				end
+				
+				self:RemoveNumberValue("Switched")
+				self.roundLocked = false;
+				
+			end
+		end
+				
 		
 		-- if not self:NumberValueExists("MagRemoved") and self.parent:IsPlayerControlled() then
 			-- local color = (self.reloadPhase < 2 and 105 or 120)
@@ -235,11 +278,11 @@ function Update(self)
 			elseif self.reloadPhase == 1 then
 			
 				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2)) then
-					self.Frame = 0;
+					self.Frame = 0 + self.extraFrameNum;
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.5)) then
-					self.Frame = 1;
+					self.Frame = 1 + self.extraFrameNum;
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1)) then
-					self.Frame = 2;
+					self.Frame = 2 + self.extraFrameNum;
 				end
 
 			elseif self.reloadPhase == 2 then
@@ -282,17 +325,24 @@ function Update(self)
 				self.prepareSoundPlayed = false;
 				self.afterSoundPlayed = false;
 				if self.reloadPhase == 0 then
-					if self.leverCocked then
+					if self.leverCocked and self.roundLocked then
 						self.reloadPhase = 4;
 					elseif self.roundLocked then
 						self.reloadPhase = 3;
 					else
 						self.reloadPhase = 1;
 					end
+				elseif self.reloadPhase == 2 then
+					if self.leverCocked then
+						self.reloadPhase = 4;
+					else
+						self.reloadPhase = 3;
+					end
 				elseif self.reloadPhase == 4 then
 					self.ReloadTime = 0;
 					self.reloadPhase = 0;
 					self.reloadingVector = nil;
+					self.spentRound = false;
 				else
 					self.reloadPhase = self.reloadPhase + 1;
 				end
@@ -307,9 +357,9 @@ function Update(self)
 		self.afterSoundPlayed = false;
 		self.reloadPhase = 0;
 		if self.roundLocked then
-			self.Frame = 0;
+			self.Frame = 0 + self.extraFrameNum;
 		else
-			self.Frame = 3;
+			self.Frame = 3 + self.extraFrameNum;
 		end
 		self.ReloadTime = 9999;
 	end
@@ -350,6 +400,8 @@ function Update(self)
 	self.rotationTarget = self.rotationTarget + math.sin(recoilFactor * math.pi) * 13
 	
 	if self.FiredFrame then	
+	
+		self:RemoveNumberValue("Switched")
 
 		local searchPos = self.Pos + Vector(self.searchRange * 0.75 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 		local targets = {};
@@ -371,7 +423,7 @@ function Update(self)
 		self.horizontalAnim = self.horizontalAnim + 0.2
 		self.angVel = self.angVel - RangeRand(0,1) * 6
 		
-		self.Frame = 3;
+		self.Frame = 3 + self.extraFrameNum;
 		self.roundLocked = false;
 		self.leverCocked = false;
 		
@@ -473,7 +525,7 @@ function Update(self)
 				self.parent:SetNumberValue("Gun Shove Massive", 1);
 			end
 		elseif self.shoving then
-			self.horizontalAnim = -5;
+			self.horizontalAnim = -15;
 			self.rotationTarget = self.rotationTarget + self.shoveRot;
 			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 1.3) then
 				self.shoving = false;
@@ -625,4 +677,18 @@ function Update(self)
 		
 	end
 
+end
+
+function OnPieMenu(item)
+	if item and IsHDFirearm(item) and item.PresetName == "MCAD" then
+		item = ToHDFirearm(item);
+		if item.Magazine then
+			--Remove corresponding pie slices if mode is already active
+			if item.Magazine.PresetName == "Magazine DUAP Massive MCAD" then
+				ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("DU-AP-HEAT Warhead", "MCADDUAP");
+			elseif item.Magazine.PresetName == "Magazine HE Massive MCAD" then
+				ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("High-Explosive Warhead", "MCADHE")
+			end
+		end
+	end
 end
