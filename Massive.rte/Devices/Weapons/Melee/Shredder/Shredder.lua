@@ -69,8 +69,6 @@ function Update(self)
 	-- 11 K
 	-- 12 L
 	
-	self.JointOffset = Vector(-2, 3)
-	
 	if self:GetRootParent().UniqueID == self.UniqueID then
 		self.parent = nil;
 		self.parentSet = false;
@@ -78,8 +76,54 @@ function Update(self)
 		self.parent = ToActor(self:GetRootParent());
 		self.parentSet = true;
 	end
+
 	
 	if not self:IsActivated() and self.parent and self.parent:IsPlayerControlled() then
+	
+		if self:NumberValueExists("Switch Mode") then
+		
+			self:SetNumberValue("Weapons - Mordhau Melee", 1);
+		
+			self.StanceOffset = Vector(10, 7);
+			self.SharpStanceOffset = Vector(10, 7);
+			self.meleeOriginalStanceOffset = Vector(10, 7);
+			self.SharpLength = 0;
+			self.JointOffset = Vector(6, -14);
+			self.SupportOffset = Vector(7, -12);
+		
+			self:RemoveNumberValue("Switch Mode");
+			self.meleeMode = true;
+			
+			self.InheritedRotAngleOffset = 0;
+			
+			self.originalBaseRotation = -140;
+			self.baseRotation = 0;
+			
+			self:DisableScript("Massive.rte/Devices/Weapons/Melee/Shredder/Shredder.lua");
+			self:EnableScript("Massive.rte/Devices/Weapons/Melee/Shredder/MeleeMode.lua");
+			
+			self.cSharpMuted:Stop(-1);
+			self.dMuted:Stop(-1);
+			self.eMuted:Stop(-1);
+			self.fMuted:Stop(-1);
+
+			self.cSharpSustain:Stop(-1);
+			self.dSustain:Stop(-1);
+			self.dSharpSustain:Stop(-1);
+			self.eSustain:Stop(-1);
+			self.fSustain:Stop(-1);
+			
+			self.cSharp1Sustain:Stop(-1);
+			self.d1Sustain:Stop(-1);
+			self.dSharp1Sustain:Stop(-1);
+			self.e1Sustain:Stop(-1);
+			
+			self.release:Stop(-1);
+			self.fx:Stop(-1);
+			
+			return
+			
+		end	
 	
 		if not self.alternate then
 			
