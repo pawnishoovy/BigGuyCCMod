@@ -174,7 +174,9 @@ function Update(self)
 								self.Vel = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude^0.9);
 								self:GibThis();
 							end
-							self.disabled = true;
+							if penetration < 40 then
+								self.disabled = true;
+							end
 							woundName = mo:GetExitWoundPresetName();
 							if woundName ~= "" then
 								local wound = CreateAEmitter(woundName);

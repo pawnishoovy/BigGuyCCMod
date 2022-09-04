@@ -1915,7 +1915,6 @@ function Update(self)
 					end				
 				
 					self:RemoveNumberValue("Blocked Heavy");
-					self.heavyBlockAddSound:Play(self.Pos);
 					self.baseRotation = self.baseRotation - (math.random(25, 35) * -1)
 				end
 				

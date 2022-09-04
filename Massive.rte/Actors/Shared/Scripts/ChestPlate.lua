@@ -33,9 +33,9 @@ function Update(self)
 		if strengthCheck > 10 then
 			self:RemoveWounds((self.WoundCount - self.oldWoundCount) / 2)
 		end
-		print(self.WoundCount)
-		print(strengthCheck)
-		print(self.actualGibWoundLimit)
+	--	print(self.WoundCount)
+	--	print(strengthCheck)
+	--	print(self.actualGibWoundLimit)
 		if strengthCheck > 1 and self.WoundCount > self.actualGibWoundLimit then
 			self:GibThis();
 		end

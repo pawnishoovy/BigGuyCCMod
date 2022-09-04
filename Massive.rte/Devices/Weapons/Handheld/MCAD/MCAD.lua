@@ -1,7 +1,13 @@
 function OnReload(self)
 
-	if not self.roundLocked then
-		self:RemoveNumberValue("Switched")
+	if self.spentRound then
+		-- Switched magically turns itself back on for some reason so tell it here to disable itself before it acts
+		
+		-- new info: it magically turns itself back on because the Reload function in the pie menu is actually before the
+		-- value setting... i could remove this and fix it, but time is precious and life is short so i wrote this instead
+		
+		self.weirdoFixer = true;
+		self.spentRound = false;
 	end
 	
 end
@@ -15,6 +21,8 @@ function Create(self)
 	end
 	
 	self.Frame = 0;
+	self.roundLocked = true;
+	self.leverCocked = true;
 
 	self.rocketRemoveSound = CreateSoundContainer("Rocket Remove Massive MCAD", "Massive.rte");
 
@@ -98,6 +106,8 @@ function Create(self)
 	self.shoveTimer = Timer();
 	self.shoveCooldown = 1300;
 	
+	self.extraFrameNum = 0
+	
 end
 
 function Update(self)
@@ -154,35 +164,47 @@ function Update(self)
 	end
 	self.lastAge = self.Age + 0
 	
-	self.extraFrameNum = self.switchedDUAP and 4 or 0;
-	
 	if self:IsReloading() then
-		if self.parent and self.reloadPhase > 1 and  self.reloadPhase < 4 then
+		if self.parent and self.reloadPhase > 1 and self.reloadPhase < 4 then
 			self.parent:GetController():SetState(Controller.AIM_SHARP,false);
 		end
 		
+		if self.weirdoFixer == true then
+			self.weirdoFixer = false;
+			if self:NumberValueExists("Switched") then
+				if self:NumberValueExists("DUAP Round") then
+					self.extraFrameNum = 4
+				else
+					self.extraFrameNum = 0
+				end
+				self:RemoveNumberValue("Switched")
+			end
+		end		
+		
 		if self.roundLocked then
 			if self:NumberValueExists("Switched") then
-				self.reloadTimer:Reset();
-				self.afterSoundPlayed = false;
-				self.prepareSoundPlayed = false;
 				self.Frame = 3 + self.extraFrameNum;
 				self.rocketRemoveSound:Play(self.Pos);
-				self.reloadPhase = math.min(self.reloadPhase, 1);
+				if self.reloadPhase ~= 0 then
+					self.reloadPhase = 1
+					self.reloadTimer:Reset();
+					self.afterSoundPlayed = false;
+					self.prepareSoundPlayed = false;
+				end
 				if self:NumberValueExists("DUAP Round") then
 					local shell = CreateMOSRotating("Massive MCAD Inert HE");
-					shell.Pos = self.Pos + Vector(16, -1):RadRotate(self.RotAngle);
+					shell.Pos = self.Pos + Vector(16*self.FlipFactor, -1):RadRotate(self.RotAngle);
 					shell.Vel = Vector(2*self.FlipFactor, 0):RadRotate(self.RotAngle);
 					shell.HFlipped = self.HFlipped;
 					MovableMan:AddParticle(shell);
-					self.switchedDUAP = true;
+					self.extraFrameNum = 4
 				else
 					local shell = CreateMOSRotating("Massive MCAD Inert DUAP");
-					shell.Pos = self.Pos + Vector(16, -1):RadRotate(self.RotAngle);
+					shell.Pos = self.Pos + Vector(16*self.FlipFactor, -1):RadRotate(self.RotAngle);
 					shell.Vel = Vector(2*self.FlipFactor, 0):RadRotate(self.RotAngle);
 					shell.HFlipped = self.HFlipped;
 					MovableMan:AddParticle(shell);		
-					self.switchedDUAP = false;					
+					self.extraFrameNum = 0				
 				end
 				
 				self:RemoveNumberValue("Switched")
@@ -424,6 +446,7 @@ function Update(self)
 		self.angVel = self.angVel - RangeRand(0,1) * 6
 		
 		self.Frame = 3 + self.extraFrameNum;
+		self.spentRound = true;
 		self.roundLocked = false;
 		self.leverCocked = false;
 		
