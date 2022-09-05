@@ -1,4 +1,22 @@
+function OnAttach(self)
+
+	if self:GetRootParent() and self:GetRootParent().PresetName == "Massive" or self:GetRootParent().PresetName == "Zedmassive" then
+		self.equippedByMassive = true;
+	else
+		self.equippedByMassive = false;
+	end
+
+end
+
 function Create(self)
+
+	if self:GetRootParent() and self:GetRootParent().PresetName == "Massive" or self:GetRootParent().PresetName == "Zedmassive" then
+		self.equippedByMassive = true;
+	else
+		self.equippedByMassive = false;
+	end
+
+	self.chargingHitSound = CreateSoundContainer("ChargingHit Roundshield Massive", "Massive.rte");
 
 	self.expandSound = CreateSoundContainer("Expand Roundshield Massive", "Massive.rte");
 	self.retractSound = CreateSoundContainer("Retract Roundshield Massive", "Massive.rte");
@@ -7,6 +25,8 @@ function Create(self)
 
 	self.satisfyingAddSound = CreateSoundContainer("SatisfyingAdd Roundshield Massive", "Massive.rte");
 	self.satisfyingAddIndoorsSound = CreateSoundContainer("SatisfyingAddIndoors Roundshield Massive", "Massive.rte");
+	
+	self.shotgunBoomSound = CreateSoundContainer("Boom Homage", "Massive.rte");
 	
 	self.coreBassSound = CreateSoundContainer("CoreBass Roundshield Massive", "Massive.rte");
 	
@@ -42,8 +62,29 @@ function Create(self)
 	
 	self.shotsTaken = 0
 	
+	self.rotation = 0
+	self.rotationTarget = 0
+	self.rotationSpeed = 9
+	
+	self.horizontalAnim = 0
+	self.verticalAnim = 0
+	
+	self.angVel = 0
+	self.lastRotAngle = (self.RotAngle + self.InheritedRotAngleOffset)
+	
+	self.originalSharpLength = self.SharpLength
+	
+	self.originalJointOffset = Vector(self.JointOffset.X, self.JointOffset.Y)
+	self.originalStanceOffset = Vector(math.abs(self.StanceOffset.X), self.StanceOffset.Y)
+	self.originalSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y)
+	
+	self.shoveTimer = Timer();
+	self.shoveCooldown = 750;
+	
 end
 function Update(self)
+
+	self.rotationTarget = 0;
 
 	self.expandSound.Pos = self.Pos;
 	self.retractSound.Pos = self.Pos;
@@ -69,6 +110,10 @@ function Update(self)
 		local strengthCheck = self.WoundCount - self.oldWoundCount;
 		self.newWoundsThisFrame = strengthCheck
 		self.shotsTaken = self.shotsTaken + self.newWoundsThisFrame
+		if self.charging and self.newWoundsThisFrame > 0 then
+			self.chargingHitSound:Play(self.Pos);
+			self.chargeTimer:Reset();
+		end
 		if strengthCheck < 2 then
 			self.veryWeakHitSound:Play(self.Pos);
 			if math.random(0, 100) < 70 then
@@ -97,10 +142,11 @@ function Update(self)
 	
 	self.oldWoundCount = self.WoundCount;
 	
-	if self.coolDown ~= true and self:IsActivated() then	
+	if self.coolDown ~= true and self.parent and self:IsActivated() then	
 		if self.charging == false then		
 			self.charging = true;
 			self.chargeTimer:Reset();		
+			self.shotgunMode = false;
 			self.toRetract = false;
 			self.shotsTaken = 0;		
 
@@ -115,13 +161,32 @@ function Update(self)
 				self.Frame = self.Frame + 1
 				self.animTimer:Reset();
 			end
-		
+			
+			if self.shoveStart then
+			
+				-- shotgun bash mode
+			
+				self.charging = false;
+				self.coolDownTimer:Reset();
+				self.coolDown = true;	
+
+				self.toFire = true;	
+				
+				self.shotgunMode = true;
+			
+				self.delayedFireTimeMS = 525
+				self.delayedAnimTimeMS = 400;
+				
+				self.preSound = CreateSoundContainer("SuccessPre Roundshield Massive", "Massive.rte");
+				
+			end
+
 			if self.chargeTimer:IsPastSimMS(2000) then
 				self.charging = false;
 				self.coolDownTimer:Reset();
 				self.coolDown = true;
 				
-				if self.shotsTaken > 2 then
+				if self.shotsTaken > -1 then
 				
 					self.toFire = true;	
 					
@@ -154,7 +219,7 @@ function Update(self)
 			self.coolDownTimer:Reset();
 			self.coolDown = true;
 			
-			if self.shotsTaken > 2 then
+			if self.shotsTaken > -1 then
 			
 				self.toFire = true;	
 				
@@ -188,7 +253,7 @@ function Update(self)
 		end
 	end
 	
-	if self.coolDown and self.coolDownTimer:IsPastSimMS(700) then
+	if self.coolDown and self.coolDownTimer:IsPastSimMS(800) then
 		self.coolDown = false;
 	end
 
@@ -215,27 +280,75 @@ function Update(self)
 
 			-- fire!
 			
+			self.coolDownTimer:Reset();
 			
-			local shot = CreateMOPixel("Maxav Particle Scripted", "Massive.rte");
-			shot.Pos = self.Pos;
-			shot.Vel = self.Vel + Vector((math.min(160, 85 + 10*self.shotsTaken)) * self.FlipFactor, 0):RadRotate(self.RotAngle);
-			shot.Team = self.Team;
-			shot.IgnoresTeamHits = true;
-			MovableMan:AddParticle(shot);	
-			for i = 1, math.min(35, self.shotsTaken) do
-				local shot = CreateMOPixel("Maxav Particle", "Massive.rte");
+			if self.shotgunMode then
+			
+				-- see above
+				
+				self.shotgunBoomSound:Play(self.Pos);
+				
+				local shot = CreateMOPixel("Pellet Homage Extra", "Massive.rte");
+				shot.Pos = self.MuzzlePos;
+				shot.Vel = self.Vel + Vector(160 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+				shot.Lifetime = shot.Lifetime * math.random(0.4, 0.8);
+				shot.Team = self.Team;
+				shot.IgnoresTeamHits = true;
+				MovableMan:AddParticle(shot);	
+				
+				for i = 1, math.min(35, self.shotsTaken) do
+					local shot = CreateMOPixel("Pellet Homage", "Massive.rte");
+					shot.Pos = self.Pos;
+					shot.Vel = self.Vel + (Vector(160*self.FlipFactor,0) + Vector(RangeRand(-1,1), RangeRand(-6,6))):RadRotate(self.RotAngle)
+					shot.Lifetime = shot.Lifetime * math.random(0.4, 0.8);
+					shot.Team = self.Team;
+					shot.IgnoresTeamHits = true;
+					MovableMan:AddParticle(shot);
+				end	
+				
+				local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
+				shakenessParticle.Pos = self.Pos;
+				shakenessParticle.Mass = 60
+				shakenessParticle.Lifetime = math.min(600, 200 + 75*self.shotsTaken);
+				MovableMan:AddParticle(shakenessParticle);		
+			
+			elseif self.shotsTaken > 0 then
+			
+				-- normal mode
+			
+				local shot = CreateMOPixel("Maxav Particle Scripted", "Massive.rte");
 				shot.Pos = self.Pos;
 				shot.Vel = self.Vel + Vector((math.min(160, 85 + 10*self.shotsTaken)) * self.FlipFactor, 0):RadRotate(self.RotAngle);
 				shot.Team = self.Team;
 				shot.IgnoresTeamHits = true;
-				MovableMan:AddParticle(shot);
-			end	
+				MovableMan:AddParticle(shot);	
+				for i = 1, math.min(35, self.shotsTaken) do
+					local shot = CreateMOPixel("Maxav Particle", "Massive.rte");
+					shot.Pos = self.Pos;
+					shot.Vel = self.Vel + Vector((math.min(160, 85 + 10*self.shotsTaken)) * self.FlipFactor, 0):RadRotate(self.RotAngle);
+					shot.Team = self.Team;
+					shot.IgnoresTeamHits = true;
+					MovableMan:AddParticle(shot);
+				end	
+				
+				local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
+				shakenessParticle.Pos = self.Pos;
+				shakenessParticle.Mass = 60
+				shakenessParticle.Lifetime = math.min(600, 200 + 75*self.shotsTaken);
+				MovableMan:AddParticle(shakenessParticle);		
+				
+			else
 			
-			local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
-			shakenessParticle.Pos = self.Pos;
-			shakenessParticle.Mass = 60
-			shakenessParticle.Lifetime = math.min(600, 200 + 75*self.shotsTaken);
-			MovableMan:AddParticle(shakenessParticle);		
+				-- weak, no shots taken mode
+			
+				local shot = CreateMOPixel("Bullet UltraMag Scripted", "Massive.rte");
+				shot.Pos = self.Pos;
+				shot.Vel = self.Vel + Vector(90 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+				shot.Team = self.Team;
+				shot.IgnoresTeamHits = true;
+				MovableMan:AddParticle(shot);	
+
+			end
 			
 			-- Ground Smoke
 			local maxi = 6
@@ -384,8 +497,6 @@ function Update(self)
 					self.satisfyingAddIndoorsSound:Play(self.Pos);
 				end
 			end		
-			
-			self.satisfyingAddSound:Play(self.Pos);
 		
 		elseif self.delayedFireTimer:IsPastSimMS(self.delayedAnimTimeMS) and not self.toRetract then
 		
@@ -394,8 +505,169 @@ function Update(self)
 		end
 	end
 	
+	-- animation and shoving
+	
+	if self.parent then
+	
+		if self.shoveStart then
+			self.horizontalAnim = 11;
+			self.rotationTarget = 0;
+			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 2) then
+				self.shoveStart = false;
+				self.parent:SetNumberValue("Gun Shove Massive", 1);
+			end
+		elseif self.shoving then
+			self.horizontalAnim = -7;
+			self.rotationTarget = self.rotationTarget + self.shoveRot;
+			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 1.3) then
+				self.shoving = false;
+			end
+			
+			local rayVec = Vector(15 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+			local rayOrigin = self.Pos + Vector(0, 0);
+			
+			--PrimitiveMan:DrawLinePrimitive(rayOrigin, rayOrigin + rayVec,  5);
+			--PrimitiveMan:DrawCirclePrimitive(self.Pos, 3, 5);
+			
+			local moCheck = SceneMan:CastMORay(rayOrigin, rayVec, self.IDToIgnore or self.ID, self.Team, 0, false, 2); -- Raycast		
+			
+			if moCheck and moCheck ~= rte.NoMOID then
+				local rayHitPos = SceneMan:GetLastRayHitPos()
+				local rayHitPos = Vector(rayHitPos.X, rayHitPos.Y);
+				local MO = MovableMan:GetMOFromID(moCheck)
+				
+				local dist = SceneMan:ShortestDistance(self.Pos, rayHitPos, SceneMan.SceneWrapsX)
+							
+				if IsMOSRotating(MO) then
+					--print("HIT BEGIN")
+					if self.shoveDamage == true then
+						self.shoveDamage = false;
+						MO = ToMOSRotating(MO)
+						--print("HIT THE FOLLOWING")
+						--print(MO)
+						--print(MO.UniqueID)
+						--print(MO:GetRootParent())
+						--print(MO:GetRootParent().UniqueID)
+						--print("TABLE NOW CONTAINS")
+						local woundName = MO:GetEntryWoundPresetName()
+						local woundNameExit = MO:GetExitWoundPresetName()
+						local woundOffset = (rayHitPos - MO.Pos):RadRotate(MO.RotAngle * -1.0)
+						
+						local material = MO.Material.PresetName
+						--if crit then
+						--	woundName = woundNameExit
+						--end
+						
+						if self.equippedByMassive then
+							if IsAttachable(MO) and ToAttachable(MO):IsAttached() then
+								if MO:IsDevice() and math.random(0, 100) >= 90 then
+									ToAttachable(MO):RemoveFromParent(true, true);
+								end
+								
+								if MO:IsInGroup("Shields") and math.random(0, 100) >= 95 then
+									ToAttachable(MO):RemoveFromParent(true, true);
+								end
+							end
+						end
+						
+						local damage = self.equippedByMassive and 2 or 1;
+						
+						local addWounds = true;
+						
+						local woundsToAdd = damage;
+						
+						-- Hurt the actor, add extra damage
+						local actorHit = MovableMan:GetMOFromID(MO.RootID)
+						if (actorHit and IsActor(actorHit)) then-- and (MO.RootID == moCheck or (not IsAttachable(MO) or string.find(MO.PresetName,"Arm") or string.find(MO,"Leg") or string.find(MO,"Head"))) then -- Apply addational damage			
+						
+							actorHit = ToActor(actorHit)
+							
+							if actorHit.BodyHitSound then
+								actorHit.BodyHitSound:Play(actorHit.Pos)
+							end
+							
+							if self.equippedByMassive then
+								if math.random(0, 100) >= 75 then
+									actorHit.Status = 1;
+								end
+								actorHit.Vel = actorHit.Vel + Vector(5, 0):RadRotate(self.RotAngle);
+							end
+							
+							if (actorHit.Health - (damage * 10)) < 0 then -- bad estimation, but...
+								if math.random(0, 100) < 15 then
+									self.parent:SetNumberValue("Attack Killed", 1); -- celebration!!
+								end
+							elseif math.random(0, 100) < 30 then
+								self.parent:SetNumberValue("Attack Success", 1); -- celebration!!
+							end
+							
+							if IsActor(MO) then -- if we hit torso
+								if MO.WoundCount + woundsToAdd >= MO.GibWoundLimit and math.random(0, 100) < 95 then
+									addWounds = false;
+									addSingleWound = true;
+									ToActor(MO).Health = 0;
+								end
+							end
+							
+							if addWounds == true and woundName and woundName ~= "" then
+								for i = 1, woundsToAdd do
+									MO:AddWound(CreateAEmitter(woundName), woundOffset, true)
+								end
+							elseif addSingleWound == true and woundName and woundName ~= "" then
+								MO:AddWound(CreateAEmitter(woundName), woundOffset, true)
+							end
+
+						elseif woundName and woundName ~= "" then -- generic wound adding for non-actors
+							for i = 1, woundsToAdd do
+								MO:AddWound(CreateAEmitter(woundName), woundOffset, true)
+							end
+						end
+					end
+				end	
+			end
+			
+		end
+	
+		if self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(MassiveSettings.GunShoveHotkey) then
+			self.shoveRot = 0
+			self.shoveTimer:Reset();
+			self.parent:SetNumberValue("Gun Shove Start Massive", 1);
+			self.shoving = true;
+			self.shoveStart = true;
+			self.shoveDamage = true;
+		end	
+	
+		self.horizontalAnim = math.floor(self.horizontalAnim / (1 + TimerMan.DeltaTimeSecs * 24.0) * 1000) / 1000
+		self.verticalAnim = math.floor(self.verticalAnim / (1 + TimerMan.DeltaTimeSecs * 15.0) * 1000) / 1000
+		
+		local stance = Vector()
+		stance = stance + Vector(-1,0) * self.horizontalAnim -- Horizontal animation
+		stance = stance + Vector(0,5) * self.verticalAnim -- Vertical animation
+		
+		self.rotationTarget = self.rotationTarget - (self.angVel * 9)
+		
+		self.rotation = (self.rotation + self.rotationTarget * TimerMan.DeltaTimeSecs * self.rotationSpeed) / (1 + TimerMan.DeltaTimeSecs * self.rotationSpeed)
+		local total = math.rad(self.rotation) * self.FlipFactor
+		
+		self.RotAngle = self.RotAngle + total;
+		-- self.RotAngle = self.RotAngle + total;
+		-- self:SetNumberValue("MagRotation", total);
+		
+		local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
+		local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
+		self.Pos = self.Pos + offsetTotal;
+		
+		self.StanceOffset = Vector(self.originalStanceOffset.X, self.originalStanceOffset.Y) + stance
+		self.SharpStanceOffset = Vector(self.originalSharpStanceOffset.X, self.originalSharpStanceOffset.Y) + stance
+		
+	end
+	
 end
 
 function OnDetach(self)
 	self.parent = nil;
+	
+	self.shoveStart = false;
+	self.shoving = false;	
+	
 end
