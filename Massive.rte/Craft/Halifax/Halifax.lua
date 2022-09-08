@@ -3,6 +3,15 @@ dofile("Base.rte/Constants.lua")
 require("AI/NativeDropShipAI")
 --dofile("Base.rte/Actors/AI/NativeDropShipAI.lua")
 
+function halifaxClamp(value, min, max)
+
+	if value < min then return min
+	elseif value > max then return max
+	else return value
+	end
+	
+end
+
 function Create(self)
 	self.AI = NativeDropShipAI:Create(self)
 	
@@ -31,9 +40,18 @@ function Create(self)
 	self.plummetSoundPlayed = false;
 	self.crashLandSoundPlayed = false;
 	
+	self.Mouse = Vector(self.Pos.X, self.Pos.Y);
+	
 end
 
 function Update(self)
+
+	self.Mouse = Vector(self.Mouse.X + UInputMan:GetMouseMovement(self.Team).X, self.Mouse.Y + UInputMan:GetMouseMovement(self.Team).Y)
+	self.Mouse.X = halifaxClamp(self.Mouse.X, -250, 250);
+	self.Mouse.Y = halifaxClamp(self.Mouse.Y, -250, 250);
+	
+	self.finalPos = self.Pos + self.Mouse
+	self.ViewPoint = self.finalPos
 
 	if self:NumberValueExists("Damage Reaction") then
 		self:RemoveNumberValue("Damage Reaction");

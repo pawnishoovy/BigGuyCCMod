@@ -32,8 +32,8 @@ function Create(self)
 	
 	self.debrisIndoorsSound = CreateSoundContainer("Debris Indoors DualSniper", "Massive.rte");
 
-	self.veryWeakHitSound = CreateSoundContainer("Impact Metal Small Massive", "Massive.rte");
-	self.weakHitSound = CreateSoundContainer("Impact Metal Tight Massive", "Massive.rte");
+	self.veryWeakHitSound = CreateSoundContainer("Impact Metal Solid Massive", "Massive.rte");
+	self.weakHitSound = CreateSoundContainer("Impact Metal Solid Massive", "Massive.rte");
 	self.moderateHitSound = CreateSoundContainer("Impact Metal Solid Massive", "Massive.rte");
 	self.moderatelyStrongHitSound = CreateSoundContainer("Impact Metal Basic Massive", "Massive.rte");
 	self.strongHitSound = CreateSoundContainer("Impact Metal Clang Massive", "Massive.rte");
@@ -186,7 +186,7 @@ function Update(self)
 				self.coolDownTimer:Reset();
 				self.coolDown = true;
 				
-				if self.shotsTaken > -1 then
+				if self.shotsTaken > 0 then
 				
 					self.toFire = true;	
 					
@@ -219,7 +219,7 @@ function Update(self)
 			self.coolDownTimer:Reset();
 			self.coolDown = true;
 			
-			if self.shotsTaken > -1 then
+			if self.shotsTaken > 0 then
 			
 				self.toFire = true;	
 				
@@ -289,7 +289,7 @@ function Update(self)
 				self.shotgunBoomSound:Play(self.Pos);
 				
 				local shot = CreateMOPixel("Pellet Homage Extra", "Massive.rte");
-				shot.Pos = self.MuzzlePos;
+				shot.Pos = self.Pos;
 				shot.Vel = self.Vel + Vector(160 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 				shot.Lifetime = shot.Lifetime * math.random(0.4, 0.8);
 				shot.Team = self.Team;
@@ -312,7 +312,7 @@ function Update(self)
 				shakenessParticle.Lifetime = math.min(600, 200 + 75*self.shotsTaken);
 				MovableMan:AddParticle(shakenessParticle);		
 			
-			elseif self.shotsTaken > 0 then
+			elseif self.shotsTaken > 2 then
 			
 				-- normal mode
 			
@@ -339,7 +339,7 @@ function Update(self)
 				
 			else
 			
-				-- weak, no shots taken mode
+				-- weak, few shots taken mode
 			
 				local shot = CreateMOPixel("Bullet UltraMag Scripted", "Massive.rte");
 				shot.Pos = self.Pos;
@@ -355,7 +355,7 @@ function Update(self)
 			for i = 1, maxi do
 				
 				local effect = CreateMOSRotating("Ground Smoke Particle Small Massive", "Massive.rte")
-				effect.Pos = self.MuzzlePos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
+				effect.Pos = self.Pos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
 				effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / maxi * i + RangeRand(-2,2) / maxi)
 				effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)
 				effect.AirResistance = effect.AirResistance * RangeRand(0.5,0.8)
@@ -378,7 +378,7 @@ function Update(self)
 				local velocity = 110 * RangeRand(0.1, 0.9) * 0.4;
 				
 				local particle = CreateMOSParticle((math.random() * particleSpread) < 6.5 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
-				particle.Pos = self.MuzzlePos
+				particle.Pos = self.Pos
 				particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
 				particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
 				particle.AirThreshold = particle.AirThreshold * 0.5
@@ -392,7 +392,7 @@ function Update(self)
 				local velocity = 110 * RangeRand(0.1, 0.9) * 0.4;
 				
 				local particle = CreateMOSParticle((math.random() * particleSpread) < 10 and "Tiny Smoke Ball 1" or "Small Smoke Ball 1");
-				particle.Pos = self.MuzzlePos
+				particle.Pos = self.Pos
 				particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
 				particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering * 3
 				particle.AirThreshold = particle.AirThreshold * 0.5
@@ -407,7 +407,7 @@ function Update(self)
 				local xSpreadVec = Vector(xSpread * self.FlipFactor * math.random() * -1, 0):RadRotate(self.RotAngle)
 				
 				local particle = CreateMOSParticle("Tiny Smoke Ball 1");
-				particle.Pos = self.MuzzlePos + xSpreadVec
+				particle.Pos = self.Pos + xSpreadVec
 				-- oh LORD
 				particle.Vel = self.Vel + ((Vector(vel.X, vel.Y):RadRotate(math.pi * (math.random(0,1) * 2.0 - 1.0) * 0.5 + math.pi * RangeRand(-1, 1) * 0.15) * RangeRand(0.1, 0.9) * 0.3 + Vector(vel.X, vel.Y):RadRotate(math.pi * RangeRand(-1, 1) * 0.15) * RangeRand(0.1, 0.9) * 0.2) * 0.5) * smokeVelocity;
 				-- have mercy
@@ -423,7 +423,7 @@ function Update(self)
 				local velocity = 110 * RangeRand(0.1, 0.9) * 0.4;
 				
 				local particle = CreateMOSParticle("Side Thruster Blast Ball 1", "Base.rte");
-				particle.Pos = self.MuzzlePos
+				particle.Pos = self.Pos
 				particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
 				particle.Lifetime = particle.Lifetime * RangeRand(0.9, 1.6) * 0.3 * smokeLingering
 				particle.AirThreshold = particle.AirThreshold * 0.5
@@ -439,7 +439,7 @@ function Update(self)
 				local xSpreadVec = Vector(xSpread * self.FlipFactor * math.random() * -1, 0):RadRotate(self.RotAngle)
 				
 				local particle = CreateMOSParticle("Flame Smoke 1 Micro")
-				particle.Pos = self.MuzzlePos + xSpreadVec
+				particle.Pos = self.Pos + xSpreadVec
 				particle.Vel = self.Vel + Vector(velocity * self.FlipFactor,0):RadRotate(self.RotAngle + spread) * smokeVelocity
 				particle.Team = self.Team
 				particle.Lifetime = particle.Lifetime * RangeRand(0.9,1.2) * 0.75 * smokeLingering

@@ -63,8 +63,12 @@ function Update(self)
 			if self.HeatBurning then
 				self.parent.Health = self.parent.Health - 30.0 * TimerMan.DeltaTimeSecs
 				if self.parentHuman then
-					ToArm(self.parent.FGArm).IdleOffset = Vector(30 * RangeRand(0.5, 1), 0):RadRotate(RangeRand(-1, 1) * math.pi * 0.4)
-					ToArm(self.parent.BGArm).IdleOffset = Vector(30 * RangeRand(0.5, 1), 0):RadRotate(RangeRand(-1, 1) * math.pi * 0.4)
+					if self.parent.FGArm then
+						ToArm(self.parent.FGArm).IdleOffset = Vector(30 * RangeRand(0.5, 1), 0):RadRotate(RangeRand(-1, 1) * math.pi * 0.4)
+					end
+					if self.parent.BGArm then
+						ToArm(self.parent.BGArm).IdleOffset = Vector(30 * RangeRand(0.5, 1), 0):RadRotate(RangeRand(-1, 1) * math.pi * 0.4)
+					end
 					self.parent.AngularVel = self.parent.AngularVel + RangeRand(-1, 1) * 90 * TimerMan.DeltaTimeSecs
 				end
 			elseif self.Heat > self.HeatOverheatThreshold then -- Overheat instakill

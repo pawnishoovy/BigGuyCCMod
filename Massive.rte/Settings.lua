@@ -21,7 +21,7 @@ local spacebar, insert, delete, pageup, pagedown;
 	M = 13;	Z = 26;
 
 MassiveSettings.WarcryHotkey = X
-MassiveSettings.GunShoveHotkey = V
+MassiveSettings.GunShoveHotkey = V -- also used for halifax cannon
 MassiveSettings.WeaponAbilitySecondary = H -- for example: sniper laser
 
 
