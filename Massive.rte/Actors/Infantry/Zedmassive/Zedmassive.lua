@@ -53,6 +53,7 @@ function Create(self)
 	Land = CreateSoundContainer("FoleyLand Massive", "Massive.rte"),
 	FallDamage = CreateSoundContainer("FallDamage Massive", "Massive.rte"),
 	Jump = CreateSoundContainer("FoleyJump Massive", "Massive.rte"),
+	SuperJump = CreateSoundContainer("Super Jump Zedmassive", "Massive.rte"),
 	Crouch = CreateSoundContainer("FoleyStandToCrouch Massive", "Massive.rte"),
 	Prone = CreateSoundContainer("FoleyStandToProne Massive", "Massive.rte"),
 	SprintProne = CreateSoundContainer("FoleySprintToProne Massive", "Massive.rte"),
@@ -162,6 +163,11 @@ function Create(self)
 	self.jumpDelay = 500;
 	self.jumpStop = Timer();
 	self.jumpBoostTimer = Timer();
+	
+	-- no jetpack? no problem
+	self.superJumpReady = true
+	self.superJumpTimer = Timer()
+	self.superJumpAIDelay = 6000
 	
 	-- Sprint
 

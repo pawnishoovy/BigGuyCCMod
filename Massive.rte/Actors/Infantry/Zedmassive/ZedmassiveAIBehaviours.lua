@@ -155,6 +155,7 @@ function ZedmassiveAIBehaviours.handleMovement(self)
 			
 				self.movementSounds.Land:Play(self.Pos);
 				self.movementSounds.BassLayer:Play(self.Pos);
+				self.movementSounds.SuperJump:Stop(-1);
 				
 				-- Ground Smoke
 				local maxi = 7
@@ -228,9 +229,9 @@ function ZedmassiveAIBehaviours.handleMovement(self)
 				self.Vel = self.Vel - SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs * 2.8 -- Stop the gravity
 			end
 			if self.controller:IsState(Controller.MOVE_LEFT) == true and not self.jumpBoostTimer:IsPastSimMS(1000) and self.Vel.X > -5 then
-				self.Vel = self.Vel + Vector(-8, 0) * TimerMan.DeltaTimeSecs * 1.0
+				self.Vel = self.Vel + Vector(-20, 0) * TimerMan.DeltaTimeSecs * 1.0
 			elseif self.controller:IsState(Controller.MOVE_RIGHT) == true and not self.jumpBoostTimer:IsPastSimMS(1000) and self.Vel.X < 5 then
-				self.Vel = self.Vel + Vector(8, 0) * TimerMan.DeltaTimeSecs * 1.0
+				self.Vel = self.Vel + Vector(20, 0) * TimerMan.DeltaTimeSecs * 1.0
 			end
 		end
 		if (self:IsPlayerControlled() and self.feetContact[1] == true or self.feetContact[2] == true) and self.jumpStop:IsPastSimMS(100) then
@@ -238,6 +239,7 @@ function ZedmassiveAIBehaviours.handleMovement(self)
 			self.wasInAir = false;
 			if self.Vel.Y > 0 and self.moveSoundTimer:IsPastSimMS(500) then
 				self.movementSounds.Land:Play(self.Pos);
+				self.movementSounds.SuperJump:Stop(-1);
 				
 				-- Ground Smoke
 				local maxi = 7
@@ -300,6 +302,60 @@ function ZedmassiveAIBehaviours.handleMovement(self)
 		self:SetLimbPathSpeed(1, self.limbPathDefaultSpeed1 * self.moveMultiplier);
 		self:SetLimbPathSpeed(2, self.limbPathDefaultSpeed2 * self.moveMultiplier);
 		self.LimbPathPushForce = self.limbPathDefaultPushForce * self.moveMultiplier
+	end
+	
+	--- no jetpack? no problem
+	
+	local superJumping = false
+	if self:IsPlayerControlled() then
+		superJumping = crouching and self.Status == Actor.STABLE and self.controller:IsState(Controller.BODY_JUMPSTART)
+	end
+	
+	self.movementSounds.SuperJump.Pos = self.Pos;
+	self.movementSounds.Jump.Pos = self.Pos;
+	self.movementSounds.FoleySprint.Pos = self.Pos;
+	
+	if superJumping and self.superJumpReady then
+	
+		self.isJumping = true;
+		self.movementSounds.SuperJump:Play(self.Pos);
+		self.movementSounds.Jump:Play(self.Pos);
+		self.movementSounds.FoleySprint:Play(self.Pos);
+		self.movementSounds.SprintStepLeft:Play(self.Pos);
+	
+		local flippedAimAngle = self:GetAimAngle(true);
+		
+		self.Vel = self.Vel + Vector(13, 0):RadRotate(flippedAimAngle)
+		-- make sure we didnt just superjump downwards like some fool
+		self.Vel = Vector(self.Vel.X, math.min(-4, self.Vel.Y))
+		
+		local maxi = 25
+		for i = 1, maxi do
+			
+			local effect = CreateMOSRotating("Ground Smoke Particle Small Massive", "Massive.rte")
+			effect.Pos = self.Pos + Vector(RangeRand(-1,1), RangeRand(-1,1)) * 3
+			effect.Vel = self.Vel + Vector(math.random(90,150),0):RadRotate(math.pi * 2 / maxi * i + RangeRand(-2,2) / maxi)
+			effect.Lifetime = effect.Lifetime * RangeRand(0.5,2.0)
+			effect.AirResistance = effect.AirResistance * RangeRand(0.5,0.8)
+			MovableMan:AddParticle(effect)
+		end
+		
+		local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
+		shakenessParticle.Pos = self.Pos;
+		shakenessParticle.Mass = 25;
+		shakenessParticle.Lifetime = 500;
+		MovableMan:AddParticle(shakenessParticle);
+		
+		self.superJumpReady = false
+		self:SetStableVelocityThreshold(Vector(25, 30))
+		self.superJumpTimer:Reset()
+		self.jumpBoostTimer:Reset();
+		
+	elseif not self.superJumpReady and (self.feetContact[1] == true or self.feetContact[2] == true) and self.superJumpTimer:IsPastSimMS(300) then
+		self.superJumpReady = true
+		self.movementSounds.SuperJump:FadeOut(50);
+		self:SetStableVelocityThreshold(Vector(15, 25))
+
 	end
 
 	if (crouching) then
@@ -1068,19 +1124,23 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 				local rootMO = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
 				if rootMO and rootMO.Team ~= self.Team and IsActor(rootMO) then
 				
-					if IsAttachable(MO) and ToAttachable(MO):IsAttached() and (IsArm(MO) or IsLeg(MO) or (IsAHuman(actorHit) and ToAHuman(actorHit).Head and MO.UniqueID == ToAHuman(actorHit).Head.UniqueID)) then
-						-- two different ways to dismember: 1. if limb is close to being gibbed, dismember it instead 2. low hp and rng
+					if IsAttachable(MO) and ToAttachable(MO):IsAttached() then
 						local attachable = ToAttachable(MO);
-						if attachable.WoundCount + 5 >= attachable.GibWoundLimit then
-							attachable:RemoveFromParent(true, true);
-							self.stickMO = attachable;
-							self.stickMOAngle = attachable.RotAngle - shoveVector.AbsRadAngle;
-						elseif ToActor(rootMO).Health < 20 and math.random(0, 100) < 20 then
-							attachable:RemoveFromParent(true, true);
-							self.stickMO = attachable;
-							self.stickMOAngle = attachable.RotAngle - shoveVector.AbsRadAngle;
+						if (IsArm(MO) or IsLeg(MO) or (IsAHuman(actorHit) and ToAHuman(actorHit).Head and MO.UniqueID == ToAHuman(actorHit).Head.UniqueID)) then
+							-- two different ways to dismember: 1. if limb is close to being gibbed, dismember it instead 2. low hp and rng
+							if attachable.WoundCount + 5 >= attachable.GibWoundLimit then
+								attachable:RemoveFromParent(true, true);
+								self.stickMO = attachable;
+								self.stickMOAngle = attachable.RotAngle - shoveVector.AbsRadAngle;
+							elseif ToActor(rootMO).Health < 20 and math.random(0, 100) < 20 then
+								attachable:RemoveFromParent(true, true);
+								self.stickMO = attachable;
+								self.stickMOAngle = attachable.RotAngle - shoveVector.AbsRadAngle;
+							end
+						elseif IsHeldDevice(MO) then
+							attachable:RemoveFromParent(true, false);
 						end
-					end					
+					end
 				
 					if self.shoveSoundsPlayed == false then -- ought to rename this..
 					

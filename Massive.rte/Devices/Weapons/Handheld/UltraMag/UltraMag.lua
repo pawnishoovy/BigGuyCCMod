@@ -480,7 +480,7 @@ function Update(self)
 			self.Frame = 4;
 		end
 	
-		for i = 1, 5 do
+		for i = 1, 3 do
 			local shot = CreateMOPixel("Bullet UltraMag", "Massive.rte");
 			shot.Pos = self.MuzzlePos + Vector(0.1*i*self.FlipFactor, 0):RadRotate(self.RotAngle);
 			shot.Vel = self.Vel + Vector(140 * self.FlipFactor, 0):RadRotate(self.RotAngle);

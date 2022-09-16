@@ -166,6 +166,12 @@ function Create(self)
 	self.jumpDelay = 500;
 	self.jumpStop = Timer();
 	
+	-- HEAT-like jetpack boost vars
+	self.jumpJetSound = CreateSoundContainer("Jetpack Jumpjet Massive", "Massive.rte");
+	self.boosterReady = true
+	self.boosterTimer = Timer()
+	self.boosterAIDelay = 6000
+	
 	-- Sprint
 
 	self.hitMOTable = {};

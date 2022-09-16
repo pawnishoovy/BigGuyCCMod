@@ -288,6 +288,57 @@ function MassiveAIBehaviours.handleMovement(self)
 		self:SetLimbPathSpeed(2, self.limbPathDefaultSpeed2 * self.moveMultiplier);
 		self.LimbPathPushForce = self.limbPathDefaultPushForce * self.moveMultiplier
 	end
+	
+	--- HEAT-like jetpack boost
+	
+	if self.Jetpack then	
+		
+		local boosting = false
+		if self:IsPlayerControlled() then
+			boosting = crouching and self.controller:IsState(Controller.BODY_JUMPSTART)
+		elseif self.boosterTimer:IsPastSimMS(self.boosterAIDelay) then
+			boosting = self.controller:IsState(Controller.BODY_JUMPSTART) and SceneMan:ShortestDistance(self.Pos,self:GetLastAIWaypoint(),SceneMan.SceneWrapsX).Y < -5
+		end
+		
+		self.jumpJetSound.Pos = self.Jetpack.Pos;
+		
+		if boosting and self.boosterReady then
+		
+			self.isJumping = true;
+			self.jumpJetSound:Play(self.Pos);
+			
+			self.Vel = Vector(self.Vel.X, self.Vel.Y):RadRotate(-self.RotAngle)
+			self.Vel = Vector(self.Vel.X, self.Vel.Y * 0.5)
+			self.Vel = Vector(self.Vel.X, self.Vel.Y):RadRotate(self.RotAngle)
+			
+			self.Vel = self.Vel + Vector(0, -10):RadRotate(self.RotAngle)
+			self.boosterReady = false
+			
+			self.boosterTimer:Reset()
+			
+			local offset = Vector(-5, 10)--Vector(self.Jetpack.EmissionOffset.X, self.Jetpack.EmissionOffset.Y)
+			
+			local emitterA = CreateAEmitter("Cyborg Jetpack Smoke Trail Medium")
+			emitterA.Lifetime = 1300
+			self.Jetpack:AddAttachable(emitterA);
+			
+			ToAttachable(emitterA).ParentOffset = offset
+			
+			local emitterB = CreateAEmitter("Cyborg Jetpack Smoke Trail Heavy")
+			emitterB.Lifetime = 400
+			self.Jetpack:AddAttachable(emitterB);
+			
+			ToAttachable(emitterB).ParentOffset = offset
+			
+		elseif not self.boosterReady and (self.feetContact[1] == true or self.feetContact[2] == true) and self.boosterTimer:IsPastSimMS(300) then
+			self.boosterReady = true
+			for attachable in self.Jetpack.Attachables do
+				if attachable.ClassName == "AEmitter" and string.find(attachable.PresetName,"Smoke Trail") then
+					attachable.ToDelete = true
+				end
+			end
+		end
+	end
 
 	if (crouching) then
 		if (not self.wasCrouching and self.moveSoundTimer:IsPastSimMS(600)) then
