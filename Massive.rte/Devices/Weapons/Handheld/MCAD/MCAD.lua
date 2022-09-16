@@ -702,6 +702,13 @@ function Update(self)
 
 end
 
+function OnDetach(self)
+
+	self.delayedFirstShot = true;
+	self:DisableScript("Massive.rte/Devices/Weapons/Handheld/MCAD/MCAD.lua");
+
+end
+
 function OnPieMenu(item)
 	if item and IsHDFirearm(item) and item.PresetName == "MCAD" then
 		item = ToHDFirearm(item);
