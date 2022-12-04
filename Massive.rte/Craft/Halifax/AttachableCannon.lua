@@ -9,10 +9,18 @@ end
 
 function Create(self)
 
-	self.debugChargeSound = CreateSoundContainer("cannondebug Halifax Massive", "Massive.rte");
-	self.debugFireSound = CreateSoundContainer("Boom Homage", "Massive.rte");
-
-	self.rattleEndSound = CreateSoundContainer("Turret Rattle End Halifax Massive", "Massive.rte");
+	self.chargeSound = CreateSoundContainer("Charge Halifax Cannon", "Massive.rte");
+	self.preCrackSound = CreateSoundContainer("PreCrack Halifax Cannon", "Massive.rte");
+	
+	self.addSound = CreateSoundContainer("Add Halifax Cannon", "Massive.rte");
+	self.coreBassSound = CreateSoundContainer("CoreBass Halifax Cannon", "Massive.rte");
+	self.mechSound = CreateSoundContainer("Mech Halifax Cannon", "Massive.rte");
+	self.noiseSound = CreateSoundContainer("Noise Halifax Cannon", "Massive.rte");
+	
+	self.reflectionSound = CreateSoundContainer("Reflection Halifax Cannon", "Massive.rte");
+	self.electricReflectionSound = CreateSoundContainer("ElectricReflection Halifax Cannon", "Massive.rte");
+	
+	self.reloadSound = CreateSoundContainer("Reload Halifax Cannon", "Massive.rte");
 
 	self.turnSpeed = 0.015;	--Speed of the turret turning, in rad per frame
 	self.searchRange = 500;	--Detection area diameter or max ray distance to search enemies from, in px
@@ -30,6 +38,7 @@ function Create(self)
 	
 	self.coolDownTimer = Timer();
 	
+	self.magazine = 0;
 	self.reloadTimer = Timer();
 	
 	
@@ -38,6 +47,12 @@ function Create(self)
 	
 end
 function Update(self)
+
+	self.chargeSound.Pos = self.Pos;
+	self.preCrackSound.Pos = self.Pos;
+	self.addSound.Pos = self.Pos;
+	self.mechSound.Pos = self.Pos;
+	self.reloadSound.Pos = self.Pos;
 
 	local parent = ToActor(self:GetRootParent());
 	if parent then
@@ -50,7 +65,19 @@ function Update(self)
 			
 			self.finalPos = self.Pos + self.Mouse
 			parent.ViewPoint = self.finalPos
-			PrimitiveMan:DrawCirclePrimitive(self.finalPos, 3, 5)
+			local player = parent:GetController().Team
+			local cursorPos = self.finalPos
+			local cursorSize = 15
+			PrimitiveMan:DrawCirclePrimitive(player, cursorPos, cursorSize, 122)
+			PrimitiveMan:DrawLinePrimitive(player, cursorPos + Vector(0, -cursorSize * 0.5), cursorPos + Vector(0, cursorSize * 0.5), 122);
+			PrimitiveMan:DrawLinePrimitive(player, cursorPos + Vector(-cursorSize * 0.5, 0), cursorPos + Vector(cursorSize * 0.5, 0), 122);
+			
+			
+			if self.reloading then
+				PrimitiveMan:DrawTextPrimitive(player, cursorPos + Vector(0, -30), "RELOADING", true, 1)
+			elseif not self.coolDownTimer:IsPastSimMS(2500) then
+				PrimitiveMan:DrawTextPrimitive(player, cursorPos + Vector(0, -30), "COOLING DOWN", true, 1)
+			end
 			
 			if UInputMan:KeyPressed(MassiveSettings.GunShoveHotkey) then
 				self.toFire = true;
@@ -133,6 +160,20 @@ function Update(self)
 			end
 			
 		end
+		if self.magazine > 0 then
+		else
+			self.toFire = false;
+			if not self.reloading then
+				self.reloading = true;
+				self.reloadSound:Play(self.Pos);
+				self.reloadTimer:Reset();
+			end
+			
+			if self.reloadTimer:IsPastSimMS(7600) then
+				self.reloading = false;
+				self.magazine = 3;
+			end
+		end
 	end
 	
 	if self.toFire and self.coolDownTimer:IsPastSimMS(2500) then
@@ -140,7 +181,9 @@ function Update(self)
 		
 			self.activated = true	
 			
-			self.debugChargeSound:Play(self.Pos);
+			self.chargeSound:Play(self.Pos);
+			
+			self.preCrackToPlay = true;
 			
 			self.delayedFire = true
 			self.delayedFireTimer:Reset()
@@ -159,15 +202,19 @@ function Update(self)
 
 			-- fire!
 			
+			self.magazine = self.magazine - 1;
+			
 			self.coolDownTimer:Reset();
 			
-			local shot = CreateMOPixel("Maxav Particle Scripted", "Massive.rte");
+			local shot = CreateMOSRotating("Duford155 Shot", "Massive.rte");
 			shot.Pos = self.Pos + Vector(15 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 			shot.Vel = self.Vel + Vector(153 + math.random(0, 7) * self.FlipFactor, 0):RadRotate(self.RotAngle);
 			shot.Team = self.Team;
 			shot.IgnoresTeamHits = true;
-			MovableMan:AddParticle(shot);	
-			for i = 1, 45 do
+			shot.Sharpness = self.UniqueID;
+			MovableMan:AddParticle(shot);
+			
+			for i = 1, 25 do
 				local shot = CreateMOPixel("Maxav Particle", "Massive.rte");
 				shot.Pos = self.Pos + Vector(15 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 				shot.Vel = self.Vel + Vector(153 + math.random(0, 7) * self.FlipFactor, 0):RadRotate(self.RotAngle);
@@ -318,14 +365,24 @@ function Update(self)
 				end
 			end
 			
-			self.debugFireSound:Play(self.Pos);
+			self.addSound:Play(self.Pos);
+			self.coreBassSound:Play(self.Pos);
+			self.noiseSound:Play(self.Pos);
+			self.mechSound:Play(self.Pos);
 			
 			if outdoorRays >= self.rayThreshold then
+				print("aye")
+			
+				self.reflectionSound:Play(self.Pos);
+				self.electricReflectionSound:Play(self.Pos);
 
 			else	
 
 			end		
 			
+		elseif self.delayedFireTimer:IsPastSimMS(1250) and self.preCrackToPlay then
+			self.preCrackToPlay = false;
+			self.preCrackSound:Play(self.Pos);
 		end
 	end	
 	

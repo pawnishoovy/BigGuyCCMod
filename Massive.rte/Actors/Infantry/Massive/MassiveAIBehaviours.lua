@@ -318,13 +318,13 @@ function MassiveAIBehaviours.handleMovement(self)
 			
 			local offset = Vector(-5, 10)--Vector(self.Jetpack.EmissionOffset.X, self.Jetpack.EmissionOffset.Y)
 			
-			local emitterA = CreateAEmitter("Cyborg Jetpack Smoke Trail Medium")
+			local emitterA = CreateAEmitter("Massive Jetpack Smoke Trail Medium")
 			emitterA.Lifetime = 1300
 			self.Jetpack:AddAttachable(emitterA);
 			
 			ToAttachable(emitterA).ParentOffset = offset
 			
-			local emitterB = CreateAEmitter("Cyborg Jetpack Smoke Trail Heavy")
+			local emitterB = CreateAEmitter("Massive Jetpack Smoke Trail Heavy")
 			emitterB.Lifetime = 400
 			self.Jetpack:AddAttachable(emitterB);
 			

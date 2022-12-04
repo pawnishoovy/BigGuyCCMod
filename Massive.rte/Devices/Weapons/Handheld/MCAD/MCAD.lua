@@ -46,10 +46,10 @@ function Create(self)
 	
 	self.reloadPrepareDelay = {}
 	self.reloadPrepareDelay.Raise = 345
-	self.reloadPrepareDelay.RocketIn = 450
+	self.reloadPrepareDelay.RocketIn = 700
 	self.reloadPrepareDelay.RocketLock = 230
 	self.reloadPrepareDelay.Cock = 800
-	self.reloadPrepareDelay.Lower = 700
+	self.reloadPrepareDelay.Lower = 1000
 	
 	self.reloadAfterSounds = {}
 	self.reloadAfterSounds.Raise = CreateSoundContainer("Raise Massive MCAD", "Massive.rte");
@@ -61,9 +61,9 @@ function Create(self)
 	self.reloadAfterDelay = {}
 	self.reloadAfterDelay.Raise = 1000
 	self.reloadAfterDelay.RocketIn = 600
-	self.reloadAfterDelay.RocketLock = 350
+	self.reloadAfterDelay.RocketLock = 450
 	self.reloadAfterDelay.Cock = 450
-	self.reloadAfterDelay.Lower = 500
+	self.reloadAfterDelay.Lower = 700
 	
 	self.reloadTimer = Timer();
 	
@@ -75,7 +75,7 @@ function Create(self)
 	
 	self.rotation = 0
 	self.rotationTarget = 0
-	self.rotationSpeed = 4
+	self.rotationSpeed = 3
 	
 	self.horizontalAnim = 0
 	self.verticalAnim = 0
@@ -259,7 +259,7 @@ function Update(self)
 			self.prepareSoundLength = self.reloadPrepareLengths.Cock;
 			self.afterSound = self.reloadAfterSounds.Cock;
 			
-			self.rotationTarget = 25;
+			self.rotationTarget = 40;
 			
 		elseif self.reloadPhase == 4 then
 			self.reloadDelay = self.reloadPrepareDelay.Lower;
@@ -287,9 +287,9 @@ function Update(self)
 			
 			if self.reloadPhase == 0 then
 			
-				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2)) then
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4.5)) then
 					self.reloadingVector = Vector(4, 7);
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.5)) then
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*3.5)) then
 					self.reloadingVector = Vector(2, 3);
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1)) then
 					self.reloadingVector = Vector(0, 0);
@@ -318,13 +318,13 @@ function Update(self)
 			
 			elseif self.reloadPhase == 4 then
 			
-				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*3)) then
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4.5)) then
 					self.reloadingVector = Vector(3, -1);
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2.5)) then
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4)) then
 					self.reloadingVector = Vector(3, 0);
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2)) then
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*3)) then
 					self.reloadingVector = Vector(3, 2);
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.5)) then
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2)) then
 					self.reloadingVector = Vector(3, 4);
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1)) then
 					self.reloadingVector = Vector(5, 7);

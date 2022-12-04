@@ -1036,6 +1036,7 @@ function ArmageddonMusicScript:UpdateScript()
 					self.MUSIC_STATE = "Comedown";
 				else
 					-- if we lack a comedown go right into the Main instead (should never happen?) (note: happens for rip and tear)
+					self.Intensity = self.desiredIntensity
 					self.MUSIC_STATE = "Main";
 					loopTable = self.currentTune.typeTables[self.Intensity].Loops;
 					index = ArmageddonMusicFunctions.selectPossibleLoops(self, loopTable);
