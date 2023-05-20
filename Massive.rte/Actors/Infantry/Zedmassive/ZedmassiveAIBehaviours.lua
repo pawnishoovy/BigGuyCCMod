@@ -1264,7 +1264,7 @@ function ZedmassiveAIBehaviours.DoArmSway(self, pushStrength)
 						elseif dirtPixels > 8 then
 							self.stoneTossCheckTime = 200;
 							self.grabbingStone = true;
-							self.grabStoneType = "	Dirt";
+							self.grabStoneType = "Dirt";
 							self.grabStonePhase = "Initial";
 							self.grabStoneAngle = aimAngle;
 						elseif snowPixels > 4 then

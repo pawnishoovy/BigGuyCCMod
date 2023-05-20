@@ -38,7 +38,7 @@ function Create(self)
 	
 	self.coolDownTimer = Timer();
 	
-	self.magazine = 0;
+	self.magazine = 3;
 	self.reloadTimer = Timer();
 	
 	
@@ -47,6 +47,8 @@ function Create(self)
 	
 end
 function Update(self)
+
+	self:EnableEmission(false)
 
 	self.chargeSound.Pos = self.Pos;
 	self.preCrackSound.Pos = self.Pos;
@@ -60,8 +62,8 @@ function Update(self)
 			-- manual mode
 			
 			self.Mouse = Vector(self.Mouse.X + UInputMan:GetMouseMovement(self.Team).X, self.Mouse.Y + UInputMan:GetMouseMovement(self.Team).Y)
-			self.Mouse.X = halifaxClamp(self.Mouse.X, -250, 250);
-			self.Mouse.Y = halifaxClamp(self.Mouse.Y, -250, 250);
+			self.Mouse.X = halifaxClamp(self.Mouse.X, -350, 350);
+			self.Mouse.Y = halifaxClamp(self.Mouse.Y, -10, 250);
 			
 			self.finalPos = self.Pos + self.Mouse
 			parent.ViewPoint = self.finalPos
@@ -199,6 +201,9 @@ function Update(self)
 			self.delayedFire = false
 			self.toFire = false;
 			self.aiToFire = false;
+			
+			self:TriggerBurst();
+			self:EnableEmission(true);
 
 			-- fire!
 			
@@ -371,7 +376,6 @@ function Update(self)
 			self.mechSound:Play(self.Pos);
 			
 			if outdoorRays >= self.rayThreshold then
-				print("aye")
 			
 				self.reflectionSound:Play(self.Pos);
 				self.electricReflectionSound:Play(self.Pos);

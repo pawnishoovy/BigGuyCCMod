@@ -13,7 +13,7 @@ function halifaxClamp(value, min, max)
 end
 
 function Create(self)
-	self.AI = NativeDropShipAI:Create(self)
+	--self.AI = NativeDropShipAI:Create(self)
 	
 	self.Frame = 1; -- buy menu
 	
@@ -159,9 +159,9 @@ function OnCollideWithTerrain(self)
 	
 end
 
-function UpdateAI(self)
-	self.AI:Update(self)
-end
+--function UpdateAI(self)
+--	self.AI:Update(self)
+--end
 
 function Destroy(self)
 
