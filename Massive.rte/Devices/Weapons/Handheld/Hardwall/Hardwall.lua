@@ -56,7 +56,7 @@ function Create(self)
 	
 	self.reloadPhase = 0;
 	
-	self.ReloadTime = 5000;
+	self.BaseReloadTime = 5000;
 
 	self.parentSet = false;
 	
@@ -283,7 +283,7 @@ function Update(self)
 				self.prepareSoundPlayed = false;
 				self.afterSoundPlayed = false;
 				if self.reloadPhase == 2 then
-					self.ReloadTime = 0;
+					self.BaseReloadTime = 0;
 					self.reloadPhase = 0;
 					self.phaseOnStop = 0;
 					self.satisfyingFactor = math.max(0, self.satisfyingFactor - 0.4);
@@ -311,7 +311,7 @@ function Update(self)
 		self.reloadTimer:Reset();
 		self.prepareSoundPlayed = false;
 		self.afterSoundPlayed = false;
-		self.ReloadTime = 5000;
+		self.BaseReloadTime = 5000;
 	end
 	
 	if self:DoneReloading() then

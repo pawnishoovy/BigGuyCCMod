@@ -68,7 +68,7 @@ function Create(self)
 	
 	self.reloadPhase = 0;
 	
-	self.ReloadTime = 9900;
+	self.BaseReloadTime = 9900;
 	
 	self.environmentCheckTimer = Timer();
 	self.environmentCheckDelay = 350;
@@ -336,7 +336,7 @@ function Update(self)
 					self.magRemoved = false;
 					self.magInserted = false;
 					self.beltInserted = false;
-					self.ReloadTime = 0;
+					self.BaseReloadTime = 0;
 					self.reloadPhase = 0;
 					self.reloadingVector = nil;
 				else
@@ -355,7 +355,7 @@ function Update(self)
 		self.reloadTimer:Reset();
 		self.prepareSoundPlayed = false;
 		self.afterSoundPlayed = false;
-		self.ReloadTime = 9900;
+		self.BaseReloadTime = 9900;
 	end
 	
 	self.frameNum = self.frameNum + (TimerMan.DeltaTimeSecs * self.frameChangeFactor)

@@ -67,7 +67,7 @@ function Create(self)
 	
 	self.reloadPhase = 0;
 	
-	self.ReloadTime = 12000;
+	self.BaseReloadTime = 12000;
 
 	self.parentSet = false;
 	
@@ -360,7 +360,7 @@ function Update(self)
 					self.drumInserted = false;
 					self.beltInserted = false;
 					self.coverClosed = false;
-					self.ReloadTime = 0;
+					self.BaseReloadTime = 0;
 					self.reloadPhase = 0;
 					self.reloadingVector = nil;
 				else
@@ -381,7 +381,7 @@ function Update(self)
 		self.reloadTimer:Reset();
 		self.prepareSoundPlayed = false;
 		self.afterSoundPlayed = false;
-		self.ReloadTime = 12000;
+		self.BaseReloadTime = 12000;
 	end
 	
 	if self:DoneReloading() or self:IsReloading() then

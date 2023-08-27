@@ -70,7 +70,7 @@ function Create(self)
 	self.Locked = true;
 	self.Loaded = true;
 	
-	self.ReloadTime = 15000;
+	self.BaseReloadTime = 15000;
 
 end
 
@@ -113,12 +113,12 @@ function Update(self)
 					self.phaseOnStop = nil;
 				end
 				
-				self.ReloadTime = 15000;
+				self.BaseReloadTime = 15000;
 			
 				self:Deactivate();										--Deactivate a bunch of stuff
 				self.parent:SetAimAngle((-0.3 + self.parent.RotAngle))
 				self.Perceptiveness = self.originalPerceptiveness
-				self.ReloadTime = 999999
+				self.BaseReloadTime = 999999
 				
 				if self.parent:GetController().InputMode ~= Controller.CIM_DISABLED then
 					self.parent:SetControllerMode(Controller.CIM_DISABLED , self.parent:GetController().Player);
@@ -239,7 +239,7 @@ function Update(self)
 							self.prepareSoundPlayed = false;
 							
 							if self.reloadPhase == 2 then
-								self.ReloadTime = 0;
+								self.BaseReloadTime = 0;
 								self.reloadPhase = 0;
 								self.phaseOnStop = nil;
 								
@@ -268,7 +268,7 @@ function Update(self)
 						self.phaseOnStop = nil;
 					end
 					
-					self.ReloadTime = 15000;
+					self.BaseReloadTime = 15000;
 					
 				end
 				

@@ -39,7 +39,7 @@ function Create(self)
 	
 	self.reloadPhase = 0;
 	
-	self.ReloadTime = 5000;
+	self.BaseReloadTime = 5000;
 
 	self.parentSet = false;
 	
@@ -282,35 +282,8 @@ function Update(self)
 						self.reloadPhase = 1;
 					end
 				elseif self.reloadPhase == 1 or self.reloadPhase == 2 then
-					local isOffhand = ToAHuman(self.parent).BGArm and self:GetParent().UniqueID == ToAHuman(self.parent).BGArm.UniqueID
 					
-					local oppositeHand;
-					if isOffhand then
-						oppositeHand = ToAHuman(self.parent).EquippedItem;
-					else
-						oppositeHand = ToAHuman(self.parent).EquippedBGItem;
-					end
-					if oppositeHand then
-						if (not IsHDFirearm(oppositeHand))
-						or (ToHDFirearm(oppositeHand).RoundInMagCount == 0)
-						or not oppositeHand.PresetName == "RINOBI Ultra-Mag" then
-							oppositeHand = nil;
-							self.lone = true;
-						elseif self.offHand == 1 and isOffhand then
-							self.lone = false;
-						elseif self.lone == true and self.offHand == 1 and not isOffhand then
-							self.offHand = 0;
-							self.lone = false;
-						end
-					else
-						self.lone = true;
-					end
-
-					if oppositeHand then
-						ToMOSRotating(oppositeHand):SetNumberValue("Force Opposite Hand Update", 1);
-					end
-					
-					self.ReloadTime = 0;
+					self.BaseReloadTime = 0;
 					self.reloadPhase = 0;
 					self.phaseOnStop = 0;
 					self.reloadingVector = nil;
@@ -334,7 +307,7 @@ function Update(self)
 		self.reloadTimer:Reset();
 		self.prepareSoundPlayed = false;
 		self.afterSoundPlayed = false;
-		self.ReloadTime = 5000;
+		self.BaseReloadTime = 5000;
 		-- SLIDE animation when firing
 		-- don't ask, math magic
 		if self.Magazine and self.Magazine.RoundCount < 1 or not self.Magazine then
@@ -364,94 +337,14 @@ function Update(self)
 	end
 
 	if self.parent and self.delayedFirstShot == true then
-		local isOffhand = ToAHuman(self.parent).BGArm and self:GetParent().UniqueID == ToAHuman(self.parent).BGArm.UniqueID
-	
-		-- what a mess
-		
-		if self:NumberValueExists("Force BG Hand Set") then
-			self:RemoveNumberValue("Force BG Hand Set");
-			self.offHand = 0;
-			fire = false;
-		end
-		
-		if self:NumberValueExists("Force Opposite Hand Update") then
-			self:RemoveNumberValue("Force Opposite Hand Update");
-			if isOffhand then
-				oppositeHand = ToAHuman(self.parent).EquippedItem;
-			else
-				oppositeHand = ToAHuman(self.parent).EquippedBGItem;
-			end
-			if oppositeHand then
-				if (not IsHDFirearm(oppositeHand))
-				or (ToHDFirearm(oppositeHand).RoundInMagCount == 0)
-				or not oppositeHand.PresetName == "RINOBI Ultra-Mag" then
-					oppositeHand = nil;
-					self.lone = true;
-				elseif self.offHand == 1 and isOffhand then
-					self.lone = false;
-				elseif self.lone == true and self.offHand == 1 and not isOffhand then
-					self.offHand = 0;
-					self.lone = false;
-				end
-			else
-				self.lone = true;
-			end
-			
-			self.offHand = -1;
-			
-		end
-		
-		if self.offHand == -1 then
-			self.offHand = (isOffhand and 1 or 0)
-		elseif fire then
-			local oppositeHand;
-			if isOffhand then
-				oppositeHand = ToAHuman(self.parent).EquippedItem;
-			else
-				oppositeHand = ToAHuman(self.parent).EquippedBGItem;
-			end
-			if oppositeHand then
-				if (not IsHDFirearm(oppositeHand))
-				or (ToHDFirearm(oppositeHand).RoundInMagCount == 0)
-				or oppositeHand.PresetName ~= "RINOBI Ultra-Mag" then
-					oppositeHand = nil;
-					self.lone = true;
-				elseif self.offHand == 1 and isOffhand then
-					self.lone = false;
-				elseif self.lone == true and self.offHand == 1 and not isOffhand then
-					self.offHand = 0;
-					self.lone = false;
-				end
-			else
-				self.lone = true;
-			end
-			if self.offHand == 0 or not oppositeHand then
-				if oppositeHand and self.lone then
-					self.lone = false;
-					if isOffhand then -- main hand will be expecting us not to fire if it just got here
-						self.offHand = (self.offHand + 1) % 2
-						fire = false;
-					end
-				end
-				self.delayedFirstShot = false;
-			else
-				if not self.lone then
-					fire = false;
-				end
-				self.delayedFirstShot = false;
-			end
-			self.offHand = (self.offHand + 1) % 2
-		end
 			
 		--if self.parent:GetController():IsState(Controller.WEAPON_FIRE) and not self:IsReloading() then
 		if fire and not self:IsReloading() then
+			self.delayedFirstShot = false;
 			if not self.Magazine or self.Magazine.RoundCount < 1 then
 				--self:Reload()
 				self:Activate()
 			elseif not self.activated and not self.delayedFire and self.fireDelayTimer:IsPastSimMS(1 / (self.RateOfFire / 60) * 1000) then
-				if not isOffhand and MovableMan:ValidMO(oppositeHand) then
-					ToMOSRotating(oppositeHand):SetNumberValue("Force BG Hand Set", 1);
-				end
 				self.activated = true
 				
 				self.preSound:Play(self.Pos);

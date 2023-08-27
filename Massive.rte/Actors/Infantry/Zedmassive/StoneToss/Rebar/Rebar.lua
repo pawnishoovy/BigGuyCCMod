@@ -1413,10 +1413,6 @@ function Create(self)
 end
 
 function Update(self)
-
-	if UInputMan:KeyPressed(38) then
-		self:ReloadScripts();
-	end
 	
 	self:RemoveStringValue("Blocked Mordhau")
 
@@ -1461,10 +1457,10 @@ function Update(self)
 		local activated
 		if self.parriedCooldown == false then
 			if player then
-				throw = (player and UInputMan:KeyPressed(10));
-				flourish = (player and UInputMan:KeyPressed(8));
-				stab = (player and UInputMan:KeyPressed(2))
-				overhead = (player and UInputMan:KeyPressed(22))
+				throw = (player and UInputMan:KeyPressed(MassiveSettings.MeleeThrowHotkey));
+				flourish = (player and UInputMan:KeyPressed(MassiveSettings.MeleeFlourishHotkey));
+				stab = (player and UInputMan:KeyPressed(MassiveSettings.MeleeStabHotkey))
+				overhead = (player and UInputMan:KeyPressed(MassiveSettings.MeleeOverheadHotkey))
 				if stab or overhead or flourish or throw then
 					controller:SetState(Controller.PRESS_PRIMARY, true)
 					self:Activate();
@@ -1662,7 +1658,7 @@ function Update(self)
 				-- block, getting parried cancelling
 				local keyPress
 				if player then
-					keyPress = UInputMan:KeyPressed(18) or (self.blockedNullifier == false and UInputMan:KeyHeld(18));
+					keyPress = UInputMan:KeyPressed(MassiveSettings.MeleeBlockHotkey) or (self.blockedNullifier == false and UInputMan:KeyHeld(MassiveSettings.MeleeBlockHotkey));
 				else
 					keyPress = self:NumberValueExists("AI Block");
 				end
@@ -1946,7 +1942,7 @@ function Update(self)
 			local keyReleased
 			local keyHeld
 			if player then
-				local key = UInputMan:KeyHeld(18)
+				local key = UInputMan:KeyHeld(MassiveSettings.MeleeBlockHotkey)
 				
 				keyPressed = key and not self.Blocking
 				keyReleased = key and self.Blocking

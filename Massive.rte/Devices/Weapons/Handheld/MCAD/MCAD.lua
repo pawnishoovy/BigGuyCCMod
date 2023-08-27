@@ -69,7 +69,7 @@ function Create(self)
 	
 	self.reloadPhase = 0;
 	
-	self.ReloadTime = 12000;
+	self.BaseReloadTime = 12000;
 
 	self.parentSet = false;
 	
@@ -361,7 +361,7 @@ function Update(self)
 						self.reloadPhase = 3;
 					end
 				elseif self.reloadPhase == 4 then
-					self.ReloadTime = 0;
+					self.BaseReloadTime = 0;
 					self.reloadPhase = 0;
 					self.reloadingVector = nil;
 					self.spentRound = false;
@@ -383,7 +383,7 @@ function Update(self)
 		else
 			self.Frame = 3 + self.extraFrameNum;
 		end
-		self.ReloadTime = 9999;
+		self.BaseReloadTime = 9999;
 	end
 	
 	local fire = self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self:IsActivated() and self.RoundInMagCount > 0;

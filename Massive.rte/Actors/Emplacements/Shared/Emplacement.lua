@@ -29,7 +29,7 @@ function Create(self)
 	self.perceptivenessValue = 0.95 --Value in which the gunners/reloaders/whateva percetivness is multiplied before aplying it in total to the turret
 	
 	self.reloader = nil;
-	self.originalReloadTime = self.ReloadTime
+	self.originalReloadTime = self.BaseReloadTime
 	self.reloadTimeReducer = 1.5
 	
 	self.spotter = nil
@@ -70,7 +70,7 @@ function Update(self)
 				self:Deactivate();										--Deactivate a bunch of stuff
 				self.parent:SetAimAngle((-0.3 + self.parent.RotAngle))
 				self.Perceptiveness = self.originalPerceptiveness
-				self.ReloadTime = 999999
+				self.BaseReloadTime = 999999
 				
 				if self.parent:GetController().InputMode ~= Controller.CIM_DISABLED then
 					self.parent:SetControllerMode(Controller.CIM_DISABLED , self.parent:GetController().Player);
@@ -113,7 +113,7 @@ function Update(self)
 											self.gunner.AIMode = Actor.AIMODE_NONE
 											self.gunner.HUDVisible = false
 											self.parent.AIMode = 1
-											self.ReloadTime = self.originalReloadTime	
+											self.BaseReloadTime = self.originalReloadTime	
 											self.parent:SetControllerMode(2 , self.parent:GetController().Player)
 										else
 											self.gunner = nil
@@ -178,7 +178,7 @@ function Update(self)
 				if self.crewSize > 1 then
 					if (self.reloader == nil or not MovableMan:IsActor(self.reloader)) then		--Get second guy: Reloader
 					
-						self.ReloadTime = self.originalReloadTime
+						self.BaseReloadTime = self.originalReloadTime
 
 						if self.spotter then
 							self.reloader = ToAHuman(self.spotter);
@@ -225,7 +225,7 @@ function Update(self)
 							self.reloader.AIMode = Actor.AIMODE_NONE;
 						end
 
-						self.ReloadTime = self.originalReloadTime/self.reloadTimeReducer
+						self.BaseReloadTime = self.originalReloadTime/self.reloadTimeReducer
 						
 						--Set reloader pos and vel so it moves with the turret
 						

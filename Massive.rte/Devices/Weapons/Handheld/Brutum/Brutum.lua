@@ -73,7 +73,7 @@ function Create(self)
 	
 	self.reloadPhase = 0;
 	
-	self.ReloadTime = 12000;
+	self.BaseReloadTime = 12000;
 
 	self.parentSet = false;
 	
@@ -182,7 +182,7 @@ function Update(self)
 	
 	if self:IsReloading() and (not self.Chamber) then -- if we start reloading from "scratch"
 		self.Chamber = true;
-		self.ReloadTime = 19999;
+		self.BaseReloadTime = 19999;
 		self.Reloading = true;
 		self.reloadCycle = true;
 		self.reloadPhase = 0;
@@ -220,7 +220,7 @@ function Update(self)
 				
 				if self.Reloading == false then
 					self.reloadCycle = true;
-					self.ReloadTime = 19999;
+					self.BaseReloadTime = 19999;
 					self.Reloading = true;
 					-- self.reloadTimer:Reset();
 					-- self.prepareSoundPlayed = false;
@@ -488,7 +488,7 @@ function Update(self)
 						if self.reloadCycle then
 							self.reloadPhase = 4; -- same phase baby the ride never ends (except at 4 rounds)
 						else
-							self.ReloadTime = 0;
+							self.BaseReloadTime = 0;
 							self.reloadPhase = 0;
 							self.Chamber = false;
 							self.Reloading = false;
@@ -502,7 +502,7 @@ function Update(self)
 						if self.reloadCycle then
 							self.reloadPhase = 4; -- same phase baby the ride never ends (except at 4 rounds)
 						else
-							self.ReloadTime = 0;
+							self.BaseReloadTime = 0;
 							self.reloadPhase = 0;
 							self.Chamber = false;
 							self.Reloading = false;
@@ -517,14 +517,14 @@ function Update(self)
 							if self.ammoCount < 6 then
 								self.reloadPhase = 4;
 							else
-								self.ReloadTime = 0;
+								self.BaseReloadTime = 0;
 								self.reloadPhase = 0;
 								self.Chamber = false;
 								self.Reloading = false;
 								self.phaseOnStop = nil;
 							end
 						else
-							self.ReloadTime = 0;
+							self.BaseReloadTime = 0;
 							self.reloadPhase = 0;
 							self.Chamber = false;
 							self.Reloading = false;
@@ -547,7 +547,7 @@ function Update(self)
 			self.reloadTimer:Reset();
 			self.prepareSoundPlayed = false;
 			self.afterSoundPlayed = false;
-			self.ReloadTime = 19999;
+			self.BaseReloadTime = 19999;
 		end
 		
 		-- Fancy Extra Round Progress GUI

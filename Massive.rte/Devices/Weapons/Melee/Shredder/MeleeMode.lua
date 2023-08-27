@@ -345,10 +345,6 @@ end
 
 function Update(self)
 
-	if UInputMan:KeyPressed(38) then
-		self:ReloadScripts();
-	end
-
 	local act = self:GetRootParent();
 	local actor = IsAHuman(act) and ToAHuman(act) or nil;
 	local player = false
@@ -528,7 +524,7 @@ function Update(self)
 			elseif self.chargeDecided == false then
 				-- block cancelling
 				if player then
-					local keyPress = UInputMan:KeyPressed(18);
+					local keyPress = UInputMan:KeyPressed(MassiveSettings.MeleeBlockHotkey);
 					if keyPress then
 						self.Throwing = false;
 						self.wasCharged = false;
@@ -701,7 +697,7 @@ function Update(self)
 			rotationTarget = self.baseRotation / 180 * math.pi;
 			
 			if player then
-				local keyPress = UInputMan:KeyPressed(18) or (UInputMan:KeyHeld(18) and self.Blocking == false);
+				local keyPress = UInputMan:KeyPressed(MassiveSettings.MeleeBlockHotkey) or (UInputMan:KeyHeld(MassiveSettings.MeleeBlockHotkey) and self.Blocking == false);
 				if keyPress and not (self.attackAnimationIsPlaying) then
 				
 					self.parent:SetNumberValue("Block Foley", 1);
@@ -715,7 +711,7 @@ function Update(self)
 					self.originalBaseRotation = -145;
 					self.baseRotation = -120;
 				
-				elseif self.Blocking == true and UInputMan:KeyHeld(18) and not (self.attackAnimationIsPlaying) then
+				elseif self.Blocking == true and UInputMan:KeyHeld(MassiveSettings.MeleeBlockHotkey) and not (self.attackAnimationIsPlaying) then
 				
 					self.originalBaseRotation = -145;
 				

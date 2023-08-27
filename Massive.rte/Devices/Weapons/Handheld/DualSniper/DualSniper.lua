@@ -55,7 +55,7 @@ function Create(self)
 	
 	self.reloadPhase = 0;
 	
-	self.ReloadTime = 5000;
+	self.BaseReloadTime = 5000;
 	
 	self.ammoCount = 3;
 	self.shellCount = 3;
@@ -316,7 +316,7 @@ function Update(self)
 					self.reloadPhase = 1; -- same phase baby the ride never ends (except at 2 rounds)
 				elseif self.reloadPhase == 2 then
 					self.shellsSpawned = false;
-					self.ReloadTime = 0;
+					self.BaseReloadTime = 0;
 					self.reloadPhase = 0;
 					self.phaseOnStop = 0;
 				else
@@ -337,7 +337,7 @@ function Update(self)
 		self.reloadTimer:Reset();
 		self.prepareSoundPlayed = false;
 		self.afterSoundPlayed = false;
-		self.ReloadTime = 5000;
+		self.BaseReloadTime = 5000;
 	end
 	
 	if self:DoneReloading() or self:IsReloading() then

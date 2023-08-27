@@ -20,6 +20,8 @@ function Update(self)
 
 	if self.WoundCount > self.realWoundLimit / 2 and self:IsAttached() then
 		self:RemoveFromParent(true, true);
+		self.HitsMOs = false;
+		self.GetsHitByMOs = false;
 		self.flySound:Play(self.Pos);
 		self.detachSound:Play(self.Pos);
 		self.Vel = self.Vel + Vector(10 * self.leftFactor, 0);

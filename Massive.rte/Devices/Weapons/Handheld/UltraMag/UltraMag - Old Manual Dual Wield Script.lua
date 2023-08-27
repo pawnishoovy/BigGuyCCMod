@@ -6,37 +6,34 @@ function Create(self)
 		self.equippedByMassive = false;
 	end
 
-	self.TheViolence = CreateSoundContainer("Brewing Homage", "Massive.rte");
-	self.TheViolence.Volume = 0;
-	self.IsEscalating = CreateSoundContainer("Storm Homage", "Massive.rte");
-	self.IsEscalating.Immobile = true;
+	self.preSound = CreateSoundContainer("Pre UltraMag", "Massive.rte");
 	
-	self.noiseOutdoorsSound = CreateSoundContainer("Noise Outdoors Homage", "Massive.rte");
-	self.noiseIndoorsSound = CreateSoundContainer("Noise Indoors Homage", "Massive.rte");
+	self.satisfyingAddSound = CreateSoundContainer("Satisfying Add UltraMag", "Massive.rte");
+	
+	self.noiseOutdoorsSound = CreateSoundContainer("Noise Outdoors UltraMag", "Massive.rte");
+	self.noiseIndoorsSound = CreateSoundContainer("Noise Indoors UltraMag", "Massive.rte");
 	
 	self.reloadPrepareSounds = {}
-	self.reloadPrepareSounds.Open = CreateSoundContainer("OpenPrepare Homage", "Massive.rte");
-	self.reloadPrepareSounds.Close = CreateSoundContainer("ClosePrepare Homage", "Massive.rte");
+	self.reloadPrepareSounds.magOut = CreateSoundContainer("Mag Out Prepare UltraMag", "Massive.rte");
+	self.reloadPrepareSounds.magIn = CreateSoundContainer("Mag In Prepare UltraMag", "Massive.rte");
 	
 	self.reloadPrepareLengths = {}
-	self.reloadPrepareLengths.Open = 135
-	self.reloadPrepareLengths.ShellsIn = 0
-	self.reloadPrepareLengths.Close = 145
+	self.reloadPrepareLengths.magOut = 370
+	self.reloadPrepareLengths.magIn = 220
 	
 	self.reloadPrepareDelay = {}
-	self.reloadPrepareDelay.Open = 480
-	self.reloadPrepareDelay.ShellsIn = 200
-	self.reloadPrepareDelay.Close = 270
+	self.reloadPrepareDelay.magOut = 370
+	self.reloadPrepareDelay.magIn = 730
 	
 	self.reloadAfterSounds = {}
-	self.reloadAfterSounds.Open = CreateSoundContainer("Open Homage", "Massive.rte");
-	self.reloadAfterSounds.ShellsIn = CreateSoundContainer("ShellsIn Homage", "Massive.rte");
-	self.reloadAfterSounds.Close = CreateSoundContainer("Close Homage", "Massive.rte");
+	self.reloadAfterSounds.magOut = CreateSoundContainer("Mag Out UltraMag", "Massive.rte");
+	self.reloadAfterSounds.magIn = CreateSoundContainer("Mag In UltraMag", "Massive.rte");
+	self.reloadAfterSounds.magInFull = CreateSoundContainer("Mag In Full UltraMag", "Massive.rte");
 	
 	self.reloadAfterDelay = {}
-	self.reloadAfterDelay.Open = 150
-	self.reloadAfterDelay.ShellsIn = 200
-	self.reloadAfterDelay.Close = 300
+	self.reloadAfterDelay.magOut = 330
+	self.reloadAfterDelay.magIn = 700
+	self.reloadAfterDelay.magInFull = 300
 	
 	self.reloadTimer = Timer();
 	
@@ -64,23 +61,27 @@ function Create(self)
 	
 	self.FireTimer = Timer();
 	
-	self.satisfyingVolume = -0.5;
+	self.delayedFire = false
+	self.delayedFireTimer = Timer();
+	self.delayedFireTimeMS = 50
+	self.delayedFireEnabled = true
+	
+	self.lastAge = self.Age + 0
+	
+	self.fireDelayTimer = Timer()
+	
+	self.activated = false
+	
+	self.satisfyingVolume = 0;
+	
+	self.offHand = -1;
 	
 	self.shoveTimer = Timer();
-	self.shoveCooldown = 750;
-	
-	self.Frame = 1
+	self.shoveCooldown = 650;
+
 end
 
 function Update(self)
-
-	if not self.shoveTimer:IsPastSimMS(self.shoveCooldown) then
-		self:Deactivate();
-	end
-
-	self.TheViolence.Pos = self.Pos;
-	self.TheViolence.Volume = math.max(0, self.satisfyingVolume);
-	self.IsEscalating.Volume = math.max(0, self.satisfyingVolume);
 
 	self.rotationTarget = 0 -- ZERO IT FIRST AAAA!!!!!
 
@@ -119,8 +120,22 @@ function Update(self)
     else
         self.lastHFlipped = self.HFlipped
     end
+
+	-- Check if switched weapons/hide in the inventory, etc.
+	if self.Age > (self.lastAge + TimerMan.DeltaTimeSecs * 2000) then
+		self.offHand = -1
+		if self.delayedFire then
+			self.delayedFire = false
+		end
+		self.fireDelayTimer:Reset()
+	end
+	self.lastAge = self.Age + 0
 	
 	if self:IsReloading() then
+	
+		self.fireDelayTimer:Reset()
+		self.activated = false;
+		self.delayedFire = false;	
 	
 		if self.parent and self.reloadPhase > 0 then
 			self.parent:GetController():SetState(Controller.AIM_SHARP,false);
@@ -128,34 +143,34 @@ function Update(self)
 
 			
 		if self.reloadPhase == 0 then
-			self.reloadDelay = self.reloadPrepareDelay.Open;
-			self.afterDelay = self.reloadAfterDelay.Open;		
+			self.reloadDelay = self.reloadPrepareDelay.magOut;
+			self.afterDelay = self.reloadAfterDelay.magOut;		
 			
-			self.prepareSound = self.reloadPrepareSounds.Open;
-			self.prepareSoundLength = self.reloadPrepareLengths.Open;
-			self.afterSound = self.reloadAfterSounds.Open;
+			self.prepareSound = self.reloadPrepareSounds.magOut;
+			self.prepareSoundLength = self.reloadPrepareLengths.magOut;
+			self.afterSound = self.reloadAfterSounds.magOut;
 			
-			self.rotationTarget = -5;
+			self.rotationTarget = 50;
 			
 		elseif self.reloadPhase == 1 then
-			self.reloadDelay = self.reloadPrepareDelay.ShellsIn;
-			self.afterDelay = self.reloadAfterDelay.ShellsIn;		
+			self.reloadDelay = self.reloadPrepareDelay.magIn;
+			self.afterDelay = self.reloadAfterDelay.magInFull;		
 			
-			self.prepareSound = nil;
-			self.prepareSoundLength = self.reloadPrepareLengths.ShellsIn;
-			self.afterSound = self.reloadAfterSounds.ShellsIn;
+			self.prepareSound = self.reloadPrepareSounds.magIn;
+			self.prepareSoundLength = self.reloadPrepareLengths.magIn;
+			self.afterSound = self.reloadAfterSounds.magInFull;
 			
-			self.rotationTarget = -5;
+			self.rotationTarget = 60;
 			
 		elseif self.reloadPhase == 2 then
-			self.reloadDelay = self.reloadPrepareDelay.Close;
-			self.afterDelay = self.reloadAfterDelay.Close;		
+			self.reloadDelay = self.reloadPrepareDelay.magIn;
+			self.afterDelay = self.reloadAfterDelay.magIn;		
 			
-			self.prepareSound = self.reloadPrepareSounds.Close;
-			self.prepareSoundLength = self.reloadPrepareLengths.Close;
-			self.afterSound = self.reloadAfterSounds.Close;
+			self.prepareSound = self.reloadPrepareSounds.magIn;
+			self.prepareSoundLength = self.reloadPrepareLengths.magIn;
+			self.afterSound = self.reloadAfterSounds.magIn;
 			
-			self.rotationTarget = -5;
+			self.rotationTarget = 55;
 			
 		end
 		
@@ -176,31 +191,40 @@ function Update(self)
 			
 			if self.reloadPhase == 0 then
 			
-				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.3)) then
-					self:SetNumberValue("BarrelRotation", 1)
-					--self.Frame = 3;
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.1)) then
-					self:SetNumberValue("BarrelRotation", 0.5)
-					--self.Frame = 2;
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.8)) then
-					self:SetNumberValue("BarrelRotation", 0.25)
-					--self.Frame = 1;	
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2)) then
+					self.reloadingVector = Vector(9, 7);
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.5)) then
+					self.reloadingVector = Vector(6, 3);
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1)) then
+					self.reloadingVector = Vector(0, 0);
 				end
 			
 			elseif self.reloadPhase == 1 then
 			
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4.5)) then
+					self.reloadingVector = Vector(0, 0);
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4)) then
+					self.reloadingVector = Vector(6, 3);
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*3.5)) then
+					self.reloadingVector = Vector(9, 7);
+				end
 				
 			elseif self.reloadPhase == 2 then
 			
-				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.3)) then
-					self:SetNumberValue("BarrelRotation", 0)
-					--self.Frame = 0;
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*4.5)) then
+					self.reloadingVector = Vector(0, 0);
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2.5)) then
+					self.reloadingVector = Vector(9, 3);
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2.0)) then
+					self.reloadingVector = Vector(9, 7);
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.3)) then
+					self.Frame = 0;
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.1)) then
-					self:SetNumberValue("BarrelRotation", 0.25)
-					--self.Frame = 1;
+					self.Frame = 1;
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.8)) then
-					self:SetNumberValue("BarrelRotation", 0.5)
-					--self.Frame = 2;	
+					self.Frame = 2;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.5)) then
+					self.Frame = 3;
 				end
 
 			end
@@ -209,27 +233,36 @@ function Update(self)
 			
 				if self.reloadPhase == 0 then
 				
-					 for i = 1, 2 do
-						 local shell
-						 shell = CreateAEmitter("Shell Homage", "Massive.rte");
-						 shell.Pos = self.Pos + Vector(-4 * self.FlipFactor, -1):RadRotate(self.RotAngle);
-						 shell.Vel = self.Vel + Vector(-1.5*self.FlipFactor, -6):RadRotate(self.RotAngle + math.rad(5) * RangeRand(-1, 1)) * RangeRand(0.8,1.2);
-						 shell.RotAngle = self.RotAngle;
-						 shell.AngularVel = self.AngularVel + (-1*self.FlipFactor);
-						 shell.HFlipped = self.HFlipped;
-						 MovableMan:AddParticle(shell);
-					 end
-					 
+					self:SetNumberValue("MagRemoved", 1);
+				
+					local fake
+					fake = CreateMOSRotating("Fake Magazine MOSRotating UltraMag", "Massive.rte");
+					fake.Pos = self.Pos + Vector(-3 * self.FlipFactor, 2):RadRotate(self.RotAngle);
+					fake.Vel = self.Vel + Vector(1 * self.FlipFactor, 3):RadRotate(self.RotAngle);
+					fake.RotAngle = self.RotAngle;
+					fake.AngularVel = self.AngularVel + (-1*self.FlipFactor);
+					fake.HFlipped = self.HFlipped;
+					MovableMan:AddParticle(fake);
+				
+					if self.chamberOnReload then
+						self.phaseOnStop = 2;
+					else
+						self.phaseOnStop = 1;
+					end
 					self.verticalAnim = 1;
 			
 				elseif self.reloadPhase == 1 then
 				
-					self.verticalAnim = 1;
+					self:RemoveNumberValue("MagRemoved");
+				
+					self.verticalAnim = -1;
 					
 				elseif self.reloadPhase == 2 then
-								
+				
+					self:RemoveNumberValue("MagRemoved");
+				
 					self.verticalAnim = -1;
-					self.angVel = -1
+					self.angVel = 1
 
 				end
 			
@@ -242,14 +275,53 @@ function Update(self)
 				self.reloadTimer:Reset();
 				self.prepareSoundPlayed = false;
 				self.afterSoundPlayed = false;
-				if self.reloadPhase == 2 then
+				if self.reloadPhase == 0 then
+					if self.chamberOnReload then
+						self.reloadPhase = 2;
+					else
+						self.reloadPhase = 1;
+					end
+				elseif self.reloadPhase == 1 or self.reloadPhase == 2 then
+					local isOffhand = ToAHuman(self.parent).BGArm and self:GetParent().UniqueID == ToAHuman(self.parent).BGArm.UniqueID
+					
+					local oppositeHand;
+					if isOffhand then
+						oppositeHand = ToAHuman(self.parent).EquippedItem;
+					else
+						oppositeHand = ToAHuman(self.parent).EquippedBGItem;
+					end
+					if oppositeHand then
+						if (not IsHDFirearm(oppositeHand))
+						or (ToHDFirearm(oppositeHand).RoundInMagCount == 0)
+						or not oppositeHand.PresetName == "RINOBI Ultra-Mag" then
+							oppositeHand = nil;
+							self.lone = true;
+						elseif self.offHand == 1 and isOffhand then
+							self.lone = false;
+						elseif self.lone == true and self.offHand == 1 and not isOffhand then
+							self.offHand = 0;
+							self.lone = false;
+						end
+					else
+						self.lone = true;
+					end
+
+					if oppositeHand then
+						ToMOSRotating(oppositeHand):SetNumberValue("Force Opposite Hand Update", 1);
+					end
+					
 					self.BaseReloadTime = 0;
 					self.reloadPhase = 0;
 					self.phaseOnStop = 0;
+					self.reloadingVector = nil;
+					self.chamberOnReload = false;
+					self.offHand = -1;
 				else
 					self.reloadPhase = self.reloadPhase + 1;
 				end
 			end
+		else
+			self.phasePrepareFinished = false;
 		end
 	else
 		self.reloadingVector = nil;
@@ -263,31 +335,164 @@ function Update(self)
 		self.prepareSoundPlayed = false;
 		self.afterSoundPlayed = false;
 		self.BaseReloadTime = 5000;
-	end
-	
-	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 1500, 1), 2.0) * 0.5) * math.pi) * -1
-	
-	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (300 * 4), 1), 2.0)
-	self.rotationTarget = math.sin(recoilFactor * math.pi) * 13
-	
-	if self.FireTimer:IsPastSimMS(250) then
-		if self.Reloadable == false then
-			self.Reloadable = true;
-			self:Reload();
+		-- SLIDE animation when firing
+		-- don't ask, math magic
+		if self.Magazine and self.Magazine.RoundCount < 1 or not self.Magazine then
+			self.chamberOnReload = true;
+			self.Frame = 4;
+		else
+			local f = math.max(1 - math.min((self.FireTimer.ElapsedSimTimeMS) / 200, 1), 0)
+			self.Frame = math.floor(f * 5 + 0.55);
 		end
 	end
 	
+	if self:DoneReloading() then
+		self.fireDelayTimer:Reset()
+		self.activated = false;
+		self.delayedFire = false;
+		if self.chamberOnReload then
+			self.Magazine.RoundCount = 12;
+		else
+			self.Magazine.RoundCount = 12 + 1;
+		end
+	end
+	
+	local fire = self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self:IsActivated() and self.RoundInMagCount > 0;
+	
+	if self.RoundInMagCount > 0 then
+		self:Deactivate()
+	end
+
+	if self.parent and self.delayedFirstShot == true then
+		local isOffhand = ToAHuman(self.parent).BGArm and self:GetParent().UniqueID == ToAHuman(self.parent).BGArm.UniqueID
+	
+		-- what a mess
+		
+		if self:NumberValueExists("Force BG Hand Set") then
+			self:RemoveNumberValue("Force BG Hand Set");
+			self.offHand = 0;
+			fire = false;
+		end
+		
+		if self:NumberValueExists("Force Opposite Hand Update") then
+			self:RemoveNumberValue("Force Opposite Hand Update");
+			if isOffhand then
+				oppositeHand = ToAHuman(self.parent).EquippedItem;
+			else
+				oppositeHand = ToAHuman(self.parent).EquippedBGItem;
+			end
+			if oppositeHand then
+				if (not IsHDFirearm(oppositeHand))
+				or (ToHDFirearm(oppositeHand).RoundInMagCount == 0)
+				or not oppositeHand.PresetName == "RINOBI Ultra-Mag" then
+					oppositeHand = nil;
+					self.lone = true;
+				elseif self.offHand == 1 and isOffhand then
+					self.lone = false;
+				elseif self.lone == true and self.offHand == 1 and not isOffhand then
+					self.offHand = 0;
+					self.lone = false;
+				end
+			else
+				self.lone = true;
+			end
+			
+			self.offHand = -1;
+			
+		end
+		
+		if self.offHand == -1 then
+			self.offHand = (isOffhand and 1 or 0)
+		elseif fire then
+			local oppositeHand;
+			if isOffhand then
+				oppositeHand = ToAHuman(self.parent).EquippedItem;
+			else
+				oppositeHand = ToAHuman(self.parent).EquippedBGItem;
+			end
+			if oppositeHand then
+				if (not IsHDFirearm(oppositeHand))
+				or (ToHDFirearm(oppositeHand).RoundInMagCount == 0)
+				or oppositeHand.PresetName ~= "RINOBI Ultra-Mag" then
+					oppositeHand = nil;
+					self.lone = true;
+				elseif self.offHand == 1 and isOffhand then
+					self.lone = false;
+				elseif self.lone == true and self.offHand == 1 and not isOffhand then
+					self.offHand = 0;
+					self.lone = false;
+				end
+			else
+				self.lone = true;
+			end
+			if self.offHand == 0 or not oppositeHand then
+				if oppositeHand and self.lone then
+					self.lone = false;
+					if isOffhand then -- main hand will be expecting us not to fire if it just got here
+						self.offHand = (self.offHand + 1) % 2
+						fire = false;
+					end
+				end
+				self.delayedFirstShot = false;
+			else
+				if not self.lone then
+					fire = false;
+				end
+				self.delayedFirstShot = false;
+			end
+			self.offHand = (self.offHand + 1) % 2
+		end
+			
+		--if self.parent:GetController():IsState(Controller.WEAPON_FIRE) and not self:IsReloading() then
+		if fire and not self:IsReloading() then
+			if not self.Magazine or self.Magazine.RoundCount < 1 then
+				--self:Reload()
+				self:Activate()
+			elseif not self.activated and not self.delayedFire and self.fireDelayTimer:IsPastSimMS(1 / (self.RateOfFire / 60) * 1000) then
+				if not isOffhand and MovableMan:ValidMO(oppositeHand) then
+					ToMOSRotating(oppositeHand):SetNumberValue("Force BG Hand Set", 1);
+				end
+				self.activated = true
+				
+				self.preSound:Play(self.Pos);
+				
+				self.fireDelayTimer:Reset()
+				
+				self.delayedFire = true
+				self.delayedFireTimer:Reset()
+			end
+		else
+			if self.activated then
+				self.activated = false
+			end
+		end
+	elseif fire == false then
+		self.delayedFirstShot = true;
+	end
+	
+	self.SharpLength = self.originalSharpLength * (0.9 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 500, 1), 2.0) * 0.5)
+	
 	if self.FiredFrame then
+		self.heatNum = self.heatNum + 10;
 	
-		self.heatNum = self.heatNum + 50;
+		if (self.Magazine and self.Magazine.RoundCount < 1) or not self.Magazine then
+			self.chamberOnReload = true;
+			self.Frame = 4;
+		end
 	
-		self.Reloadable = false;
+		for i = 1, 3 do
+			local shot = CreateMOPixel("Bullet UltraMag", "Massive.rte");
+			shot.Pos = self.MuzzlePos + Vector(0.1*i*self.FlipFactor, 0):RadRotate(self.RotAngle);
+			shot.Vel = self.Vel + Vector(140 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+			shot.Lifetime = shot.Lifetime * math.random(0.8, 1.2);
+			shot.Team = self.Team;
+			shot.IgnoresTeamHits = true;
+			MovableMan:AddParticle(shot);
+		end
 	
-		if self.Magazine then self.Magazine.RoundCount = 0 end
-	
-		local shot = CreateMOPixel("Pellet Homage Extra", "Massive.rte");
+		local shot = CreateMOPixel("Bullet UltraMag Scripted", "Massive.rte");
 		shot.Pos = self.MuzzlePos;
-		shot.Vel = self.Vel + Vector(160 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+		shot.Vel = self.Vel + Vector(140 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 		shot.Lifetime = shot.Lifetime * math.random(0.8, 1.2);
 		shot.Team = self.Team;
 		shot.IgnoresTeamHits = true;
@@ -295,27 +500,18 @@ function Update(self)
 	
 		self.FireTimer:Reset();
 		
-		self.angVel = self.angVel + RangeRand(0.7,1.1) * -5
+		self.angVel = self.angVel + RangeRand(0.7,1.1) * -15
+		
+		self.satisfyingAddSound.Volume = self.satisfyingVolume;
+		self.satisfyingAddSound:Play(self.Pos);
 		
 		local shakenessParticle = CreateMOPixel("Shakeness Particle Glow Massive", "Massive.rte");
 		shakenessParticle.Pos = self.MuzzlePos;
-		shakenessParticle.Mass = 40 + (20 * self.satisfyingVolume);
+		shakenessParticle.Mass = 0 + (5 * self.satisfyingVolume);
 		shakenessParticle.Lifetime = 500;
 		MovableMan:AddParticle(shakenessParticle);
 		
-		if AudioMan.MusicVolume == 0 then
-			self.satisfyingVolume = math.min(1, self.satisfyingVolume + 0.055);
-		end
-		
-		if self.satisfyingVolume > 0 and self.itHasEscalated ~= true then
-			self.itHasEscalated = true;
-			self.TheViolence:Play(self.Pos);
-		elseif self.satisfyingVolume < 0 then
-			self.itHasEscalated = false;
-			self.itHasBloomed = false;
-			self.TheViolence:Stop(-1);
-			self.IsEscalating:Stop(-1);
-		end
+		self.satisfyingVolume = math.min(1, self.satisfyingVolume + 0.082);
 		
 		-- Ground Smoke
 		local maxi = 3 + (math.floor(2 * self.satisfyingVolume))
@@ -331,12 +527,10 @@ function Update(self)
 		
 		local xSpread = 0
 		
-		local smokeSatisfyingFactor = math.max(self.satisfyingVolume, 0)
+		local smokeAmount = math.floor((10 + (math.floor(5 * self.satisfyingVolume))) * MassiveSettings.GunshotSmokeMultiplier);
+		local particleSpread = 5 + (math.floor(3 * self.satisfyingVolume))
 		
-		local smokeAmount = math.floor((40 + (math.floor(5 * smokeSatisfyingFactor))) * MassiveSettings.GunshotSmokeMultiplier);
-		local particleSpread = 5 + (math.floor(3 * smokeSatisfyingFactor))
-		
-		local smokeLingering = math.sqrt(smokeAmount / 8) * (1 + smokeSatisfyingFactor * 2)
+		local smokeLingering = math.sqrt(smokeAmount / 8) * (1 + self.satisfyingVolume * 2)
 		local smokeVelocity = (1 + math.sqrt(smokeAmount / 8) ) * 0.5
 		
 		-- Muzzle main smoke
@@ -460,30 +654,37 @@ function Update(self)
 
 	end
 	
-	if self.satisfyingVolume > -0.5 then
-		self.satisfyingVolume = self.satisfyingVolume - (self.itHasBloomed and 0.006 or 0.01) * TimerMan.DeltaTimeSecs;
-		if self.satisfyingVolume < -0.5 then
-			self.satisfyingVolume = -0.5;
+	if self.satisfyingVolume > 0 then
+		self.satisfyingVolume = self.satisfyingVolume - 0.1 * TimerMan.DeltaTimeSecs;
+		if self.satisfyingVolume < 0 then
+			self.satisfyingVolume = 0;
 		end
 	end
+	
+	if self.delayedFire and self.delayedFireTimer:IsPastSimMS(self.delayedFireTimeMS) then
+		self:Activate()	
+		self.delayedFire = false
+		self.delayedFirstShot = false;
+	end
+
 
 	if self.parent then
 	
 		if self.shoveStart then
-			self.horizontalAnim = 11;
-			self.rotationTarget = self.rotationTarget + 45;
+			self.horizontalAnim = 15;
+			self.rotationTarget = self.rotationTarget + 35;
 			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 2) then
 				self.shoveStart = false;
 				self.parent:SetNumberValue("Gun Shove Massive", 1);
 			end
 		elseif self.shoving then
-			self.horizontalAnim = -7;
+			self.horizontalAnim = -15;
 			self.rotationTarget = self.rotationTarget + self.shoveRot;
 			if self.shoveTimer:IsPastSimMS(self.shoveCooldown / 1.3) then
 				self.shoving = false;
 			end
 			
-			local rayVec = Vector(15 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+			local rayVec = Vector(10 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 			local rayOrigin = self.Pos + Vector(0, 0);
 			
 			--PrimitiveMan:DrawLinePrimitive(rayOrigin, rayOrigin + rayVec,  5);
@@ -589,18 +790,12 @@ function Update(self)
 		end
 	
 		if self.shoveTimer:IsPastSimMS(self.shoveCooldown) and self.parent:IsPlayerControlled() and UInputMan:KeyPressed(MassiveSettings.GunShoveHotkey) then
-			self.shoveRot = 55 * (math.random(80, 120) / 100);
+			self.shoveRot = 45 * (math.random(80, 120) / 100);
 			self.shoveTimer:Reset();
 			self.parent:SetNumberValue("Gun Shove Start Massive", 1);
 			self.shoving = true;
 			self.shoveStart = true;
 			self.shoveDamage = true;
-		end	
-	
-		if self.parent:NumberValueExists("Warcried") and self.satisfyingVolume > 0.95 and self.itHasBloomed ~= true then
-			self.itHasBloomed = true;
-			self.TheViolence:FadeOut(100);
-			self.IsEscalating:Play(self.Pos);
 		end
 	
 		self.horizontalAnim = math.floor(self.horizontalAnim / (1 + TimerMan.DeltaTimeSecs * 24.0) * 1000) / 1000
@@ -614,17 +809,17 @@ function Update(self)
 		
 		self.rotation = (self.rotation + self.rotationTarget * TimerMan.DeltaTimeSecs * self.rotationSpeed) / (1 + TimerMan.DeltaTimeSecs * self.rotationSpeed)
 		local total = math.rad(self.rotation) * self.FlipFactor
-
-		self.InheritedRotAngleOffset = total;
 		
+		self.RotAngle = self.RotAngle + total;
 		-- self.RotAngle = self.RotAngle + total;
-		-- self:SetNumberValue("MagRotation", total);
 		
-		-- local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
-		-- local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
-		-- self.Pos = self.Pos + offsetTotal;
-		-- self:SetNumberValue("MagOffsetX", offsetTotal.X);
-		-- self:SetNumberValue("MagOffsetY", offsetTotal.Y);
+		local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
+		local offsetTotal = Vector(jointOffset.X, jointOffset.Y):RadRotate(-total) - jointOffset
+		self.Pos = self.Pos + offsetTotal;
+		if self.fakeMag and not self:NumberValueExists("LostFakeMag") then
+			self.fakeMag.RotAngle = self.RotAngle;
+			self.fakeMag.Pos = self.fakeMag.Pos + offsetTotal;
+		end
 		
 		if self.reloadingVector then
 			self.StanceOffset = self.reloadingVector + stance
@@ -634,13 +829,6 @@ function Update(self)
 			self.SharpStanceOffset = Vector(self.originalSharpStanceOffset.X, self.originalSharpStanceOffset.Y) + stance
 		end
 		
-		if not self.parent:IsPlayerControlled() then
-			self.itHasBloomed = false;
-			self.itHasEscalated = false;
-			self.TheViolence:Stop(-1);
-			self.IsEscalating:Stop(-1);
-			self.satisfyingVolume = math.min(self.satisfyingVolume, 0);
-		end
 	end
 	
 	if self.GFXTimer:IsPastSimMS(self.GFXDelay) then
@@ -655,8 +843,7 @@ function Update(self)
 				local particle = CreateMOSParticle(particles[math.random(1,#particles)]);
 				particle.Lifetime = math.random(250, 600);
 				particle.Vel = self.Vel + Vector(0, -0.1);
-				particle.Pos = self:GetNumberValue("BarrelRotation") and self.MuzzlePos + Vector(math.rad(70) * self:GetNumberValue("BarrelRotation") * self.FlipFactor, 3 * self.Frame):RadRotate(self.RotAngle) or self.MuzzlePos;
-				--particle.Pos = self.Frame ~= 0 and self.MuzzlePos + Vector(0.6 * self.Frame * self.FlipFactor, 3 * self.Frame):RadRotate(self.RotAngle) or self.MuzzlePos;
+				particle.Pos = self.MuzzlePos;
 				MovableMan:AddParticle(particle);
 			end
 				
@@ -665,8 +852,7 @@ function Update(self)
 		self.GFXTimer:Reset()
 		self.GFXDelay = math.max(50, math.random(self.GFXDelayMin, self.GFXDelayMax) - self.heatNum) 
 	end
-
-
+	
 end
 
 function OnDetach(self)
@@ -676,12 +862,9 @@ function OnDetach(self)
 	self.shoveStart = false;
 	self.shoving = false;
 
-	self.itHasEscalated = false;
-	self.itHasBloomed = false;
-	self.TheViolence.Volume = 0;
-	self.IsEscalating.Volume = 0;
-	self.TheViolence:Stop(-1);
-	self.IsEscalating:Stop(-1);
-	self:DisableScript("Massive.rte/Devices/Weapons/Handheld/Homage/Homage.lua");
+	self.offHand = -1;
+
+	self.delayedFirstShot = true;
+	self:DisableScript("Massive.rte/Devices/Weapons/Handheld/UltraMag/UltraMag.lua");
 
 end

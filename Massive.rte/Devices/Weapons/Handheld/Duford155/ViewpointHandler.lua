@@ -19,7 +19,7 @@ function Update(self)
 		
 		if self.activity:PlayerActive(player) and self.activity:PlayerHuman(player) then
 		
-			local cursorPos = SceneMan:GetScrollTarget(player)
+			local cursorPos = CameraMan:GetScrollTarget(player)
 			local cursorSize = 15
 			PrimitiveMan:DrawCirclePrimitive(player, cursorPos, cursorSize, 122)
 			PrimitiveMan:DrawLinePrimitive(player, cursorPos + Vector(0, -cursorSize * 0.5), cursorPos + Vector(0, cursorSize * 0.5), 122);

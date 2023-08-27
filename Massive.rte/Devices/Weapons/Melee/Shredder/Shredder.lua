@@ -30,13 +30,8 @@ function Create(self)
 end
 
 function Update(self)
-
-	if UInputMan:KeyPressed(15) then
-	  PresetMan:ReloadAllScripts();
-	  self:ReloadScripts();
-	end
 	
-	if UInputMan:KeyPressed(16) then
+	if UInputMan:KeyPressed(Key.P) then
 		if self.alternate ~= true then
 			self.alternate = true;
 		else
@@ -127,7 +122,7 @@ function Update(self)
 	
 		if not self.alternate then
 			
-			if UInputMan:KeyPressed(8) then
+			if UInputMan:KeyPressed(Key.H) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -159,7 +154,7 @@ function Update(self)
 				
 			end
 			
-			if UInputMan:KeyPressed(10) then
+			if UInputMan:KeyPressed(Key.J) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -191,7 +186,7 @@ function Update(self)
 				
 			end
 			
-			if UInputMan:KeyPressed(11) then
+			if UInputMan:KeyPressed(Key.K) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -223,7 +218,7 @@ function Update(self)
 				
 			end
 			
-			if UInputMan:KeyPressed(12) then
+			if UInputMan:KeyPressed(Key.L) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -321,7 +316,7 @@ function Update(self)
 		
 			-- V B M N 
 			
-			if UInputMan:KeyPressed(22) then
+			if UInputMan:KeyPressed(Key.V) then
 				
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -350,7 +345,7 @@ function Update(self)
 				
 			end
 			
-			if UInputMan:KeyPressed(2) then
+			if UInputMan:KeyPressed(Key.B) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -378,7 +373,7 @@ function Update(self)
 				
 			end
 			
-			if UInputMan:KeyPressed(14) then
+			if UInputMan:KeyPressed(Key.N) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -406,7 +401,7 @@ function Update(self)
 				
 			end
 			
-			if UInputMan:KeyPressed(13) then
+			if UInputMan:KeyPressed(Key.M) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -440,7 +435,7 @@ function Update(self)
 	
 			-- V B M N 
 			
-			if UInputMan:KeyPressed(22) then
+			if UInputMan:KeyPressed(Key.V) then
 				
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -475,7 +470,7 @@ function Update(self)
 				
 			end
 			
-			if UInputMan:KeyPressed(2) then
+			if UInputMan:KeyPressed(Key.B) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -509,7 +504,7 @@ function Update(self)
 				
 			end
 			
-			if UInputMan:KeyPressed(14) then
+			if UInputMan:KeyPressed(Key.N) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -541,7 +536,7 @@ function Update(self)
 				
 			end
 			
-			if UInputMan:KeyPressed(13) then
+			if UInputMan:KeyPressed(Key.M) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -577,7 +572,7 @@ function Update(self)
 	
 	
 	
-			if UInputMan:KeyPressed(8) then
+			if UInputMan:KeyPressed(Key.H) then
 				
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -611,7 +606,7 @@ function Update(self)
 				
 			end
 			
-			if UInputMan:KeyPressed(10) then
+			if UInputMan:KeyPressed(Key.J) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -645,7 +640,7 @@ function Update(self)
 				
 			end
 			
-			if UInputMan:KeyPressed(11) then
+			if UInputMan:KeyPressed(Key.K) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -679,7 +674,7 @@ function Update(self)
 				
 			end
 			
-			if UInputMan:KeyPressed(12) then
+			if UInputMan:KeyPressed(Key.L) then
 			
 				local shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
 				shakenessParticle.Pos = self.MuzzlePos;
@@ -721,8 +716,8 @@ function Update(self)
 	end
 	
 	if self.sustain == true and self.sustainTimer:IsPastSimMS(self.sustainOffDelay) and
-	not (UInputMan:KeyHeld(8) or UInputMan:KeyHeld(10) or UInputMan:KeyHeld(11) or UInputMan:KeyHeld(12)) and
-	not (UInputMan:KeyHeld(22) or UInputMan:KeyHeld(2) or UInputMan:KeyHeld(14) or UInputMan:KeyHeld(13)) then
+	not (UInputMan:KeyHeld(Key.H) or UInputMan:KeyHeld(Key.J) or UInputMan:KeyHeld(Key.K) or UInputMan:KeyHeld(Key.L)) and
+	not (UInputMan:KeyHeld(Key.V) or UInputMan:KeyHeld(Key.B) or UInputMan:KeyHeld(Key.N) or UInputMan:KeyHeld(Key.M)) then
 	
 		self.cSharpSustain:Stop(-1);
 		self.dSustain:Stop(-1);
@@ -737,8 +732,8 @@ function Update(self)
 	
 		self.sustain = false;
 		self.release:Play(self.Pos);
-	elseif (UInputMan:KeyHeld(8) or UInputMan:KeyHeld(10) or UInputMan:KeyHeld(11) or UInputMan:KeyHeld(12)) or
-	(UInputMan:KeyHeld(22) or UInputMan:KeyHeld(2) or UInputMan:KeyHeld(14) or UInputMan:KeyHeld(13)) then
+	elseif (UInputMan:KeyHeld(Key.H) or UInputMan:KeyHeld(Key.J) or UInputMan:KeyHeld(Key.K) or UInputMan:KeyHeld(Key.L)) or
+	(UInputMan:KeyHeld(Key.V) or UInputMan:KeyHeld(Key.B) or UInputMan:KeyHeld(Key.N) or UInputMan:KeyHeld(Key.M)) then
 		self.sustainTimer:Reset();
 	end
 	

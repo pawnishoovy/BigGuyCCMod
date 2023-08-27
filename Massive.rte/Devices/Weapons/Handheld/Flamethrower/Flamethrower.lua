@@ -62,7 +62,7 @@ function Create(self)
 	
 	self.reloadPhase = 0;
 	
-	self.ReloadTime = 8000;
+	self.BaseReloadTime = 8000;
 
 	self.parentSet = false;
 	
@@ -292,7 +292,7 @@ function Update(self)
 
 				if self.reloadPhase == 3 then
 					self.phaseOnStop = nil;
-					self.ReloadTime = 0;
+					self.BaseReloadTime = 0;
 					self.reloadPhase = 0;
 					self.reloadingVector = nil;
 				else
@@ -316,7 +316,7 @@ function Update(self)
 		self.reloadTimer:Reset();
 		self.prepareSoundPlayed = false;
 		self.afterSoundPlayed = false;
-		self.ReloadTime = 12000;
+		self.BaseReloadTime = 12000;
 	end
 	
 	if self:DoneReloading() or self:IsReloading() then
