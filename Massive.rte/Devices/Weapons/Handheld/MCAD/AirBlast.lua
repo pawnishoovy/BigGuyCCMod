@@ -6,7 +6,7 @@ function Update(self)
 	-- Run the effect on Update() to give other particles a chance to reach the target
 	for i = 1 , MovableMan:GetMOIDCount() - 1 do
 		local mo = MovableMan:GetMOFromID(i);
-		if mo and mo.PinStrength == 0 then
+		if mo and (IsHeldDevice(mo) or IsActor(mo)) and mo.PinStrength == 0 then
 			local dist = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
 			if dist.Magnitude < self.range then
 				local strSumCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, 3, rte.airID);

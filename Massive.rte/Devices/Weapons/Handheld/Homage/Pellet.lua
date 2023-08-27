@@ -92,7 +92,7 @@ function OnCollideWithMO(self, MO, rootMO)
 		end
 	end
 	
-	--if math.random() < 1 / timeFactor then
+	if self.Vel.Magnitude > 90 then
 		MO.Vel = rootMO.Vel
 		local timeFactor2 = math.sqrt(1 + self.Age * 0.07)
 		if IsAHuman(rootMO) then
@@ -101,6 +101,6 @@ function OnCollideWithMO(self, MO, rootMO)
 		else
 			rootMO.Vel = (rootMO.Vel / 2) + (self.Vel / rootMO.Mass / timeFactor2 * 10);
 		end
-	--end
+	end
 	
 end

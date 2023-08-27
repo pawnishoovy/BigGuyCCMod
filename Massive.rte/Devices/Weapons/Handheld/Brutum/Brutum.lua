@@ -390,7 +390,7 @@ function Update(self)
 					if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2.0)) then
 						self.Frame = 0;
 					elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.5)) then
-						self.Frame = 9;
+						self.Frame = 1;
 					elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.0)) then
 						self.Frame = 8;
 					elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.5)) then
@@ -468,8 +468,8 @@ function Update(self)
 						if self.Casing then
 							local shell
 							shell = CreateAEmitter("Shell Brutum", "Massive.rte");
-							shell.Pos = self.Pos+Vector(1 * self.FlipFactor,-1):RadRotate(self.RotAngle);
-							shell.Vel = self.Vel+Vector(-math.random(2,4)*self.FlipFactor,-math.random(3,4)):RadRotate(self.RotAngle);
+							shell.Pos = self.Pos+Vector(3 * self.FlipFactor,-3):RadRotate(self.RotAngle);
+							shell.Vel = self.Vel+Vector(-math.random(2,4)*self.FlipFactor,-math.random(5,6)):RadRotate(self.RotAngle);
 							shell.RotAngle = self.RotAngle
 							shell.HFlipped = self.HFlipped
 							MovableMan:AddParticle(shell);

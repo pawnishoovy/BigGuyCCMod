@@ -106,7 +106,7 @@ function Create(self)
 	self.shoveTimer = Timer();
 	self.shoveCooldown = 1300;
 	
-	self.extraFrameNum = 0
+	self.extraFrameNum = 4
 	
 end
 
@@ -173,9 +173,9 @@ function Update(self)
 			self.weirdoFixer = false;
 			if self:NumberValueExists("Switched") then
 				if self:NumberValueExists("DUAP Round") then
-					self.extraFrameNum = 4
-				else
 					self.extraFrameNum = 0
+				else
+					self.extraFrameNum = 4
 				end
 				self:RemoveNumberValue("Switched")
 			end
@@ -197,14 +197,14 @@ function Update(self)
 					shell.Vel = Vector(2*self.FlipFactor, 0):RadRotate(self.RotAngle);
 					shell.HFlipped = self.HFlipped;
 					MovableMan:AddParticle(shell);
-					self.extraFrameNum = 4
+					self.extraFrameNum = 0
 				else
 					local shell = CreateMOSRotating("Massive MCAD Inert DUAP");
 					shell.Pos = self.Pos + Vector(16*self.FlipFactor, -1):RadRotate(self.RotAngle);
 					shell.Vel = Vector(2*self.FlipFactor, 0):RadRotate(self.RotAngle);
 					shell.HFlipped = self.HFlipped;
 					MovableMan:AddParticle(shell);		
-					self.extraFrameNum = 0				
+					self.extraFrameNum = 4		
 				end
 				
 				self:RemoveNumberValue("Switched")

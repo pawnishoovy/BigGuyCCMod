@@ -1,6 +1,6 @@
 function Create(self)	
 	
-	self.magDropSound = CreateSoundContainer("Shell Drop Homage", "Massive.rte");
+	self.magDropSound = CreateSoundContainer("Shell Drop Brutum", "Massive.rte");
 	
 
 end

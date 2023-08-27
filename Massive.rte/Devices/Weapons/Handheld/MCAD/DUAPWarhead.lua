@@ -131,11 +131,12 @@ function Update(self)
 				end
 				if hitAllowed == true then
 					mo = ToMOSRotating(mo);
-					self.hitMOTable[mo.UniqueID] = -5;
+					self.hitMOTable[mo.UniqueID] = mo:GetRootParent().UniqueID;
 					local hitPos = self.Pos;
 					
 					self.soundFlyLoop:Stop(-1);
 					local penetration = (self.Mass * self.PrevVel.Magnitude * self.Sharpness)/math.max(mo.Material.StructuralIntegrity, 1);
+					local concussiveForce = (self.Mass * self.PrevVel.Magnitude)/mo.Mass;
 					if penetration > 1 then
 						local dist = SceneMan:ShortestDistance(mo.Pos, hitPos, SceneMan.SceneWrapsX);
 						local stickOffset = Vector(dist.X * mo.FlipFactor, dist.Y):RadRotate(-mo.RotAngle * mo.FlipFactor);
@@ -144,6 +145,7 @@ function Update(self)
 						local setOffset = Vector(stickOffset.X, stickOffset.Y):SetMagnitude(stickOffset.Magnitude - self.width);
 						
 						local woundName = mo:GetEntryWoundPresetName();
+						local woundNameExit = mo:GetExitWoundPresetName();
 						local multiplier = math.min(math.sqrt(penetration), self.WoundDamageMultiplier);
 						local mildMultiplier = math.sqrt(multiplier);
 						local milderMultiplier = math.sqrt(mildMultiplier);
@@ -166,20 +168,38 @@ function Update(self)
 							mo:AddWound(wound, setOffset, true);
 						end
 						
+						if string.find(mo.Material.PresetName,"Metal") or string.find(woundName,"Metal") or string.find(woundNameExit,"Metal")
+						or string.find(mo.Material.PresetName,"Stuff") or string.find(woundName,"Dent") or string.find(woundNameExit,"Dent") then
+							self.terrainSounds.Impact[178]:Play(self.Pos); -- extra juice for hitting metal
+						end
+						
 						if penetration > 2 then
 							if penetration > 35 then
-								mo:GibThis();
+								local rootMO = mo:GetRootParent();
+								local woundName = ToMOSRotating(rootMO):GetEntryWoundPresetName();
+								local damage = 3;
+								if woundName ~= "" then
+									local damage = CreateAEmitter(woundName).BurstDamage;
+								end
+								if IsActor(rootMO) and IsArm(mo) or IsLeg(mo) or (IsAHuman(rootMO) and ToAHuman(rootMO).Head.UniqueID == mo.UniqueID) then
+									ToActor(rootMO).Health = ToActor(rootMO).Health - (damage * 15);
+								end
+								if concussiveForce > 60 then
+									mo:GibThis();
+								end
 							else
 								self.HitsMOs = true;
 								self.Vel = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude^0.9);
 								self:GibThis();
 							end
+							if mo.Radius > 70 then
+								self:GibThis();
+							end
 							if penetration < 40 then
 								self.disabled = true;
 							end
-							woundName = mo:GetExitWoundPresetName();
-							if woundName ~= "" then
-								local wound = CreateAEmitter(woundName);
+							if woundNameExit ~= "" then
+								local wound = CreateAEmitter(woundNameExit);
 								wound.DamageMultiplier = multiplier;
 								wound.EmitCountLimit = math.ceil(wound.EmitCountLimit * mildMultiplier);
 								wound.Scale = wound.Scale * milderMultiplier;
@@ -311,69 +331,69 @@ function OnCollideWithTerrain(self, terrPixel)
 end
 
 function OnCollideWithMO(self, mo, rootMO)
-	local hitPos = Vector(self.PrevPos.X, self.PrevPos.Y);
-	if SceneMan:CastFindMORay(self.PrevPos, self.PrevVel * rte.PxTravelledPerFrame, mo.ID, hitPos, rte.airID, true, 1) then
-		self.hit = true;
-		local penetration = (self.Mass * self.PrevVel.Magnitude * self.Sharpness)/math.max(mo.Material.StructuralIntegrity, 1);
-		if penetration > 1 then
-			local dist = SceneMan:ShortestDistance(mo.Pos, hitPos, SceneMan.SceneWrapsX);
-			local stickOffset = Vector(dist.X * mo.FlipFactor, dist.Y):RadRotate(-mo.RotAngle * mo.FlipFactor);
+	-- local hitPos = Vector(self.PrevPos.X, self.PrevPos.Y);
+	-- if SceneMan:CastFindMORay(self.PrevPos, self.PrevVel * rte.PxTravelledPerFrame, mo.ID, hitPos, rte.airID, true, 1) then
+		-- self.hit = true;
+		-- local penetration = (self.Mass * self.PrevVel.Magnitude * self.Sharpness)/math.max(mo.Material.StructuralIntegrity, 1);
+		-- if penetration > 1 then
+			-- local dist = SceneMan:ShortestDistance(mo.Pos, hitPos, SceneMan.SceneWrapsX);
+			-- local stickOffset = Vector(dist.X * mo.FlipFactor, dist.Y):RadRotate(-mo.RotAngle * mo.FlipFactor);
 			
-			local setAngle = stickOffset.AbsRadAngle - (mo.HFlipped and math.pi or 0);
-			local setOffset = Vector(stickOffset.X, stickOffset.Y):SetMagnitude(stickOffset.Magnitude - self.width);
+			-- local setAngle = stickOffset.AbsRadAngle - (mo.HFlipped and math.pi or 0);
+			-- local setOffset = Vector(stickOffset.X, stickOffset.Y):SetMagnitude(stickOffset.Magnitude - self.width);
 			
-			local woundName = mo:GetEntryWoundPresetName();
-			local multiplier = math.min(math.sqrt(penetration), self.WoundDamageMultiplier);
-			local mildMultiplier = math.sqrt(multiplier);
-			local milderMultiplier = math.sqrt(mildMultiplier);
-			if woundName ~= "" then
-				local wound = CreateAEmitter(woundName);
-				wound.DamageMultiplier = multiplier;
-				wound.EmitCountLimit = math.ceil(wound.EmitCountLimit * mildMultiplier);
-				wound.Scale = wound.Scale * milderMultiplier;
-				if wound.BurstSound then
-					wound.BurstSound.Pitch = wound.BurstSound.Pitch/milderMultiplier;
-					wound.BurstSound.Volume = wound.BurstSound.Volume * milderMultiplier;
-				end
-				for em in wound.Emissions do
-					em.ParticlesPerMinute = em.ParticlesPerMinute * multiplier;
-					em.MaxVelocity = em.MaxVelocity * mildMultiplier;
-					em.MinVelocity = em.MinVelocity * mildMultiplier;
-				end
-				wound.InheritedRotAngleOffset = setAngle;
-				wound.DrawAfterParent = true;
-				mo:AddWound(wound, setOffset, true);
-			end
+			-- local woundName = mo:GetEntryWoundPresetName();
+			-- local multiplier = math.min(math.sqrt(penetration), self.WoundDamageMultiplier);
+			-- local mildMultiplier = math.sqrt(multiplier);
+			-- local milderMultiplier = math.sqrt(mildMultiplier);
+			-- if woundName ~= "" then
+				-- local wound = CreateAEmitter(woundName);
+				-- wound.DamageMultiplier = multiplier;
+				-- wound.EmitCountLimit = math.ceil(wound.EmitCountLimit * mildMultiplier);
+				-- wound.Scale = wound.Scale * milderMultiplier;
+				-- if wound.BurstSound then
+					-- wound.BurstSound.Pitch = wound.BurstSound.Pitch/milderMultiplier;
+					-- wound.BurstSound.Volume = wound.BurstSound.Volume * milderMultiplier;
+				-- end
+				-- for em in wound.Emissions do
+					-- em.ParticlesPerMinute = em.ParticlesPerMinute * multiplier;
+					-- em.MaxVelocity = em.MaxVelocity * mildMultiplier;
+					-- em.MinVelocity = em.MinVelocity * mildMultiplier;
+				-- end
+				-- wound.InheritedRotAngleOffset = setAngle;
+				-- wound.DrawAfterParent = true;
+				-- mo:AddWound(wound, setOffset, true);
+			-- end
 			
-			if penetration > 2 then
-				if penetration > 35 then
-					mo:GibThis();
-				end
-				self.disabled = true;
-				woundName = mo:GetExitWoundPresetName();
-				if woundName ~= "" then
-					local wound = CreateAEmitter(woundName);
-					wound.DamageMultiplier = multiplier;
-					wound.EmitCountLimit = math.ceil(wound.EmitCountLimit * mildMultiplier);
-					wound.Scale = wound.Scale * milderMultiplier;
-					if wound.BurstSound then
-						wound.BurstSound.Pitch = wound.BurstSound.Pitch/milderMultiplier;
-						wound.BurstSound.Volume = wound.BurstSound.Volume * milderMultiplier;
-					end
-					for em in wound.Emissions do
-						em.ParticlesPerMinute = em.ParticlesPerMinute * multiplier;
-						em.MaxVelocity = em.MaxVelocity * mildMultiplier;
-						em.MinVelocity = em.MinVelocity * mildMultiplier;
-					end
-					wound.InheritedRotAngleOffset = setAngle;
-					wound.DrawAfterParent = true;
-					mo:AddWound(wound, setOffset, true);
-				end
-			end
-		end
-		self.Vel = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude^0.9);
-	end
-	self:GibThis();
+			-- if penetration > 2 then
+				-- if penetration > 35 then
+					-- mo:GibThis();
+				-- end
+				-- self.disabled = true;
+				-- woundName = mo:GetExitWoundPresetName();
+				-- if woundName ~= "" then
+					-- local wound = CreateAEmitter(woundName);
+					-- wound.DamageMultiplier = multiplier;
+					-- wound.EmitCountLimit = math.ceil(wound.EmitCountLimit * mildMultiplier);
+					-- wound.Scale = wound.Scale * milderMultiplier;
+					-- if wound.BurstSound then
+						-- wound.BurstSound.Pitch = wound.BurstSound.Pitch/milderMultiplier;
+						-- wound.BurstSound.Volume = wound.BurstSound.Volume * milderMultiplier;
+					-- end
+					-- for em in wound.Emissions do
+						-- em.ParticlesPerMinute = em.ParticlesPerMinute * multiplier;
+						-- em.MaxVelocity = em.MaxVelocity * mildMultiplier;
+						-- em.MinVelocity = em.MinVelocity * mildMultiplier;
+					-- end
+					-- wound.InheritedRotAngleOffset = setAngle;
+					-- wound.DrawAfterParent = true;
+					-- mo:AddWound(wound, setOffset, true);
+				-- end
+			-- end
+		-- end
+		-- self.Vel = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude^0.9);
+	-- end
+	-- self:GibThis();
 	
 end
 
