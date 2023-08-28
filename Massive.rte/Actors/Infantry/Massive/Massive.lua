@@ -182,11 +182,11 @@ function Create(self)
 	self.tackleImpactMetalActorSound = CreateSoundContainer("TackleImpactMetalActor Massive", "Massive.rte");
 
 	self.accelerationFactor = 0.1;
-	self.moveMultiplier = 0.8;
-	self.walkMultiplier = 0.7;
-	self.sprintMultiplier = 1.2;
+	self.moveMultiplier = 1;
+	self.walkMultiplier = 1;
+	self.sprintMultiplier = 1.3;
 
-	self.sprintPushForceDenominator = 1.2 / 0.8
+	self.sprintPushForceDenominator = 1.1
 	
 	self.limbPathDefaultSpeed0 = self:GetLimbPathSpeed(0)
 	self.limbPathDefaultSpeed1 = self:GetLimbPathSpeed(1)
