@@ -27,26 +27,31 @@ function Create(self)
 	self.bassPreSound = CreateSoundContainer("BassPre DualSniper", "Massive.rte");
 	
 	self.reloadPrepareSounds = {}
+	self.reloadPrepareSounds.Unlock = CreateSoundContainer("UnlockPrepare DualSniper", "Massive.rte");
 	self.reloadPrepareSounds.Open = CreateSoundContainer("OpenPrepare DualSniper", "Massive.rte");
 	self.reloadPrepareSounds.RoundIn = CreateSoundContainer("RoundInPrepare DualSniper", "Massive.rte");
 	self.reloadPrepareSounds.Close = CreateSoundContainer("ClosePrepare DualSniper", "Massive.rte");
 	
 	self.reloadPrepareLengths = {}
-	self.reloadPrepareLengths.Open = 850
+	self.reloadPrepareLengths.Unlock = 400
+	self.reloadPrepareLengths.Open = 10
 	self.reloadPrepareLengths.RoundIn = 0
 	self.reloadPrepareLengths.Close = 260
 	
 	self.reloadPrepareDelay = {}
-	self.reloadPrepareDelay.Open = 950
+	self.reloadPrepareDelay.Unlock = 400
+	self.reloadPrepareDelay.Open = 210
 	self.reloadPrepareDelay.RoundIn = 30
 	self.reloadPrepareDelay.Close = 300
 	
 	self.reloadAfterSounds = {}
+	self.reloadAfterSounds.Unlock = CreateSoundContainer("Unlock DualSniper", "Massive.rte");
 	self.reloadAfterSounds.Open = CreateSoundContainer("Open DualSniper", "Massive.rte");
 	self.reloadAfterSounds.RoundIn = CreateSoundContainer("RoundIn DualSniper", "Massive.rte");
 	self.reloadAfterSounds.Close = CreateSoundContainer("Close DualSniper", "Massive.rte");
 	
 	self.reloadAfterDelay = {}
+	self.reloadAfterDelay.Unlock = 200
 	self.reloadAfterDelay.Open = 540
 	self.reloadAfterDelay.RoundIn = 600
 	self.reloadAfterDelay.Close = 300
@@ -175,6 +180,16 @@ function Update(self)
 
 			
 		if self.reloadPhase == 0 then
+			self.reloadDelay = self.reloadPrepareDelay.Unlock;
+			self.afterDelay = self.reloadAfterDelay.Unlock;		
+			
+			self.prepareSound = self.reloadPrepareSounds.Unlock;
+			self.prepareSoundLength = self.reloadPrepareLengths.Unlock;
+			self.afterSound = self.reloadAfterSounds.Unlock;
+			
+			self.rotationTarget = -5;
+			
+		elseif self.reloadPhase == 1 then
 			self.reloadDelay = self.reloadPrepareDelay.Open;
 			self.afterDelay = self.reloadAfterDelay.Open;		
 			
@@ -184,7 +199,7 @@ function Update(self)
 			
 			self.rotationTarget = -5;
 			
-		elseif self.reloadPhase == 1 then
+		elseif self.reloadPhase == 2 then
 			self.reloadDelay = self.reloadPrepareDelay.RoundIn;
 			self.afterDelay = self.reloadAfterDelay.RoundIn;		
 			
@@ -194,7 +209,7 @@ function Update(self)
 			
 			self.rotationTarget = -5;
 			
-		elseif self.reloadPhase == 2 then
+		elseif self.reloadPhase == 3 then
 			self.reloadDelay = self.reloadPrepareDelay.Close;
 			self.afterDelay = self.reloadAfterDelay.Close;		
 			
@@ -223,12 +238,25 @@ function Update(self)
 			
 			if self.reloadPhase == 0 then
 			
-				self.phaseOnStop = 0;
+				self.phaseOnStop = 0;		
+
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.1)) then
+					self.Frame = 2;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.8)) then
+					self.Frame = 1;	
+				end
 			
-				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.3)) then
-					self.Frame = 3;
+			elseif self.reloadPhase == 1 then
+			
+				self.phaseOnStop = 1;
+			
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.6)) then
+					self.Frame = 6;
 					self.phaseOnStop = 1;
 					if not self.shellsSpawned then
+					
+						self.angVel = 6
+					
 						self.shellsSpawned = true;
 						
 						for i = 1, self.shellCount - self.ammoCount do
@@ -236,22 +264,25 @@ function Update(self)
 							self.casingEjectSound:Play(self.Pos); -- supposedly it auto prevents repeats... here's hoping?
 							local shell
 							shell = CreateAEmitter("Shell DualSniper", "Massive.rte");
-							shell.Pos = self.Pos + Vector(-2 * self.FlipFactor, 0):RadRotate(self.RotAngle);
-							shell.Vel = self.Vel + Vector(-1.5*self.FlipFactor, -6):RadRotate(self.RotAngle + math.rad(5) * RangeRand(-1, 1)) * RangeRand(0.8,1.2);
+							shell.Pos = self.Pos + Vector(1 * self.FlipFactor, -1):RadRotate(self.RotAngle);
+							shell.Vel = self.Vel + Vector(-4*self.FlipFactor, -6):RadRotate(self.RotAngle + math.rad(5) * RangeRand(-1, 1)) * RangeRand(0.8,1.2);
 							shell.RotAngle = self.RotAngle;
-							shell.AngularVel = self.AngularVel + (-1*self.FlipFactor);
+							shell.AngularVel = self.AngularVel + (7*self.FlipFactor*RangeRand(0.8,1.2));
 							shell.HFlipped = self.HFlipped;
 							MovableMan:AddParticle(shell);
 						end
 					end
 					
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.3)) then
+					self.Frame = 5;
+					
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.1)) then
-					self.Frame = 2;
+					self.Frame = 4;
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.8)) then
-					self.Frame = 1;	
+					self.Frame = 3;	
 				end
 			
-			elseif self.reloadPhase == 1 then
+			elseif self.reloadPhase == 2 then
 			
 				if self.parent and self.parent:GetController():IsState(Controller.WEAPON_FIRE) then
 					self.reloadCycle = false;
@@ -273,14 +304,22 @@ function Update(self)
 					end
 				end
 				
-			elseif self.reloadPhase == 2 then
+			elseif self.reloadPhase == 3 then
 			
-				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.3)) then
+				if self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*3.1)) then
 					self.Frame = 0;
-				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.1)) then
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2.8)) then
 					self.Frame = 1;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*2.5)) then
+					self.Frame = 2;
+					self.horizontalAnim = -5;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.3)) then
+					self.Frame = 3;
+				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*1.1)) then
+					self.Frame = 4;
+					self.angVel = -6
 				elseif self.reloadTimer:IsPastSimMS(self.reloadDelay + ((self.afterDelay/5)*0.8)) then
-					self.Frame = 2;	
+					self.Frame = 5;	
 				end
 
 			end
@@ -289,16 +328,19 @@ function Update(self)
 			
 				if self.reloadPhase == 0 then
 					 
-					self.verticalAnim = 1;
+					self.horizontalAnim = 1;
 			
 				elseif self.reloadPhase == 1 then
+					 
+					self.verticalAnim = 1;
+			
+				elseif self.reloadPhase == 2 then
 				
 					self.verticalAnim = 1;
 					
-				elseif self.reloadPhase == 2 then
+				elseif self.reloadPhase == 3 then
 								
-					self.verticalAnim = -1;
-					self.angVel = -1
+					self.verticalAnim = -3;
 
 				end
 			
@@ -311,10 +353,10 @@ function Update(self)
 				self.reloadTimer:Reset();
 				self.prepareSoundPlayed = false;
 				self.afterSoundPlayed = false;
-				if self.reloadPhase == 1 and self.reloadCycle == true then
+				if self.reloadPhase == 2 and self.reloadCycle == true then
 					self.ammoCountRaised = false;
-					self.reloadPhase = 1; -- same phase baby the ride never ends (except at 2 rounds)
-				elseif self.reloadPhase == 2 then
+					self.reloadPhase = 2; -- same phase baby the ride never ends (except at 2 rounds)
+				elseif self.reloadPhase == 3 then
 					self.shellsSpawned = false;
 					self.BaseReloadTime = 0;
 					self.reloadPhase = 0;
@@ -823,7 +865,7 @@ function Update(self)
 		-- Laser
 		-- Tactical Laser!!
 		if self.laserOn == true then
-			local offset = Vector(-4 * self.FlipFactor, 0):RadRotate(self.RotAngle)
+			local offset = Vector(-2 * self.FlipFactor, -3):RadRotate(self.RotAngle)
 			local point = self.Pos + offset
 			
 			--PrimitiveMan:DrawCirclePrimitive(point, 1, 13);
