@@ -7,6 +7,7 @@ function MCADHE(actor)
 		if gun.Magazine == nil or (gun.Magazine ~= nil and gun.Magazine.PresetName ~= magSwitchName) then
 			gun:SetNextMagazineName(magSwitchName);
 			if not gun:IsReloading() then
+				gun.Reloadable = true;
 				gun:Reload();
 			end
 			gun:RemoveNumberValue("DUAP Round");
@@ -25,6 +26,7 @@ function MCADDUAP(actor)
 		if gun.Magazine == nil or (gun.Magazine ~= nil and gun.Magazine.PresetName ~= magSwitchName) then
 			gun:SetNextMagazineName(magSwitchName);
 			if not gun:IsReloading() then
+				gun.Reloadable = true;
 				gun:Reload();
 			end
 			gun:SetNumberValue("DUAP Round", 1);

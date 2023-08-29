@@ -507,7 +507,7 @@ function Update(self)
 	
 		local shot = CreateMOSRotating("Duford155 Shot", "Massive.rte");
 		shot.Pos = self.MuzzlePos;
-		shot.Vel = self.Vel + Vector(200 * self.FlipFactor,0):RadRotate(self.RotAngle);
+		shot.Vel = self.Vel + Vector(160 * self.FlipFactor,0):RadRotate(self.RotAngle);
 		shot.Team = self.Team;
 		shot.IgnoresTeamHits = true;
 		shot.Sharpness = self.UniqueID;

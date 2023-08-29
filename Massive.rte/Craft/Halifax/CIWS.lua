@@ -80,33 +80,30 @@ function Update(self)
 		else
 			self.target = nil;
 			self:EnableEmission(false);	
-			for p in MovableMan.Particles do
+			for p in MovableMan:GetMOsInRadius(self.Pos, 1000, self.Team, true) do
 				if p.ClassName == "MOSRotating" or p.ClassName == "AEmitter" then
 
 					if (p.HitsMOs) and p.Team ~= self.Team and p.Team ~= -1 and p.Vel.Magnitude > 10 then
 					
-						local dist = SceneMan:ShortestDistance(self.Pos , p.Pos,true).Magnitude;
-						if dist < 1000 then
-							local angle = SceneMan:ShortestDistance(self.Pos,p.Pos, true).AbsRadAngle;
+						local angle = SceneMan:ShortestDistance(self.Pos,p.Pos, true).AbsRadAngle;
 
+						
+						local framestotarget = math.floor(SceneMan:ShortestDistance(self.Pos,p.Pos, true).Magnitude / 180);
+						local adjustedfireposition = p.Pos + (p.Vel * framestotarget);
+						
+						local firevector = SceneMan:ShortestDistance(self.Pos,adjustedfireposition, true);					
+						
+						local terrCheck = SceneMan:CastStrengthRay(self.Pos, firevector, 30, Vector(), 5, 0, SceneMan.SceneWrapsX);
+						
+						if terrCheck == false then
 							
-							local framestotarget = math.floor(SceneMan:ShortestDistance(self.Pos,p.Pos, true).Magnitude / 180);
-							local adjustedfireposition = p.Pos + (p.Vel * framestotarget);
-							
-							local firevector = SceneMan:ShortestDistance(self.Pos,adjustedfireposition, true);					
-							
-							local terrCheck = SceneMan:CastStrengthRay(self.Pos, firevector, 30, Vector(), 5, 0, SceneMan.SceneWrapsX);
-							
-							if terrCheck == false then
-								
-								self.targetLockSound:Play(self.Pos);
-								self.target = p;
-								self.RotAngle = firevector.AbsRadAngle;
-		
-								self.fireTimer:Reset();
-								self:EnableEmission(true);		
-								self:TriggerBurst();
-							end
+							self.targetLockSound:Play(self.Pos);
+							self.target = p;
+							self.RotAngle = firevector.AbsRadAngle;
+	
+							self.fireTimer:Reset();
+							self:EnableEmission(true);		
+							self:TriggerBurst();
 						end
 					end
 				end

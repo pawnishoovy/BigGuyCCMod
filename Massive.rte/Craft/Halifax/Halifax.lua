@@ -120,7 +120,7 @@ function Update(self)
 	
 	self.plummetSound.Pos = self.Pos;
 
-	if self.plummetSoundPlayed == false and (not self.RightEngine or not self.LeftEngine) or (self:NumberValueExists("Engine Left Failed") and self:NumberValueExists("Engine Right Failed")) then
+	if self.plummetSoundPlayed == false and ((not self.RightEngine or not self.LeftEngine) or (self:NumberValueExists("Engine Left Failed") and self:NumberValueExists("Engine Right Failed"))) then
 		self.plummetSoundPlayed = true;
 		self.plummetSound:Play(self.Pos);
 		self.windLoopSound:Stop(-1);

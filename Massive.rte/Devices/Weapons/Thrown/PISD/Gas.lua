@@ -29,12 +29,12 @@ function Update(self)
 	
 		self.updateTimer:Reset();
 
-		for actor in MovableMan.Actors do
-			local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
-			if dist.Magnitude < self.effectRadius then
+		for mo in MovableMan:GetMOsInRadius(self.Pos, self.effectRadius, Activity.NOTEAM, true) do
+			if IsActor(mo) and ToActor(mo):IsOrganic() then
+				local dist = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
 				local skipPx = 1 + (dist.Magnitude * 0.01);
 				local strCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, skipPx, rte.airID);
-				if ToActor(actor):IsOrganic() and strCheck < (100/skipPx) then
+				if strCheck < (100/skipPx) then
 					table.insert(self.actorTable, actor);
 				end
 			end

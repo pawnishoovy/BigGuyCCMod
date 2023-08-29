@@ -108,14 +108,11 @@ function Create(self)
 	
 	self.extraFrameNum = 4
 	
+	self.Reloadable = false;
+	
 end
 
 function Update(self)
-
-	if UInputMan:KeyPressed(15) then
-	  PresetMan:ReloadAllScripts();
-	  self:ReloadScripts();
-	end
 
 	self.rotationTarget = 0 -- ZERO IT FIRST AAAA!!!!!
 
@@ -365,6 +362,7 @@ function Update(self)
 					self.reloadPhase = 0;
 					self.reloadingVector = nil;
 					self.spentRound = false;
+					self.Reloadable = false;
 				else
 					self.reloadPhase = self.reloadPhase + 1;
 				end
@@ -415,13 +413,22 @@ function Update(self)
 	elseif fire == false then
 		self.delayedFirstShot = true;
 	end
-	
-	self.SharpLength = self.originalSharpLength * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 1500, 1), 2.0) * 0.5) * math.pi) * -1
+	self.SharpLength = (self.originalSharpLength*0.5) + ((self.originalSharpLength*0.5) * math.sin((1 + math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / 1500, 1), 2.0) * 0.5) * math.pi) * -1)
 	
 	local recoilFactor = math.pow(math.min(self.FireTimer.ElapsedSimTimeMS / (300 * 4), 1), 2.0)
 	self.rotationTarget = self.rotationTarget + math.sin(recoilFactor * math.pi) * 13
 	
+	if self.RoundInMagCount == 0 and self.FireTimer:IsPastSimMS(500) then
+		if self.Reloadable == false then
+			self.Reloadable = true;
+		end
+	end
+	
+	
 	if self.FiredFrame then	
+	
+		self.Reloadable = false;
+		self.FireTimer:Reset();
 	
 		self:RemoveNumberValue("Switched")
 

@@ -12,7 +12,7 @@ function Create(self)
 	elseif self.AIMode == Actor.AIMODE_BOMB then
 		self.hoverAlt = self.Radius * 4
 	else
-		self.hoverAlt = self.Radius * 1.6	
+		self.hoverAlt = self.Radius * 1
 	end
 
 	self.LZpos = Vector(self.Pos.X, 100)

@@ -7,28 +7,31 @@ function Create(self)
 	self.actorTable = {};
 	local actorCount = 0;	--Diminishes the effect the more actors are affected
 	
-	for actor in MovableMan.Actors do
-		local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
-		if dist.Magnitude < self.effectRadius then
-			if IsADoor(actor) then
-				ToADoor(actor):OpenDoor();
-				actor:FlashWhite(200)
-			end
-			local skipPx = 1 + (dist.Magnitude * 0.01);
-			local strCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, skipPx, rte.airID);
-			if ToActor(actor):IsMechanical() and strCheck < (100/skipPx) then
-				--The effect is diminished by target actor mass, material strength and distance
-				local resistance = math.sqrt(math.abs(actor.Mass) + actor.Material.StructuralIntegrity + dist.Magnitude + 1) + actorCount;
-				actor:SetNumberValue("PISDEMP", math.floor(actor:GetNumberValue("PISDEMP") + self.strength/resistance));
-				actor:FlashWhite(20);
-				if self.flashScreen and actor:IsPlayerControlled() then
-					local screen = ActivityMan:GetActivity():ScreenOfPlayer(actor:GetController().Player);
-					local white, black = 254, 245;
-					FrameMan:FlashScreen(screen, white, 1000);
+	for mo in MovableMan:GetMOsInRadius(self.Pos, self.effectRadius, self.Team, true) do
+		if IsActor(mo) then
+			mo = ToActor(mo)
+			local dist = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
+			if dist.Magnitude < self.effectRadius then
+				if IsADoor(mo) then
+					ToADoor(mo):OpenDoor();
+					mo:FlashWhite(200)
 				end
-				ToActor(actor).Health = ToActor(actor).Health - ((25*15) / resistance)
-				table.insert(self.actorTable, actor);
-				actorCount = actorCount + 1;
+				local skipPx = 1 + (dist.Magnitude * 0.01);
+				local strCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, skipPx, rte.airID);
+				if mo:IsMechanical() and strCheck < (100/skipPx) then
+					--The effect is diminished by target mo mass, material strength and distance
+					local resistance = math.sqrt(math.abs(mo.Mass) + mo.Material.StructuralIntegrity + dist.Magnitude + 1) + actorCount;
+					mo:SetNumberValue("PISDEMP", math.floor(mo:GetNumberValue("PISDEMP") + self.strength/resistance));
+					mo:FlashWhite(20);
+					if self.flashScreen and mo:IsPlayerControlled() then
+						local screen = ActivityMan:GetActivity():ScreenOfPlayer(mo:GetController().Player);
+						local white, black = 254, 245;
+						FrameMan:FlashScreen(screen, white, 1000);
+					end
+					mo.Health = mo.Health - ((25*15) / resistance)
+					table.insert(self.actorTable, mo);
+					actorCount = actorCount + 1;
+				end
 			end
 		end
 	end

@@ -1,4 +1,80 @@
 
+function DufordProjCheckDamage(self)
+
+	local offset = self.Vel * rte.PxTravelledPerFrame
+	
+	local rayOrigin = self.Pos - offset
+	local rayVec = Vector(self.Vel.X,self.Vel.Y):SetMagnitude(self.Vel.Magnitude * rte.PxTravelledPerFrame + self.IndividualRadius);
+	local moCheck = SceneMan:CastMORay(rayOrigin, rayVec, self.ID, self.Team, 0, false, 2); -- Raycast
+	if moCheck ~= rte.NoMOID then	
+		local rayHitPos = SceneMan:GetLastRayHitPos()
+		local MO = MovableMan:GetMOFromID(moCheck)
+		if IsMOSRotating(MO) then
+			local hitAllowed = true;
+			if self.hitMOTable then -- this shouldn't be needed but it is
+				for index, root in pairs(self.hitMOTable) do
+					if root == MO:GetRootParent().UniqueID or index == MO.UniqueID then
+						hitAllowed = false;
+					end
+				end
+			end
+			if hitAllowed == true then
+				MO = ToMOSRotating(MO);
+				--print(MO)
+				self.hitMOTable[MO.UniqueID] = MO:GetRootParent().UniqueID;
+		
+				local woundName = ToMOSRotating(MO):GetEntryWoundPresetName();
+				local woundNameExit = ToMOSRotating(MO):GetExitWoundPresetName();
+				if string.find(MO.Material.PresetName,"Metal") or string.find(woundName,"Metal") or string.find(woundNameExit,"Metal")
+				or string.find(MO.Material.PresetName,"Stuff") or string.find(woundName,"Dent") or string.find(woundNameExit,"Dent") then
+					self.terrainSounds.Impact[178]:Play(self.Pos); -- extra juice for hitting metal
+				end
+				
+				local addWounds = true
+				
+				-- if we can gib just gib and move on with our 155mm lives, but if not...
+				local lessVel = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude/2);
+				if MO.WoundCount + 30 >= MO.GibWoundLimit then
+					local rootMO = MO:GetRootParent();
+					MO:GibThis();
+					addWounds = false;
+					if IsAttachable(MO) and ToAttachable(MO):IsAttached() and MO:GetRootParent() and IsActor(MO:GetRootParent()) then
+						ToActor(MO).Status = 1;
+						MO:GetRootParent().Vel = MO:GetRootParent().Vel + lessVel
+					end
+					if MO.UniqueID ~= rootMO.UniqueID then
+						local woundName = ToMOSRotating(rootMO):GetEntryWoundPresetName();
+						local damage = 3;
+						if woundName ~= "" then
+							local damage = CreateAEmitter(woundName).BurstDamage;
+						end
+						if IsActor(rootMO) and IsArm(MO) or IsLeg(MO) or (IsAHuman(rootMO) and ToAHuman(rootMO).Head and ToAHuman(rootMO).Head.UniqueID == MO.UniqueID) then
+							ToActor(rootMO).Health = ToActor(rootMO).Health - (damage * 15);
+						end
+					end
+				else
+					self.soundFlyLoop:Stop(-1);
+					self:GibThis();
+				end
+				
+				if addWounds == true then
+					-- Damage, create a pixel that makes a hole
+					for i = 0, 30 do
+						local pixel = CreateMOPixel("Duford155 Damage Particle", "Massive.rte");
+						pixel.Vel = self.Vel;
+						pixel.Pos = self.Pos - Vector(self.Vel.X,self.Vel.Y):SetMagnitude(self.IndividualRadius * 0.9);
+						pixel.Team = self.Team;
+						pixel.IgnoresTeamHits = true;
+						MovableMan:AddParticle(pixel);
+					end
+				end
+
+			end
+		end	
+	end
+
+end
+
 function Create(self)
 
 	self.shakenessParticle = CreateMOPixel("Shakeness Particle Massive", "Massive.rte");
@@ -48,57 +124,7 @@ function Create(self)
 			
 	-- this thing goes QUICK, better check on create too
 	
-	local offset = self.Vel * rte.PxTravelledPerFrame
-	
-	local rayOrigin = self.Pos - offset
-	local rayVec = Vector(self.Vel.X,self.Vel.Y):SetMagnitude(self.Vel.Magnitude * rte.PxTravelledPerFrame + self.IndividualRadius);
-	local moCheck = SceneMan:CastMORay(rayOrigin, rayVec, self.ID, self.Team, 0, false, 2); -- Raycast
-	if moCheck ~= rte.NoMOID then	
-		local rayHitPos = SceneMan:GetLastRayHitPos()
-		local MO = MovableMan:GetMOFromID(moCheck)
-		if IsMOSRotating(MO) then
-			local hitAllowed = true;
-			if self.hitMOTable then -- this shouldn't be needed but it is
-				for index, root in pairs(self.hitMOTable) do
-					if root == MO:GetRootParent().UniqueID or index == MO.UniqueID then
-						hitAllowed = false;
-					end
-				end
-			end
-			if hitAllowed == true then
-				MO = ToMOSRotating(MO);
-				self.hitMOTable[MO.UniqueID] = MO:GetRootParent().UniqueID;
-				
-				local addWounds = true
-				
-				-- if we can gib just gib and move on with our 155mm lives, but if not...
-				local lessVel = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude/2);
-				if MO.WoundCount + 30 >= MO.GibWoundLimit then
-					MO:GibThis();
-					addWounds = false;
-					if IsAttachable(MO) and ToAttachable(MO):IsAttached() and MO:GetRootParent() and IsActor(MO:GetRootParent()) then
-						MO:GetRootParent().Vel = MO:GetRootParent().Vel + lessVel
-					end
-				else
-					self.soundFlyLoop:Stop(-1);
-					self:GibThis();
-				end
-				
-				if addWounds == true then
-					-- Damage, create a pixel that makes a hole
-					for i = 0, 30 do
-						local pixel = CreateMOPixel("Duford155 Damage Particle", "Massive.rte");
-						pixel.Vel = self.Vel;
-						pixel.Pos = self.Pos - Vector(self.Vel.X,self.Vel.Y):SetMagnitude(self.IndividualRadius * 0.9);
-						pixel.Team = self.Team;
-						pixel.IgnoresTeamHits = true;
-						MovableMan:AddParticle(pixel);
-					end
-				end
-
-			end
-		end	
-	end
+	DufordProjCheckDamage(self);
 
 end
 
@@ -109,55 +135,7 @@ function Update(self)
 	self.soundFlyLoop.Pos = self.Pos;
 	
 	if self.Vel.Magnitude > 40 then -- Raycast
-		local rayOrigin = self.Pos
-		local rayVec = Vector(self.Vel.X,self.Vel.Y):SetMagnitude(self.Vel.Magnitude * rte.PxTravelledPerFrame + self.IndividualRadius);
-		local moCheck = SceneMan:CastMORay(rayOrigin, rayVec, self.ID, self.Team, 0, false, 2); -- Raycast
-		if moCheck ~= rte.NoMOID then	
-			local rayHitPos = SceneMan:GetLastRayHitPos()
-			local MO = MovableMan:GetMOFromID(moCheck)
-			if IsMOSRotating(MO) then
-				local hitAllowed = true;
-				if self.hitMOTable then -- this shouldn't be needed but it is
-					for index, root in pairs(self.hitMOTable) do
-						if root == MO:GetRootParent().UniqueID or index == MO.UniqueID then
-							hitAllowed = false;
-						end
-					end
-				end
-				if hitAllowed == true then
-					MO = ToMOSRotating(MO);
-					self.hitMOTable[MO.UniqueID] = MO:GetRootParent().UniqueID;
-					
-					local addWounds = true
-					
-					-- if we can gib just gib and move on with our 155mm lives, but if not...
-					local lessVel = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude/2);
-					if MO.WoundCount + 30 >= MO.GibWoundLimit then
-						MO:GibThis();
-						addWounds = false;
-						if IsAttachable(MO) and ToAttachable(MO):IsAttached() and MO:GetRootParent() and IsActor(MO:GetRootParent()) then
-							MO:GetRootParent().Vel = MO:GetRootParent().Vel + lessVel
-						end
-					else
-						self.soundFlyLoop:Stop(-1);
-						self:GibThis();
-					end
-					
-					if addWounds == true then
-						-- Damage, create a pixel that makes a hole
-						for i = 0, 30 do
-							local pixel = CreateMOPixel("Duford155 Damage Particle", "Massive.rte");
-							pixel.Vel = self.Vel;
-							pixel.Pos = self.Pos - Vector(self.Vel.X,self.Vel.Y):SetMagnitude(self.IndividualRadius * 0.9);
-							pixel.Team = self.Team;
-							pixel.IgnoresTeamHits = true;
-							MovableMan:AddParticle(pixel);
-						end
-					end
-
-				end
-			end	
-		end
+		DufordProjCheckDamage(self);
 		
 		--Flyby sound (epic haxx)
 		if self.flyby and self.flybyTimer:IsPastSimMS(80) then
@@ -213,7 +191,7 @@ function Update(self)
 				self.artilleryHandler.Mass = math.deg(self.lastRotAngle)
 				MovableMan:AddParticle(self.artilleryHandler);
 				self.exited = true;
-				print(self.artilleryHandler.Pos)
+				--print(self.artilleryHandler.Pos)
 			else
 				if self.gunParent then
 					self.gunParent:SetNumberValue("Shot Expired", 1);
@@ -257,7 +235,7 @@ end
 
 function Destroy(self)
 
-	print(self.WentToOrbit)
+	--print(self.WentToOrbit)
 
 	self.soundFlyLoop:Stop(-1);
 	if self.gunParent then
@@ -275,9 +253,9 @@ function Destroy(self)
 					self.artilleryPos = math.random(0, SceneMan.SceneWidth);
 				end
 				self.artilleryHandler.Pos = Vector(self.artilleryPos, -300);
-				print("wtf")
-				print(self.gunParent)
-				print(self.WentToOrbit)
+				-- print("wtf")
+				-- print(self.gunParent)
+				-- print(self.WentToOrbit)
 				self.artilleryHandler.Mass = math.deg(self.lastRotAngle)
 				MovableMan:AddParticle(self.artilleryHandler);
 			end

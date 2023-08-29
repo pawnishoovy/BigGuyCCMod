@@ -181,7 +181,7 @@ function Update(self)
 								if woundName ~= "" then
 									local damage = CreateAEmitter(woundName).BurstDamage;
 								end
-								if IsActor(rootMO) and IsArm(mo) or IsLeg(mo) or (IsAHuman(rootMO) and ToAHuman(rootMO).Head.UniqueID == mo.UniqueID) then
+								if IsActor(rootMO) and IsArm(mo) or IsLeg(mo) or (IsAHuman(rootMO) and ToAHuman(rootMO).Head and ToAHuman(rootMO).Head.UniqueID == mo.UniqueID) then
 									ToActor(rootMO).Health = ToActor(rootMO).Health - (damage * 15);
 								end
 								if concussiveForce > 60 then

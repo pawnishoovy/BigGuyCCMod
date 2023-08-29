@@ -746,20 +746,17 @@ function ZedmassiveAIBehaviours.handleVoicelines(self)
 			MovableMan:AddParticle(effect)
 		end
 		
-		for i = 1 , MovableMan:GetMOIDCount() - 1 do
-			local mo = MovableMan:GetMOFromID(i);
-			if mo and mo.PinStrength == 0 and mo.Team ~= self.Team then
+		for mo in MovableMan:GetMOsInRadius(self.Pos, 700, self.Team, false) do
+			if mo.PinStrength == 0 and mo.Team ~= self.Team then
 				local dist = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
-				if dist.Magnitude < 700 then
-					local strSumCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, 3, rte.airID);
-					if strSumCheck < 700 then
-						local massFactor = math.sqrt(1 + math.abs(mo.Mass));
-						local distFactor = 1 + dist.Magnitude * 0.1;
-						local forceVector =	dist:SetMagnitude((700 - strSumCheck)/distFactor);
-						mo.Vel = mo.Vel + ((forceVector/massFactor) / 2);
-						mo.AngularVel = mo.AngularVel - forceVector.X/(massFactor + math.abs(mo.AngularVel));
-						mo:AddForce(forceVector * massFactor, Vector());
-					end
+				local strSumCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, 3, rte.airID);
+				if strSumCheck < 700 then
+					local massFactor = math.sqrt(1 + math.abs(mo.Mass));
+					local distFactor = 1 + dist.Magnitude * 0.1;
+					local forceVector =	dist:SetMagnitude((700 - strSumCheck)/distFactor);
+					mo.Vel = mo.Vel + ((forceVector/massFactor) / 2);
+					mo.AngularVel = mo.AngularVel - forceVector.X/(massFactor + math.abs(mo.AngularVel));
+					mo:AddForce(forceVector * massFactor, Vector());
 				end
 			end	
 		end

@@ -56,19 +56,17 @@ function Update(self)
 	
 	-- Run the effect on Update() to give other particles a chance to reach the target
 	if self.flash then
-		for actor in MovableMan.Actors do
-			local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
-			
-			local distHead = nil
-			if actor.Head then
-				distHead = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
-			end
-			if dist.Magnitude < self.range then
-				
+		for mo in MovableMan:GetMOsInRadius(self.Pos, self.range, self.Team, true) do
+			if IsActor(mo) then
+				local actor = ToActor(mo)
+				local dist = nil
+				if actor.Head then
+					dist = SceneMan:ShortestDistance(self.Pos, actor.Head.Pos, SceneMan.SceneWrapsX);
+				else
+					dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
+				end
 				local canFlash = false
 				if SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, 3, 0) < self.strength then
-					canFlash = true
-				elseif distHead and SceneMan:CastStrengthSumRay(self.Pos, self.Pos + distHead, 3, 0) < self.strength then
 					canFlash = true
 				end
 				
