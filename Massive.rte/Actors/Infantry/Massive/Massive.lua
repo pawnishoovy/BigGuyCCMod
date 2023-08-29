@@ -177,6 +177,10 @@ function Create(self)
 	self.hitMOTable = {};
 	self.hitMOTableResetTimer = Timer();
 	
+	self.pugilismSwingSound = CreateSoundContainer("Pugilism Swing Massive", "Massive.rte");
+	self.pugilismHitMetalSound = CreateSoundContainer("Pugilism HitMetal Massive", "Massive.rte");
+	self.pugilismHitFleshSound = CreateSoundContainer("Pugilism HitFlesh Massive", "Massive.rte");
+	
 	self.tackleImpactGenericSound = CreateSoundContainer("TackleImpactGeneric Massive", "Massive.rte");
 	self.tackleImpactFleshActorSound = CreateSoundContainer("TackleImpactFleshActor Massive", "Massive.rte");
 	self.tackleImpactMetalActorSound = CreateSoundContainer("TackleImpactMetalActor Massive", "Massive.rte");
@@ -184,7 +188,7 @@ function Create(self)
 	self.accelerationFactor = 0.1;
 	self.moveMultiplier = 1;
 	self.walkMultiplier = 1;
-	self.sprintMultiplier = 1.3;
+	self.sprintMultiplier = 1.5;
 
 	self.sprintPushForceDenominator = 1.1
 	
