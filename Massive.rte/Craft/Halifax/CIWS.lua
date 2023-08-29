@@ -15,20 +15,21 @@ function Create(self)
 	self.fireTimer = Timer();
 	self.fireTimer:SetSimTimeLimitMS(200);
 	
+	self.parent = ToACDropShip(self:GetRootParent());
+	
 end
 function Update(self)
 	
-	local parent = self:GetRootParent();
-	if parent then
-		--Aim directly away from parent
-		local posTrace = SceneMan:ShortestDistance(parent.Pos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.searchRange * 0.5);
-		self.RotAngle = (math.pi * 0.5 * self.verticalFactor + posTrace.AbsRadAngle + (parent.HFlipped and math.pi or 0))/(1 + self.verticalFactor) - self.rotation;
-		if IsActor(parent) then
-			parent = ToActor(parent);
-			if parent.Status ~= Actor.STABLE then
+	if IsACDropShip(self.parent) then
+		--Aim directly away from self.parent
+		local posTrace = SceneMan:ShortestDistance(self.parent.Pos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.searchRange * 0.5);
+		self.RotAngle = (math.pi * 0.5 * self.verticalFactor + posTrace.AbsRadAngle + (self.parent.HFlipped and math.pi or 0))/(1 + self.verticalFactor) - self.rotation;
+		if IsActor(self.parent) then
+			self.parent = ToActor(self.parent);
+			if self.parent.Status ~= Actor.STABLE then
 				return;
 			end
-			local controller = parent:GetController();
+			local controller = self.parent:GetController();
 				
 			if controller:IsState(Controller.MOVE_RIGHT) then
 				self.rotation = self.rotation + self.turnSpeed;
@@ -109,6 +110,8 @@ function Update(self)
 				end
 			end
 		end
+	else
+		self:GibThis();
 	end
 	if self.fireTimer:IsPastSimTimeLimit() then
 		self:EnableEmission(false);
