@@ -103,7 +103,7 @@ function Update(self)
 				self:SetNumberValue("Pugilism Blocking", 1)
 			end
 		elseif self.pugilismState == self.pugilismStates.Blocking then
-			local blockAnim = Vector(10, -10)--:RadRotate(self:GetAimAngle(false))
+			local blockAnim = Vector(10, -10):RadRotate(self:GetAimAngle(false)/5)
 			self.pugilismArmFG.targetOffset = blockAnim
 			self.pugilismArmBG.targetOffset = blockAnim
 			
@@ -111,10 +111,10 @@ function Update(self)
 			self:RemoveNumberValue("Pugilism Attacking")
 			
 			if armFG then
-				armFG.ParentOffset = armFG.ParentOffset + ((self.pugilismArmFG.originalParentOffset + Vector(0, 1)) - armFG.ParentOffset) * TimerMan.DeltaTimeSecs * 5.5
+				armFG.ParentOffset = armFG.ParentOffset + ((self.pugilismArmFG.originalParentOffset + Vector(1, 0)) - armFG.ParentOffset) * TimerMan.DeltaTimeSecs * 5.5
 			end
 			if armBG then
-				armBG.ParentOffset = armBG.ParentOffset + ((self.pugilismArmBG.originalParentOffset + Vector(0, 1)) - armBG.ParentOffset) * TimerMan.DeltaTimeSecs * 5.5
+				armBG.ParentOffset = armBG.ParentOffset + ((self.pugilismArmBG.originalParentOffset + Vector(1, 0)) - armBG.ParentOffset) * TimerMan.DeltaTimeSecs * 5.5
 			end
 			
 			if not blocking then
@@ -138,7 +138,7 @@ function Update(self)
 					self.Vel = self.Vel + Vector(2/(1 + self.Vel.Magnitude), 0):RadRotate(self:GetAimAngle(true)) * math.abs(math.cos(self:GetAimAngle(true)));
 				end
 				
-				local attackAnim = Vector(45, 0):RadRotate(self:GetAimAngle(false)) * factor + (Vector(-10, 0) * factor*2);
+				local attackAnim = Vector(45, 0):RadRotate(self:GetAimAngle(false)) * factor + (Vector(-15, 0) * factor*2);
 				self.pugilismArmActive.targetOffset = Vector(0, -0) + attackAnim
 				arm.ParentOffset = arm.ParentOffset + ((self.pugilismArmActive.originalParentOffset + Vector(8 * math.sin((1 - factor) * math.pi), 1)) - arm.ParentOffset) * TimerMan.DeltaTimeSecs * 14.0
 				
@@ -285,8 +285,7 @@ function Update(self)
 				local vel = Vector(data.velocity.X, data.velocity.Y)
 				
 				local posTarget = self.Pos + Vector(data.targetOffset.X * self.FlipFactor, data.targetOffset.Y):RadRotate(self.RotAngle)
-				local dif = SceneMan:ShortestDistance(pos, posTarget, SceneMan.SceneWrapsX)
-				
+				local dif = SceneMan:ShortestDistance(pos, posTarget, SceneMan.SceneWrapsX)				
 				
 				
 				vel = vel + Vector(dif.X, dif.Y).Normalized * math.min(math.max((dif.Magnitude * 0.15), 0), 4) * TimerMan.DeltaTimeSecs
@@ -307,7 +306,8 @@ function Update(self)
 				
 				--PrimitiveMan:DrawCirclePrimitive(data.position, 1, 5);
 				--PrimitiveMan:DrawLinePrimitive(data.position, posTarget, 5);
-				local offset = SceneMan:ShortestDistance(self.Pos + Vector(arm.ParentOffset.X * self.FlipFactor, arm.ParentOffset.Y):RadRotate(self.RotAngle), pos + vel * rte.PxTravelledPerFrame * 0.25, SceneMan.SceneWrapsX):RadRotate(-self.RotAngle)
+				local offset = SceneMan:ShortestDistance(self.Pos + Vector(arm.ParentOffset.X * self.FlipFactor, arm.ParentOffset.Y):RadRotate(self.RotAngle),
+				pos + vel * rte.PxTravelledPerFrame * 0.25, SceneMan.SceneWrapsX):RadRotate(-self.RotAngle)
 			
 				arm.HandIdleOffset = Vector(offset.X * self.FlipFactor, offset.Y)
 			end
