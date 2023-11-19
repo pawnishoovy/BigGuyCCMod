@@ -1,3 +1,5 @@
+require("/MassiveSettings");
+
 function OnReload(self)
 
 	if self.spentRound then

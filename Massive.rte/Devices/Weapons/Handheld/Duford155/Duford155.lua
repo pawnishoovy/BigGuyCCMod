@@ -1,3 +1,5 @@
+require("/MassiveSettings");
+
 function Create(self)
 
 	if self:GetRootParent() and self:GetRootParent().PresetName == "Massive" or self:GetRootParent().PresetName == "Zedmassive" then

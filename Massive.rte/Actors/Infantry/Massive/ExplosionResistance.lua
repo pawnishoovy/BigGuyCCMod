@@ -1,3 +1,5 @@
+--[[MULTITHREAD]]--
+
 function Create(self)
 
 	self.oldWoundCount = 0;

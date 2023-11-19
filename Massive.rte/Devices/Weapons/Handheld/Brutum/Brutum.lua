@@ -1,3 +1,5 @@
+require("/MassiveSettings");
+
 function Create(self)
 
 	self.parentSet = false;

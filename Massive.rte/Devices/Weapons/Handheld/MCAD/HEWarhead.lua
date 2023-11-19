@@ -150,6 +150,12 @@ function Update(self)
 	end
 end
 
+function OnCollideWithTerrain(self)
+
+	self:GibThis();
+	
+end
+
 function Destroy(self)
 
 	self.soundFlyLoop:Stop(-1);

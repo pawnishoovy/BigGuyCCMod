@@ -44,6 +44,17 @@ function Update(self)
 	local handsEmpty = not self.EquippedItem and not self.EquippedBGItem
 	
 	if handsEmpty then
+	
+		if self.pugilismInit then	
+			self.pugilismArmFG.position = Vector(self.Pos.X, self.Pos.Y)
+			self.pugilismArmFG.velocity = Vector(0, 0)	
+			
+			self.pugilismArmBG.position = Vector(self.Pos.X, self.Pos.Y)
+			self.pugilismArmBG.velocity = Vector(0, 0)				
+	
+			self.pugilismInit = false;
+		end
+	
 		self.ArmSwingRate = 0;
 		self.FGArmFlailScalar = 0;
 		self.BGArmFlailScalar = 0;
@@ -316,8 +327,9 @@ function Update(self)
 		
 	else
 		self:RemoveNumberValue("Pugilism")
+		self.pugilismInit = true;
 		
-		self.ArmSwingRate = self.originalArmSwingRate
+		self.ArmSwingRate = self.originalArmSwingRate or 1;
 		
 		if self.BGArm then self.BGArm.MoveSpeed = self.pugilismArmBG.originalMoveSpeed
 						   self.BGArmFlailScalar = self.pugilismArmBG.originalFlailScalar

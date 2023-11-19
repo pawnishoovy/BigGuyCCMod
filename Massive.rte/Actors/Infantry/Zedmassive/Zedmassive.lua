@@ -1,3 +1,6 @@
+--[[MULTITHREAD]]--
+
+require("/MassiveSettings");
 
 dofile("Base.rte/Constants.lua")
 require("AI/NativeHumanAI")  --dofile("Base.rte/AI/NativeHumanAI.lua")
